@@ -64,12 +64,9 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .icon svg{display:block;}
 
 /* ── HEADER ── */
-.header{height:calc(var(--header-h) + var(--safe-top));padding-top:var(--safe-top);background:transparent;border-bottom:none;display:flex;align-items:flex-end;flex-shrink:0;z-index:100;}
+.header{height:calc(var(--header-h) + var(--safe-top));padding-top:var(--safe-top);background:var(--bg);border-bottom:none;display:flex;align-items:flex-end;flex-shrink:0;z-index:100;}
 .header-inner{display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 18px 12px;}
-.logo{display:flex;align-items:center;gap:9px;}
-.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,#1a6fd4,#0095cc);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(26,111,212,0.3);}
-.logo-text{font-size:19px;font-weight:800;color:var(--text);letter-spacing:-0.5px;}
-.logo-sub{font-size:10px;color:var(--text3);letter-spacing:0.3px;line-height:1;}
+.logo-text{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;}
 .bell-btn{width:38px;height:38px;border-radius:50%;background:white;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--text2);transition:background .15s;box-shadow:var(--shadow);}
 .bell-btn:active{background:var(--bg3);}
 .bell-badge{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid white;display:none;}
@@ -351,11 +348,13 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 /* ── TIMETABLE FORM ── */
 .tt-form{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:18px;margin-bottom:12px;box-shadow:var(--shadow);}
 .tt-row{display:flex;align-items:flex-end;gap:7px;margin-bottom:14px;}
-.tt-f{flex:1;}
-.stn-display-btn{width:100%;padding:15px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);text-align:left;font-size:15px;font-weight:600;color:var(--text);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;}
+.tt-f{flex:1;min-width:0;}
+.stn-display-btn{width:100%;padding:15px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);text-align:left;font-size:15px;font-weight:600;color:var(--text);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;overflow:hidden;}
 .stn-display-btn .placeholder{color:var(--text3);font-weight:400;}
 .swap-btn{width:42px;height:52px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);flex-shrink:0;}
-.tt-date{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:15px 14px;color:var(--text);font-family:inherit;font-size:15px;width:100%;outline:none;}
+.tt-date{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:15px 10px;color:var(--text);font-family:inherit;font-size:14px;width:100%;outline:none;overflow:hidden;-webkit-appearance:none;min-width:0;}
+.tt-now-btn{display:flex;align-items:center;gap:5px;padding:0 14px;background:var(--accent-lt);border:1.5px solid var(--accent);border-radius:var(--radius-sm);color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.tt-now-btn.active{background:var(--accent);color:white;}
 .srch-btn{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:4px;box-shadow:0 2px 8px rgba(26,111,212,0.2);}
 
 /* ── TT CARD ── */
@@ -413,6 +412,8 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .empty-icon{display:flex;justify-content:center;margin-bottom:12px;}
 .empty-text{font-size:15px;}
 
+.tt-card-nearest{border-color:var(--accent);border-width:1.5px;}
+.tt-nearest-tag{display:inline-flex;align-items:center;gap:4px;background:var(--accent);color:white;font-size:11px;font-weight:600;padding:3px 9px;border-radius:5px;margin-bottom:8px;}
 /* ── FAV SUB-TABS ── */
 .fav-subtabs{display:flex;gap:0;background:var(--bg3);border-radius:10px;padding:3px;margin-bottom:14px;}
 .fav-subtab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border-radius:8px;font-size:13px;font-weight:500;font-family:inherit;border:none;background:transparent;color:var(--text3);cursor:pointer;transition:all .15s;}
@@ -445,20 +446,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 <!-- HEADER -->
 <div class="header">
   <div class="header-inner">
-    <div class="logo">
-      <div class="logo-mark">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <rect x="3" y="4" width="18" height="14" rx="3" fill="white" fill-opacity="0.9"/>
-          <circle cx="8" cy="15" r="2" fill="#1a6fd4"/>
-          <circle cx="16" cy="15" r="2" fill="#1a6fd4"/>
-          <rect x="5" y="6" width="14" height="6" rx="1.5" fill="#1a6fd4"/>
-        </svg>
-      </div>
-      <div>
-        <div class="logo-text">Railshot</div>
-        <div class="logo-sub">鐵道攝影助手</div>
-      </div>
-    </div>
+    <div class="logo-text">Railshot</div>
     <div class="bell-btn" onclick="openSheet('bell-sheet')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="currentColor"/></svg>
       <div class="bell-badge" id="bell-badge"></div>
@@ -489,9 +477,15 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
         </button>
       </div>
     </div>
-    <div style="margin-bottom:11px;">
-      <div class="fld-lbl">日期</div>
-      <input type="date" class="tt-date" id="tt-date"/>
+    <div style="margin-bottom:14px;">
+      <div class="fld-lbl">日期 / 時刻</div>
+      <div style="display:flex;gap:7px;align-items:stretch;">
+        <input type="date" class="tt-date" id="tt-date" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;"/>
+        <button class="tt-now-btn" onclick="setNowTime()" id="tt-now-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
+          現在時刻
+        </button>
+      </div>
     </div>
     <div class="chips-row" id="tt-type-chips" style="margin-bottom:11px;">
       <div class="chip on" data-val="all" onclick="setChip(this,'tt-type-chips')">全部</div>
@@ -776,17 +770,24 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
       </div>
 
       <div id="lc-gps" style="display:none;">
-        <div class="card" style="text-align:center;padding:22px;margin-bottom:14px;">
-          <div style="display:flex;justify-content:center;margin-bottom:12px;">
-            <div style="width:52px;height:52px;background:var(--green-lt);border-radius:50%;display:flex;align-items:center;justify-content:center;">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="#1a9e5c"/></svg>
+        <div id="gps-panel">
+          <div style="text-align:center;padding:20px 0 16px;">
+            <div style="display:flex;justify-content:center;margin-bottom:12px;">
+              <div style="width:52px;height:52px;background:var(--green-lt);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="#1a9e5c"/></svg>
+              </div>
             </div>
+            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;">偵測目前位置</div>
+            <div style="font-size:13px;color:var(--text3);">找出距離最近的台鐵車站</div>
           </div>
-          <div style="font-size:13px;color:var(--text3);margin-bottom:4px;">偵測到附近區間</div>
-          <div style="font-size:20px;font-weight:800;color:var(--accent);">大湖－路竹間</div>
-          <div style="font-size:12px;color:var(--text3);margin-top:4px;">距離約 320m · 縱貫線</div>
+          <button class="btn-p" onclick="doGPSLocate()" id="gps-locate-btn">
+            <span style="display:flex;align-items:center;justify-content:center;gap:6px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="white"/></svg>
+              取得目前位置
+            </span>
+          </button>
+          <div id="gps-result" style="margin-top:12px;"></div>
         </div>
-        <button class="btn-p" onclick="applyLocGPS()">套用此位置</button>
       </div>
     </div>
   </div>
@@ -943,6 +944,42 @@ const TRAINS=[
   {id:8,no:'678',type:'exp3',dir:'down',from:'台北',to:'新左營',passTime:minsAdd(B,58),delay:5,
    stops:[{s:'台北',dep:minsAdd(B,-60),late:5,mj:true},{s:'台中',dep:minsAdd(B,-5),late:5,mj:true},{s:'嘉義',dep:minsAdd(B,20),late:5,mj:true},{s:'臺南',dep:minsAdd(B,45),late:5,mj:true},{s:'大湖',dep:minsAdd(B,60),late:5,mj:true},{s:'路竹',dep:minsAdd(B,67),late:4},{s:'岡山',dep:minsAdd(B,74),late:4},{s:'新左營',dep:minsAdd(B,82),late:5,mj:true}]},
 ];
+// ===== API CONFIG =====
+// 部署後把這裡換成你的 Render URL，例如：
+// const API_BASE = 'https://railshot-server.onrender.com';
+const API_BASE = '';  // 空字串 = 使用假資料模式
+
+// TDX 站名對應 StationID（供 API 查詢用）
+const TDX_ID = {
+  '基隆':'Keelung','七堵':'Qidu','八堵':'Badu','五堵':'Wudu','汐止':'Xizhi','汐科':'Xike',
+  '南港':'Nangang','松山':'Songshan','臺北':'Taipei','萬華':'Wanhua','板橋':'Banqiao',
+  '樹林':'Shulin','鶯歌':'Yingge','桃園':'Taoyuan','中壢':'Zhongli','楊梅':'Yangmei',
+  '新竹':'Hsinchu','竹南':'Zhunan','苗栗':'Miaoli','三義':'Sanyi','后里':'Houli',
+  '豐原':'Fongyuan','臺中':'Taichung','大慶':'Daqing','烏日':'Wuri','彰化':'Changhua',
+  '員林':'Yuanlin','田中':'Tianzhong','二水':'Ershui','斗六':'Douliu','嘉義':'Chiayi',
+  '新營':'Sinying','臺南':'Tainan','永康':'Yongkang','大湖':'Dahu','路竹':'Luzhu',
+  '岡山':'Gangshan','楠梓':'Nanzi','新左營':'XinZuoying','左營':'Zuoying',
+  '高雄':'Kaohsiung','鳳山':'Fengshan','後庄':'Houzhuang','九曲堂':'Jiuqutang',
+  '屏東':'Pingtung','潮州':'Chaozhou','枋寮':'Fangliao',
+  '花蓮':'Hualian','光復':'Guangfu','瑞穗':'Ruisui','玉里':'Yuli',
+  '臺東':'Taidong','關山':'Guanshan','池上':'Chishang',
+  '宜蘭':'Yilan','羅東':'Luodong','蘇澳新':'SuaoXin',
+};
+
+function getTDXId(name) {
+  return TDX_ID[name] || name;
+}
+
+// TDX TrainTypeCode → 我們的 type key
+const TDX_TYPE_MAP = {
+  '1':'tze','2':'moc','3':'exp','4':'exp3','10':'local','11':'localx',
+  '100':'puy', // 普悠瑪有時是獨立代碼
+};
+function tdxTypeToKey(code) {
+  // 太魯閣=1, 普悠瑪 有時以車次判斷
+  return TDX_TYPE_MAP[String(code)] || 'exp';
+}
+
 const TT_TRAINS=[
   {no:'4501',type:'exp3',dep:'07:30',arr:'09:20',dur:'1h50',delay:0,from:'台北',to:'台中'},
   {no:'123', type:'exp3',dep:'08:12',arr:'10:01',dur:'1h49',delay:2,from:'台北',to:'台中'},
@@ -1226,22 +1263,200 @@ function applyLocFav(id){
   document.getElementById('loc-mode-display').textContent=f.type==='between'?'兩站之間':'單一車站';
   closeSheet('loc-sheet');
 }
-function applyLocGPS(){
-  document.getElementById('loc-display').textContent='大湖－路竹間';
-  document.getElementById('loc-mode-display').textContent='目前位置 · GPS';
+// ===== STATION COORDINATES (台鐵主要車站 GPS 座標) =====
+const STN_COORDS = [
+  {n:'基隆',lat:25.1308,lng:121.7401},{n:'三坑',lat:25.1121,lng:121.7183},{n:'八堵',lat:25.0946,lng:121.7013},
+  {n:'七堵',lat:25.0772,lng:121.6945},{n:'五堵',lat:25.0647,lng:121.6803},{n:'汐止',lat:25.0646,lng:121.6641},
+  {n:'汐科',lat:25.0595,lng:121.6509},{n:'南港',lat:25.0552,lng:121.6070},{n:'松山',lat:25.0497,lng:121.5776},
+  {n:'臺北',lat:25.0477,lng:121.5170},{n:'萬華',lat:25.0341,lng:121.4996},{n:'板橋',lat:25.0136,lng:121.4637},
+  {n:'浮洲',lat:24.9994,lng:121.4456},{n:'樹林',lat:24.9886,lng:121.4210},{n:'山佳',lat:24.9768,lng:121.3989},
+  {n:'鶯歌',lat:24.9546,lng:121.3445},{n:'桃園',lat:24.9892,lng:121.3137},{n:'內壢',lat:24.9700,lng:121.2836},
+  {n:'中壢',lat:24.9541,lng:121.2255},{n:'埔心',lat:24.9311,lng:121.1875},{n:'楊梅',lat:24.9143,lng:121.1426},
+  {n:'富岡',lat:24.8905,lng:121.0943},{n:'北湖',lat:24.8742,lng:121.0638},{n:'湖口',lat:24.8641,lng:121.0383},
+  {n:'新豐',lat:24.8895,lng:120.9997},{n:'竹北',lat:24.8384,lng:121.0044},{n:'新竹',lat:24.8017,lng:120.9716},
+  {n:'三姓橋',lat:24.7721,lng:120.9596},{n:'香山',lat:24.7440,lng:120.9410},{n:'崎頂',lat:24.7026,lng:120.9183},
+  {n:'竹南',lat:24.6861,lng:120.8743},{n:'造橋',lat:24.6527,lng:120.8488},{n:'豐富',lat:24.5878,lng:120.8267},
+  {n:'苗栗',lat:24.5600,lng:120.8198},{n:'南勢',lat:24.5132,lng:120.8221},{n:'銅鑼',lat:24.4887,lng:120.8060},
+  {n:'三義',lat:24.4313,lng:120.7636},{n:'泰安',lat:24.3863,lng:120.7450},{n:'后里',lat:24.3510,lng:120.7048},
+  {n:'豐原',lat:24.2360,lng:120.7204},{n:'潭子',lat:24.2122,lng:120.7092},{n:'臺中',lat:24.1368,lng:120.6854},
+  {n:'大慶',lat:24.1178,lng:120.6648},{n:'烏日',lat:24.0964,lng:120.6399},{n:'新烏日',lat:24.0933,lng:120.6277},
+  {n:'彰化',lat:24.0816,lng:120.5387},{n:'員林',lat:23.9584,lng:120.5688},{n:'田中',lat:23.8659,lng:120.5638},
+  {n:'二水',lat:23.8137,lng:120.6193},{n:'林內',lat:23.7592,lng:120.6050},{n:'斗六',lat:23.7099,lng:120.5417},
+  {n:'斗南',lat:23.6817,lng:120.4817},{n:'嘉義',lat:23.4787,lng:120.4320},{n:'水上',lat:23.4193,lng:120.4118},
+  {n:'後壁',lat:23.3622,lng:120.3535},{n:'新營',lat:23.3075,lng:120.3189},{n:'柳營',lat:23.2661,lng:120.3030},
+  {n:'林鳳營',lat:23.2320,lng:120.2938},{n:'隆田',lat:23.2028,lng:120.2864},{n:'善化',lat:23.1442,lng:120.3028},
+  {n:'新市',lat:23.0820,lng:120.3076},{n:'永康',lat:23.0430,lng:120.2728},{n:'臺南',lat:22.9978,lng:120.2018},
+  {n:'保安',lat:22.9578,lng:120.1916},{n:'仁德',lat:22.9373,lng:120.2196},{n:'大湖',lat:22.8830,lng:120.2375},
+  {n:'路竹',lat:22.8555,lng:120.2587},{n:'岡山',lat:22.7963,lng:120.2967},{n:'橋頭',lat:22.7558,lng:120.3110},
+  {n:'楠梓',lat:22.7289,lng:120.3227},{n:'新左營',lat:22.6868,lng:120.3047},{n:'左營',lat:22.6858,lng:120.2899},
+  {n:'高雄',lat:22.6389,lng:120.3019},{n:'鳳山',lat:22.6271,lng:120.3602},{n:'後庄',lat:22.6167,lng:120.4100},
+  {n:'九曲堂',lat:22.6017,lng:120.4523},{n:'六塊厝',lat:22.6748,lng:120.4860},{n:'屏東',lat:22.6680,lng:120.4913},
+  {n:'歸來',lat:22.6471,lng:120.5027},{n:'麟洛',lat:22.6264,lng:120.5254},{n:'西勢',lat:22.6103,lng:120.5459},
+  {n:'竹田',lat:22.5891,lng:120.5591},{n:'潮州',lat:22.5492,lng:120.5460},{n:'崁頂',lat:22.5118,lng:120.5309},
+  {n:'南州',lat:22.4791,lng:120.5191},{n:'枋寮',lat:22.3800,lng:120.6049},
+  {n:'花蓮',lat:23.9998,lng:121.6011},{n:'吉安',lat:23.9736,lng:121.5869},{n:'志學',lat:23.9338,lng:121.5729},
+  {n:'壽豐',lat:23.8680,lng:121.5442},{n:'光復',lat:23.6814,lng:121.4421},{n:'瑞穗',lat:23.4957,lng:121.3713},
+  {n:'玉里',lat:23.3369,lng:121.3063},{n:'富里',lat:23.1959,lng:121.2534},
+  {n:'臺東',lat:22.7552,lng:121.1468},{n:'鹿野',lat:23.0000,lng:121.1486},{n:'關山',lat:23.0499,lng:121.1611},
+  {n:'池上',lat:23.1108,lng:121.2180},
+  {n:'礁溪',lat:24.8234,lng:121.7718},{n:'宜蘭',lat:24.7526,lng:121.7524},{n:'羅東',lat:24.6754,lng:121.7677},
+  {n:'蘇澳新',lat:24.5975,lng:121.8423},{n:'蘇澳',lat:24.5887,lng:121.8536},
+  {n:'中洲',lat:23.0049,lng:120.1913},{n:'沙崙',lat:23.0033,lng:120.1764},
+];
+
+function distKm(lat1,lng1,lat2,lng2){
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function findNearestStations(lat, lng, n=3){
+  return STN_COORDS
+    .map(s=>({...s, dist:distKm(lat,lng,s.lat,s.lng)}))
+    .sort((a,b)=>a.dist-b.dist)
+    .slice(0,n);
+}
+
+let gpsNearest = null;
+function doGPSLocate(){
+  const btn = document.getElementById('gps-locate-btn');
+  const result = document.getElementById('gps-result');
+  if(!navigator.geolocation){
+    result.innerHTML=`<div style="background:var(--red-lt);border-radius:var(--radius-sm);padding:12px;text-align:center;font-size:13px;color:var(--red);">此裝置不支援 GPS 定位</div>`;
+    return;
+  }
+  btn.innerHTML=`<span style="display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" fill="white"/></svg> 定位中...</span>`;
+  btn.disabled = true;
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      const {latitude:lat, longitude:lng} = pos.coords;
+      const nearest = findNearestStations(lat, lng, 3);
+      gpsNearest = nearest[0];
+      btn.innerHTML=`<span style="display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="white"/></svg> 重新定位</span>`;
+      btn.disabled = false;
+      result.innerHTML=`
+        <div style="font-size:12px;color:var(--text3);margin-bottom:8px;text-align:center;">
+          偵測到你的位置，附近台鐵車站：
+        </div>
+        ${nearest.map((s,i)=>`
+          <div style="background:${i===0?'var(--accent-lter)':'var(--bg)'};border:${i===0?'1.5px solid var(--accent)':'1px solid var(--border)'};border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="applyGPSStation('${s.n}')">
+            <div>
+              <div style="font-size:15px;font-weight:${i===0?'700':'500'};color:${i===0?'var(--accent)':'var(--text)'};">${i===0?'📍 ':''}${s.n}站</div>
+              <div style="font-size:12px;color:var(--text3);margin-top:2px;">距離約 ${s.dist<1?(s.dist*1000).toFixed(0)+'m':s.dist.toFixed(1)+'km'}</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="${i===0?'var(--accent)':'#8a9db8'}"/></svg>
+          </div>`).join('')}`;
+    },
+    err=>{
+      btn.innerHTML=`<span style="display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="white"/></svg> 重試</span>`;
+      btn.disabled = false;
+      const msgs = {1:'請在設定中允許定位權限',2:'定位逾時，請再試一次',3:'無法取得位置資訊'};
+      result.innerHTML=`<div style="background:var(--red-lt);border-radius:var(--radius-sm);padding:12px;text-align:center;font-size:13px;color:var(--red);">${msgs[err.code]||'定位失敗'}</div>`;
+    },
+    {timeout:10000, enableHighAccuracy:true}
+  );
+}
+function applyGPSStation(name){
+  document.getElementById('loc-display').textContent = name+'站';
+  document.getElementById('loc-mode-display').textContent = '目前位置 · GPS';
   closeSheet('loc-sheet');
 }
-function doSearch(){
+function applyLocGPS(){
+  if(gpsNearest){
+    applyGPSStation(gpsNearest.n);
+  } else {
+    document.getElementById('loc-display').textContent='大湖－路竹間';
+    document.getElementById('loc-mode-display').textContent='目前位置 · GPS';
+    closeSheet('loc-sheet');
+  }
+}
+async function doSearch(){
   const dv=document.querySelector('#dir-chips .chip.on').dataset.val;
   const tv=document.querySelector('#type-chips .chip.on').dataset.val;
+  const loc=document.getElementById('loc-display').textContent;
+  const locMode=document.getElementById('loc-mode-display').textContent;
+  document.getElementById('res-loc').textContent=loc;
+  document.getElementById('shoot-results').style.display='block';
+
+  // 時間範圍（分鐘）
+  const timeRange = parseInt(document.querySelector('#time-chips .chip.on')?.dataset.val||'60');
+
+  // ── 真實 API 模式 ──────────────────────────────────
+  if(API_BASE && loc && !loc.includes('設定')) {
+    document.getElementById('train-list').innerHTML=
+      `<div style="text-align:center;padding:2rem 0;color:var(--text3);"><div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
+    try {
+      // 取出車站名稱（單站或兩站間取第一站）
+      const stnName = loc.replace('站','').split('－')[0].trim();
+      const stnId = getTDXId(stnName);
+      const today = new Date().toISOString().split('T')[0];
+      const resp = await fetch(`${API_BASE}/api/station/${stnId}/${today}`);
+      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+
+      // 即時誤點
+      let liveMap={};
+      try{
+        const lr=await fetch(`${API_BASE}/api/live`);
+        const ld=await lr.json();
+        (ld.TrainLiveBoards||[]).forEach(t=>{liveMap[t.TrainNo]=t.DelayTime||0;});
+      }catch(e){}
+
+      const nowStr = tStr(NOW.getHours(), NOW.getMinutes());
+      const cutoff = minsAdd(NOW, timeRange);
+
+      const list = (data.TrainTimetables||[]).map((tt,idx)=>{
+        const info=tt.TrainInfo||{};
+        const stops=tt.StopTimes||[];
+        // 找到該站的到站時間
+        const stnStop=stops.find(s=>(s.StationName||{}).Zh_tw===stnName);
+        const passTime = stnStop
+          ? (stnStop.ArrivalTime||stnStop.DepartureTime||'00:00')
+          : (stops[0]?.DepartureTime||'00:00');
+        if(passTime<nowStr||passTime>cutoff) return null;
+
+        let typeKey=tdxTypeToKey(String(info.TrainTypeCode||'3'));
+        const typeName=(info.TrainTypeName||{}).Zh_tw||'';
+        if(typeName.includes('普悠瑪')) typeKey='puy';
+        if(typeName.includes('太魯閣')) typeKey='tze';
+
+        // 方向
+        const dir = info.Direction===0?'down':'up';
+        const trainNo = info.TrainNo||'';
+        const delay = liveMap[trainNo]||0;
+
+        return {
+          id:idx, no:trainNo, type:typeKey, dir,
+          from:(info.StartingStationName||{}).Zh_tw||'',
+          to:(info.EndingStationName||{}).Zh_tw||'',
+          passTime, delay,
+          stops:stops.map(s=>({
+            s:(s.StationName||{}).Zh_tw||'',
+            dep:s.DepartureTime||s.ArrivalTime||'',
+            late:delay,mj:MAJOR.has((s.StationName||{}).Zh_tw||'')
+          }))
+        };
+      }).filter(Boolean)
+        .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||t.type===tv))
+        .sort((a,b)=>a.passTime.localeCompare(b.passTime));
+
+      document.getElementById('res-count').textContent=list.length+' 班';
+      renderTrainList(list);
+      return;
+    } catch(e) {
+      document.getElementById('train-list').innerHTML=
+        `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-sm);padding:14px;color:var(--red);font-size:14px;">
+          ⚠️ API 查詢失敗：${e.message}
+        </div>`;
+      return;
+    }
+  }
+
+  // ── 假資料模式 ────────────────────────────────────
   const list=TRAINS
     .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||t.type===tv))
     .sort((a,b)=>a.passTime.localeCompare(b.passTime));
-  const loc=document.getElementById('loc-display').textContent;
-  document.getElementById('res-loc').textContent=loc;
   document.getElementById('res-count').textContent=list.length+' 班';
   renderTrainList(list);
-  document.getElementById('shoot-results').style.display='block';
 }
 function filterTrains(){
   if(document.getElementById('shoot-results').style.display==='none')return;
@@ -1320,6 +1535,18 @@ function openDetail(id){
 function closeDetail(){document.getElementById('detail-page').classList.remove('open');}
 
 // ===== TIMETABLE =====
+let ttNowMode = false;
+function setNowTime(){
+  ttNowMode = !ttNowMode;
+  const btn = document.getElementById('tt-now-btn');
+  if(ttNowMode){
+    btn.classList.add('active');
+    // Set date to today
+    document.getElementById('tt-date').valueAsDate = new Date();
+  } else {
+    btn.classList.remove('active');
+  }
+}
 function swapTT(){
   const a=document.getElementById('tt-from-lbl'),b=document.getElementById('tt-to-lbl');
   const tmp=a.textContent;a.textContent=b.textContent;b.textContent=tmp;
@@ -1347,19 +1574,128 @@ function toggleTTFav(no, event){
 const HEART_FULL = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>`;
 const HEART_EMPTY = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" fill="currentColor"/></svg>`;
 
-function searchTT(){
+function calcDurStr(dep, arr) {
+  const [dh,dm]=dep.split(':').map(Number);
+  const [ah,am]=arr.split(':').map(Number);
+  let mins=(ah*60+am)-(dh*60+dm);
+  if(mins<0) mins+=1440;
+  const h=Math.floor(mins/60), m=mins%60;
+  return h ? `${h}h${String(m).padStart(2,'0')}` : `${m}分`;
+}
+
+async function searchTT(){
   const tv=document.querySelector('#tt-type-chips .chip.on').dataset.val;
-  let list=TT_TRAINS.filter(t=>tv==='all'||t.type===tv).sort((a,b)=>a.dep.localeCompare(b.dep));
   const el=document.getElementById('tt-results');
-  if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon" style="display:flex;justify-content:center;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="#8a9db8"/></svg></div><div class="empty-text">查無班次</div></div>';return;}
-  el.innerHTML=list.map(t=>{
-    const ti=TYPE_INFO[t.type];
+  const nowStr = tStr(NOW.getHours(), NOW.getMinutes());
+  const dateVal = document.getElementById('tt-date').value;
+
+  const fromLbl = document.getElementById('tt-from-lbl');
+  const toLbl = document.getElementById('tt-to-lbl');
+  const fromName = fromLbl.classList.contains('placeholder') ? '' : fromLbl.textContent;
+  const toName = toLbl.classList.contains('placeholder') ? '' : toLbl.textContent;
+
+  // ── 真實 API 模式 ──────────────────────────────────
+  if(API_BASE && fromName && toName) {
+    el.innerHTML=`<div style="text-align:center;padding:2rem 0;color:var(--text3);">
+      <div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
+    try {
+      const fromId = getTDXId(fromName);
+      const toId = getTDXId(toName);
+      const resp = await fetch(`${API_BASE}/api/od/${fromId}/${toId}/${dateVal}`);
+      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      const timetables = data.TrainTimetables || [];
+
+      // 取得即時誤點
+      let liveMap = {};
+      try {
+        const liveResp = await fetch(`${API_BASE}/api/live`);
+        const liveData = await liveResp.json();
+        (liveData.TrainLiveBoards||[]).forEach(t => {
+          liveMap[t.TrainNo] = t.DelayTime || 0;
+        });
+      } catch(e) {}
+
+      let list = timetables.map(tt => {
+        const info = tt.TrainInfo || {};
+        const stops = tt.StopTimes || [];
+        const dep = stops[0];
+        const arr = stops[stops.length-1];
+        if(!dep||!arr) return null;
+        const depTime = dep.DepartureTime || dep.ArrivalTime || '??:??';
+        const arrTime = arr.ArrivalTime || arr.DepartureTime || '??:??';
+        const typeCode = String(info.TrainTypeCode||'3');
+        const trainNo = info.TrainNo || '';
+        // 普悠瑪 / 太魯閣 由車種名稱判斷
+        let typeKey = tdxTypeToKey(typeCode);
+        const typeName = (info.TrainTypeName||{}).Zh_tw || '';
+        if(typeName.includes('普悠瑪')) typeKey='puy';
+        if(typeName.includes('太魯閣')) typeKey='tze';
+        return {
+          no: trainNo, type: typeKey,
+          dep: depTime, arr: arrTime,
+          dur: calcDurStr(depTime, arrTime),
+          delay: liveMap[trainNo] || 0,
+          from: (info.StartingStationName||{}).Zh_tw || fromName,
+          to: (info.EndingStationName||{}).Zh_tw || toName,
+          stops: stops.map(s=>({
+            s:(s.StationName||{}).Zh_tw||'',
+            dep:s.DepartureTime||s.ArrivalTime||'',
+            late:liveMap[trainNo]||0,
+            mj:MAJOR.has((s.StationName||{}).Zh_tw||'')
+          }))
+        };
+      }).filter(Boolean);
+
+      // 車種篩選
+      if(tv!=='all') list=list.filter(t=>t.type===tv);
+      // 排序
+      list.sort((a,b)=>a.dep.localeCompare(b.dep));
+      // 現在時刻篩選
+      if(ttNowMode){
+        const fut=list.filter(t=>t.dep>=nowStr);
+        if(fut.length) list=fut;
+      }
+
+      renderTTList(list, false);
+      return;
+    } catch(e) {
+      el.innerHTML=`<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-sm);padding:14px;color:var(--red);font-size:14px;margin-bottom:12px;">
+        ⚠️ API 查詢失敗：${e.message}<br>
+        <span style="font-size:12px;opacity:0.8;">請確認 Render Server 是否正常運作</span>
+      </div>`;
+      return;
+    }
+  }
+
+  // ── 假資料模式（API_BASE 未設定）──────────────────
+  let list=TT_TRAINS.filter(t=>tv==='all'||t.type===tv).sort((a,b)=>a.dep.localeCompare(b.dep));
+  if(ttNowMode){
+    const fut=list.filter(t=>t.dep>=nowStr);
+    if(fut.length) list=fut;
+  }
+  renderTTList(list, true);
+}
+
+function renderTTList(list, isMock) {
+  const el=document.getElementById('tt-results');
+  const nearestIdx = ttNowMode ? 0 : -1;
+
+  const mockBanner = isMock ? `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" fill="#f9a825"/></svg>
+    <div style="font-size:12px;color:#7a5500;line-height:1.5;">目前為<strong>示範資料</strong>，請設定 API_BASE 後重新部署以顯示真實班次。</div>
+  </div>` : '';
+
+  if(!list.length){el.innerHTML=mockBanner+`<div class="empty-state"><div class="empty-text">查無班次</div></div>`;return;}
+
+  el.innerHTML=mockBanner+list.map((t,idx)=>{
+    const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
     const faved=isTTFaved(t.no);
-    return `<div class="tt-card" onclick="openTTDetail('${t.no}')">
-      <button class="tt-heart-btn${faved?' liked':''}" onclick="toggleTTFav('${t.no}',event)" aria-label="${faved?'移除收藏':'加入收藏'}">
-        ${faved ? HEART_FULL : HEART_EMPTY}
-      </button>
-      <div class="tt-top" style="padding-right:32px;">
+    const isNearest=idx===nearestIdx;
+    return `<div class="tt-card${isNearest?' tt-card-nearest':''}" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+      ${isNearest?`<div class="tt-nearest-tag">最近班次</div>`:''}
+      <button class="tt-heart-btn${faved?' liked':''}" onclick="toggleTTFavObj(${JSON.stringify(t).replace(/"/g,'&quot;')},event)">${faved?HEART_FULL:HEART_EMPTY}</button>
+      <div class="tt-top" style="padding-right:36px;">
         <div class="tt-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:17px;">→</span> ${t.arr}</div>
         <div class="tt-dur">${t.dur}</div>
       </div>
@@ -1370,6 +1706,43 @@ function searchTT(){
       <div class="tt-route">${t.from} → ${t.to}${t.delay>0?` <span style="color:var(--orange);font-size:12px;font-weight:600;">誤點 +${t.delay}分</span>`:''}</div>
     </div>`;
   }).join('');
+}
+
+function openTTDetailObj(t){
+  if(typeof t==='string') t=JSON.parse(t);
+  const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
+  document.getElementById('det-hdr-title').textContent=ti.label+' '+t.no;
+  const stopsHtml = (t.stops||[]).map(s=>`
+    <div class="stop-item">
+      <div class="stop-dot${s.mj?' mj':''}"></div>
+      <span class="sname${s.mj?' mj':''}">${s.s}</span>
+      <span class="stime">${s.dep}${s.late>0?`<span class="slate"> +${s.late}</span>`:''}</span>
+    </div>`).join('');
+  document.getElementById('det-body').innerHTML=`
+    <div style="margin-bottom:8px;">
+      <span class="badge ${ti.cls}" style="font-size:12px;padding:4px 11px;margin-bottom:10px;display:inline-block;">${ti.label}</span>
+      <div class="det-no">${t.no}</div>
+      <div class="det-route">${t.from} → ${t.to}</div>
+    </div>
+    <div class="det-time">${t.dep}</div>
+    <div class="det-lbl">出發 · 抵達 ${t.arr}（${t.dur}）</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="info-row"><span class="ik">誤點</span><span class="iv" style="color:${t.delay>0?'var(--orange)':'var(--green)'}">${t.delay>0?'+'+t.delay+' 分':'準點'}</span></div>
+    </div>
+    ${stopsHtml?`<div class="sec">停靠站時刻</div><div class="stop-list">${stopsHtml}</div>`:''}
+    <div class="act-btns"><button class="btn-s" onclick="closeDetail()">← 返回</button></div>`;
+  document.getElementById('detail-page').classList.add('open');
+}
+
+function toggleTTFavObj(t, event){
+  event.stopPropagation();
+  if(typeof t==='string') t=JSON.parse(t);
+  const idx=ttFavs.findIndex(f=>f.no===t.no);
+  if(idx>-1) ttFavs.splice(idx,1);
+  else ttFavs.push({...t, savedAt:Date.now()});
+  saveTTFavs();
+  searchTT();
+  renderTTFavs();
 }
 
 function renderTTFavs(){
