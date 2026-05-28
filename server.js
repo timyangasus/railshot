@@ -118,6 +118,16 @@ app.get('/api/od/:from/:to/:date', async (req, res) => {
     const data = await tdxWithRetry(
       `/api/basic/v3/Rail/TRA/DailyTrainTimetable/OD/${fromId}/to/${toId}/${date}?$format=JSON`
     );
+
+    // 二次驗證：確保每班車的停靠站列表中真的包含出發站
+    if (data.TrainTimetables) {
+      data.TrainTimetables = data.TrainTimetables.filter(tt => {
+        const stops = tt.StopTimes || [];
+        return stops.some(s => String(s.StationID || '') === String(fromId));
+      });
+      console.log(`After filter: ${data.TrainTimetables.length} trains actually stop at ${from}(${fromId})`);
+    }
+
     res.json(data);
   } catch (e) {
     console.error('OD error:', e.message);
@@ -158,7 +168,19 @@ app.get('/api/stations', async (req, res) => {
   }
 });
 
-// 啟動時預載車站資料
+// ── 5. 單一車次完整停靠站 ────────────────────────────
+app.get('/api/train/:trainNo/:date', async (req, res) => {
+  try {
+    const { trainNo, date } = req.params;
+    const data = await tdxWithRetry(
+      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainNo/${trainNo}/${date}?$format=JSON`
+    );
+    res.json(data);
+  } catch (e) {
+    console.error('Train error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
 app.listen(PORT, async () => {
   console.log(`Railshot proxy running on port ${PORT}`);
   try {
