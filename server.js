@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,6 +9,9 @@ const CLIENT_SECRET = process.env.TDX_CLIENT_SECRET;
 
 app.use(cors());
 app.use(express.json());
+
+// 提供靜態檔案（index.html、icon.svg、manifest.json）
+app.use(express.static(path.join(__dirname)));
 
 // ── Token cache ──────────────────────────────────────
 let cachedToken = null;

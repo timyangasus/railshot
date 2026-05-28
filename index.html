@@ -6,8 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="apple-mobile-web-app-title" content="Railshot"/>
-<meta name="theme-color" content="#ffffff"/>
+<meta name="theme-color" content="#1a6fd4"/>
 <title>Railshot</title>
+<link rel="apple-touch-icon" href="icon.svg"/>
+<link rel="manifest" href="manifest.json"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -945,9 +947,7 @@ const TRAINS=[
    stops:[{s:'台北',dep:minsAdd(B,-60),late:5,mj:true},{s:'台中',dep:minsAdd(B,-5),late:5,mj:true},{s:'嘉義',dep:minsAdd(B,20),late:5,mj:true},{s:'臺南',dep:minsAdd(B,45),late:5,mj:true},{s:'大湖',dep:minsAdd(B,60),late:5,mj:true},{s:'路竹',dep:minsAdd(B,67),late:4},{s:'岡山',dep:minsAdd(B,74),late:4},{s:'新左營',dep:minsAdd(B,82),late:5,mj:true}]},
 ];
 // ===== API CONFIG =====
-// 部署後把這裡換成你的 Render URL，例如：
-// const API_BASE = 'https://railshot-server.onrender.com';
-const API_BASE = '';  // 空字串 = 使用假資料模式
+const API_BASE = 'https://railshot.onrender.com';
 
 // TDX 站名對應 StationID（供 API 查詢用）
 const TDX_ID = {
