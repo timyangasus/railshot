@@ -970,16 +970,16 @@ function getTDXId(name) {
 const TDX_TYPE_MAP = {
   '1': 'tze',    // 太魯閣
   '2': 'puy',    // 普悠瑪
-  '3': 'exp',    // 自強（EMU推拉式）
+  '3': 'exp',    // 自強（推拉式）
   '4': 'exp',    // 自強（柴推）
   '5': 'exp3',   // 自強3000（EMU3000）
   '6': 'local',  // 區間車
   '7': 'localx', // 區間快
   '8': 'moc',    // 莒光
-  '9': 'moc',    // 復興（已停駛，用莒光顯示）
-  '10': 'local', // 區間車
-  '11': 'localx',// 區間快
-  '12': 'exp',   // 自強（另）
+  '9': 'moc',    // 復興（已停駛）
+  '10': 'localx', // 區間快
+  '11': 'exp3',  // 自強3000（EMU3000）← 實際 log 確認
+  '12': 'local', // 區間車
 };
 function tdxTypeToKey(code) {
   return TDX_TYPE_MAP[String(code)] || 'exp';
@@ -1480,7 +1480,11 @@ async function doSearch(){
         let typeKey=tdxTypeToKey(String(info.TrainTypeCode||'3'));
         const typeName=(info.TrainTypeName||{}).Zh_tw||'';
         if(typeName.includes('普悠瑪')) typeKey='puy';
-        if(typeName.includes('太魯閣')) typeKey='tze';
+        else if(typeName.includes('太魯閣')) typeKey='tze';
+        else if(typeName.includes('EMU3000') || typeName.includes('3000')) typeKey='exp3';
+        else if(typeName.includes('莒光')) typeKey='moc';
+        else if(typeName.includes('區間快')) typeKey='localx';
+        else if(typeName.includes('區間')) typeKey='local';
 
         // 方向
         const dir = info.Direction===0?'down':'up';
@@ -1712,8 +1716,13 @@ async function searchTT(){
         const trainNo = info.TrainNo || '';
         let typeKey = tdxTypeToKey(typeCode);
         const typeName = (info.TrainTypeName||{}).Zh_tw || '';
+        // 用 typeName 做更精確判斷
         if(typeName.includes('普悠瑪')) typeKey='puy';
-        if(typeName.includes('太魯閣')) typeKey='tze';
+        else if(typeName.includes('太魯閣')) typeKey='tze';
+        else if(typeName.includes('EMU3000') || typeName.includes('3000')) typeKey='exp3';
+        else if(typeName.includes('莒光')) typeKey='moc';
+        else if(typeName.includes('區間快')) typeKey='localx';
+        else if(typeName.includes('區間')) typeKey='local';
         return {
           no: trainNo, type: typeKey,
           dep: depTime, arr: arrTime,
