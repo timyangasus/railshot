@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Railshot"/>
+<meta name="theme-color" content="#ffffff"/>
+<title>Railshot</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f0f4fa;
+  --bg2:#ffffff;
+  --bg3:#e8eef8;
+  --bg4:#dde6f5;
+  --card:#ffffff;
+  --card2:#f5f8ff;
+  --border:#dde6f5;
+  --border2:#c8d8ef;
+  --text:#1a2540;
+  --text2:#4a6080;
+  --text3:#8a9db8;
+  --accent:#1a6fd4;
+  --accent-lt:#e8f1fd;
+  --accent-lter:#f0f6ff;
+  --green:#1a9e5c;
+  --green-lt:#e8f8ef;
+  --red:#d43030;
+  --red-lt:#fdeaea;
+  --orange:#c06010;
+  --orange-lt:#fff3e0;
+  /* Train type badge colors */
+  --exp3:#0077cc;      /* 自強3000: 藍色 */
+  --exp3-lt:#deeeff;
+  --puy:#cc2020;       /* 普悠瑪: 紅色 */
+  --puy-lt:#fde8e8;
+  --tze:#d44a00;       /* 太魯閣: 橘色 */
+  --tze-lt:#fff0e8;
+  --exp:#8a6400;       /* 自強: 深黃 */
+  --exp-lt:#fff8d6;
+  --moc:#c05800;       /* 莒光: 淺橘 */
+  --moc-lt:#fff0e0;
+  --localx:#5a8a00;    /* 區間快: 黃綠 */
+  --localx-lt:#edf7d0;
+  --local:#1a9e5c;     /* 區間: 綠色 */
+  --local-lt:#e8f8ef;
+  --shadow:0 1px 4px rgba(26,64,128,0.08);
+  --shadow-md:0 2px 12px rgba(26,64,128,0.12);
+  --tab-h:80px;
+  --header-h:56px;
+  --safe-top:env(safe-area-inset-top,44px);
+  --safe-bot:env(safe-area-inset-bottom,20px);
+  --radius:14px;
+  --radius-sm:10px;
+  --radius-xs:7px;
+}
+html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-system,'SF Pro Text','Helvetica Neue',system-ui,sans-serif;overflow:hidden;}
+#app{max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--bg);}
+
+/* ── SVG ICON SYSTEM ── */
+.icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.icon svg{display:block;}
+
+/* ── HEADER ── */
+.header{height:calc(var(--header-h) + var(--safe-top));padding-top:var(--safe-top);background:white;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;flex-shrink:0;z-index:100;box-shadow:var(--shadow);}
+.header-inner{display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 18px 12px;}
+.logo{display:flex;align-items:center;gap:9px;}
+.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,#1a6fd4,#0095cc);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(26,111,212,0.3);}
+.logo-text{font-size:19px;font-weight:800;color:var(--text);letter-spacing:-0.5px;}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:0.3px;line-height:1;}
+.bell-btn{width:38px;height:38px;border-radius:50%;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--text2);transition:background .15s;}
+.bell-btn:active{background:var(--bg3);}
+.bell-badge{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid white;display:none;}
+
+/* ── TABS ── */
+.tab-bar{height:calc(var(--tab-h) + var(--safe-bot));padding-bottom:var(--safe-bot);background:white;border-top:1px solid var(--border);display:flex;align-items:flex-start;padding-top:6px;z-index:100;flex-shrink:0;box-shadow:0 -1px 4px rgba(26,64,128,0.06);}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;color:var(--text3);transition:color .2s;}
+.tab-item.active{color:var(--accent);}
+.tab-icon{width:26px;height:26px;display:flex;align-items:center;justify-content:center;}
+.tab-label{font-size:10px;font-weight:500;letter-spacing:0.1px;}
+.tab-active-bar{width:20px;height:2.5px;border-radius:2px;background:var(--accent);margin-top:1px;opacity:0;transition:opacity .2s;}
+.tab-item.active .tab-active-bar{opacity:1;}
+
+/* ── SCREENS ── */
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:none;flex-direction:column;}
+.screen.active{display:flex;}
+.sc{padding:14px 14px 20px;}
+
+/* ── CHIPS ── */
+.chips-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.chips-row::-webkit-scrollbar{display:none;}
+.chip{padding:6px 13px;border-radius:20px;font-size:12px;font-weight:500;border:1.5px solid var(--border2);background:white;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;box-shadow:var(--shadow);}
+.chip.on{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 2px 8px rgba(26,111,212,0.25);}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);}
+.sec{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.7px;text-transform:uppercase;margin-bottom:7px;margin-top:14px;}
+.sec:first-child{margin-top:0;}
+
+/* ── LOCATION BAR ── */
+.loc-bar{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:13px 15px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);}
+.loc-bar:active{background:var(--bg3);}
+.loc-name{font-size:16px;font-weight:700;color:var(--text);}
+.loc-mode{font-size:11px;color:var(--text3);margin-top:2px;}
+
+/* ── BADGE COLORS ── */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:0.1px;}
+.b-exp3{background:var(--exp3-lt);color:var(--exp3);}
+.b-puy{background:var(--puy-lt);color:var(--puy);}
+.b-tze{background:var(--tze-lt);color:var(--tze);}
+.b-exp{background:var(--exp-lt);color:var(--exp);}
+.b-moc{background:var(--moc-lt);color:var(--moc);}
+.b-localx{background:var(--localx-lt);color:var(--localx);}
+.b-local{background:var(--local-lt);color:var(--local);}
+
+/* ── TRAIN CARD ── */
+.train-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:14px 15px;margin-bottom:9px;cursor:pointer;position:relative;overflow:hidden;transition:box-shadow .15s,border-color .15s;box-shadow:var(--shadow);}
+.train-card:active{background:var(--bg);}
+.train-card::before{display:none;}
+.dir-up::before{display:none;}
+.dir-down::before{display:none;}
+.tc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.tc-time{font-size:32px;font-weight:900;letter-spacing:-2px;line-height:1;color:var(--text);}
+.tc-cd{border-radius:20px;padding:4px 11px;font-size:12px;font-weight:600;}
+.tc-cd.wait{background:var(--accent-lt);color:var(--accent);}
+.tc-cd.soon{background:var(--red-lt);color:var(--red);}
+.tc-cd.passed{background:var(--bg3);color:var(--text3);}
+.tc-mid{display:flex;align-items:center;gap:7px;margin-bottom:7px;flex-wrap:wrap;}
+.dir-tag{font-size:11px;padding:2px 8px;border-radius:5px;font-weight:600;}
+.dir-tag.up{background:var(--accent-lt);color:var(--accent);}
+.dir-tag.down{background:var(--orange-lt);color:var(--orange);}
+.tc-route{font-size:13px;color:var(--text2);margin-bottom:5px;}
+.tc-bot{display:flex;align-items:center;justify-content:space-between;}
+.tc-loc{font-size:12px;color:var(--text3);}
+.tc-delay{font-size:12px;font-weight:600;color:var(--orange);}
+.tc-ok{font-size:12px;font-weight:500;color:var(--green);}
+.tno{font-size:13px;font-weight:600;color:var(--text);}
+.rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.rt{font-size:14px;font-weight:600;color:var(--text2);}
+.rc{font-size:13px;color:var(--text3);}
+
+/* ── SHEET ── */
+.sheet-ov{position:absolute;inset:0;background:rgba(30,50,90,0.35);z-index:200;display:none;align-items:flex-end;backdrop-filter:blur(2px);}
+.sheet-ov.open{display:flex;}
+.sheet{background:white;border-radius:22px 22px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding-bottom:calc(16px + var(--safe-bot));}
+.sh-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;}
+.sh-hdr{padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.sh-title{font-size:17px;font-weight:700;color:var(--text);}
+.sh-close{width:30px;height:30px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);}
+.sh-body{padding:14px 18px;}
+
+/* ── STATION PICKER ── */
+/* ── LOC SHEET: compact mode tabs ── */
+.loc-mode-row{
+  display:flex;gap:6px;margin-bottom:16px;
+}
+.loc-mode-tab{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:5px;
+  padding:8px 4px;border-radius:8px;font-size:12px;font-weight:500;
+  font-family:inherit;cursor:pointer;
+  border:1.5px solid var(--border2);background:white;color:var(--text2);
+  transition:all .15s;
+}
+.loc-mode-tab svg{flex-shrink:0;}
+.loc-mode-tab.active{
+  background:var(--accent);color:white;border-color:var(--accent);
+  font-weight:600;box-shadow:0 2px 6px rgba(26,111,212,0.25);
+}
+
+/* Large station selector button */
+.loc-stn-big-btn{
+  width:100%;display:flex;align-items:center;gap:14px;
+  padding:16px 16px;background:var(--bg);
+  border:1.5px solid var(--border2);border-radius:var(--radius);
+  cursor:pointer;font-family:inherit;text-align:left;
+  transition:border-color .15s,background .15s;
+}
+.loc-stn-big-btn:active{background:var(--bg3);}
+.loc-stn-big-btn:has(.loc-stn-big-name:not(:empty)):not([data-empty]){
+  border-color:var(--accent);
+}
+.loc-stn-big-icon{
+  width:40px;height:40px;border-radius:10px;
+  background:var(--accent-lt);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.loc-stn-big-label{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:3px;letter-spacing:0.3px;}
+.loc-stn-big-name{font-size:17px;font-weight:700;color:var(--text);}
+.loc-stn-big-name.placeholder-name{font-size:14px;font-weight:400;color:var(--text3);}
+
+/* ── FULL-PAGE STATION PICKER ── */
+.stn-page{position:absolute;inset:0;background:white;z-index:210;display:none;flex-direction:column;}
+.stn-page.open{display:flex;}
+
+/* Top bar: blue header with back / title / confirm */
+.stn-page-hdr{
+  padding:calc(var(--safe-top) + 4px) 0 0;
+  background:var(--accent);
+  flex-shrink:0;
+}
+.stn-page-topbar{
+  display:flex;align-items:center;height:50px;padding:0 4px;
+}
+.stn-page-back{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:white;flex-shrink:0;
+}
+.stn-page-title{
+  flex:1;text-align:center;font-size:17px;font-weight:600;color:white;
+}
+.stn-page-actions{
+  display:flex;align-items:center;gap:4px;padding-right:6px;
+}
+.stn-page-search-btn{
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  color:white;cursor:pointer;
+}
+.stn-page-confirm{
+  padding:4px 10px;font-size:15px;font-weight:600;color:white;
+  cursor:pointer;background:none;border:none;font-family:inherit;
+}
+
+/* Selected station display row */
+.stn-page-sel-row{
+  display:flex;align-items:stretch;gap:0;padding:8px 14px 14px;
+}
+.stn-sel-wrap{flex:1;display:flex;flex-direction:column;}
+.stn-sel-label{
+  font-size:12px;font-weight:600;
+  text-align:center;margin-bottom:5px;letter-spacing:0.3px;
+  color:rgba(255,255,255,0.55);
+  transition:color .15s;
+}
+.stn-sel-wrap.active .stn-sel-label{
+  color:white;
+}
+.stn-sel-box{
+  background:white;border-radius:8px;padding:9px 12px;
+  min-height:48px;display:flex;align-items:center;justify-content:center;
+  border:2.5px solid transparent;
+  transition:border-color .15s,opacity .15s;
+  cursor:pointer;opacity:0.72;
+}
+.stn-sel-wrap.active .stn-sel-box{
+  border-color:white;
+  opacity:1;
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
+.stn-sel-name{font-size:17px;font-weight:700;color:var(--accent);}
+.stn-sel-placeholder{font-size:14px;color:#aab;}
+.stn-swap-wrap{
+  width:44px;display:flex;align-items:center;justify-content:center;
+  padding-top:20px;
+}
+.stn-swap-icon{
+  color:white;cursor:pointer;padding:6px;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0.85;
+}
+
+/* Two-column body */
+.stn-body{display:flex;flex:1;overflow:hidden;}
+
+/* LEFT: county list ~40% width, light grey bg */
+.stn-county-col{
+  width:38%;background:#f5f5f5;border-right:1px solid #e0e0e0;
+  overflow-y:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;
+}
+.stn-county-item{
+  padding:15px 12px;font-size:15px;font-weight:400;color:#333;
+  cursor:pointer;border-bottom:0.5px solid #e8e8e8;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:background .1s;position:relative;
+}
+.stn-county-item:active{background:#eaeaea;}
+.stn-county-item.sel{
+  color:var(--accent);font-weight:600;background:#f5f5f5;
+}
+.stn-county-check{
+  color:var(--accent);flex-shrink:0;
+  display:flex;align-items:center;
+}
+
+/* RIGHT: station list */
+.stn-list-col{
+  flex:1;overflow-y:auto;background:white;
+  -webkit-overflow-scrolling:touch;
+}
+.stn-list-item{
+  padding:14px 18px;font-size:15px;font-weight:400;color:#333;
+  border-bottom:0.5px solid #ebebeb;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:background .1s;
+}
+.stn-list-item:active{background:#f5f5f5;}
+.stn-list-item.sel{color:var(--accent);font-weight:600;}
+.stn-list-item.major-stn{font-weight:500;}
+.stn-list-check{color:var(--accent);display:flex;align-items:center;}
+.stn-empty-col{
+  padding:48px 16px;text-align:center;
+  color:#aaa;font-size:14px;line-height:1.6;
+}
+.slider-wrap{padding:4px 0 12px;}
+.slider-wrap input[type=range]{width:100%;-webkit-appearance:none;height:5px;border-radius:3px;background:var(--border2);outline:none;}
+.slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);border:3px solid white;box-shadow:0 1px 4px rgba(26,111,212,0.3);}
+.slider-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:6px;}
+.fld-lbl{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.3px;text-transform:uppercase;margin-bottom:5px;}
+
+/* ── DETAIL PAGE ── */
+.detail-page{position:absolute;inset:0;background:var(--bg);z-index:150;display:none;flex-direction:column;overflow:hidden;}
+.detail-page.open{display:flex;}
+.det-hdr{padding:calc(var(--safe-top) + 8px) 18px 13px;background:white;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0;box-shadow:var(--shadow);}
+.back-btn{display:flex;align-items:center;gap:4px;color:var(--accent);font-size:15px;font-weight:500;cursor:pointer;}
+.det-body{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding:18px 14px;}
+.det-time{font-size:48px;font-weight:900;letter-spacing:-3px;color:var(--accent);line-height:1;}
+.det-lbl{font-size:12px;color:var(--text3);margin-bottom:18px;margin-top:2px;}
+.det-no{font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:2px;}
+.det-route{font-size:15px;color:var(--text2);margin-bottom:12px;}
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);}
+.info-row:last-child{border-bottom:none;}
+.ik{font-size:13px;color:var(--text3);}
+.iv{font-size:13px;font-weight:600;color:var(--text);}
+.stop-list{margin-top:6px;}
+.stop-item{display:flex;align-items:flex-start;gap:12px;padding:7px 0;position:relative;}
+.stop-item:not(:last-child)::after{content:'';position:absolute;left:7px;top:18px;width:2px;height:calc(100%);background:var(--border2);}
+.stop-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border2);background:var(--bg);flex-shrink:0;z-index:1;margin-top:1px;}
+.stop-dot.mj{border-color:var(--accent);background:var(--accent-lt);}
+.sname{flex:1;font-size:14px;color:var(--text);}
+.sname.mj{font-weight:600;}
+.stime{font-size:13px;color:var(--text2);}
+.slate{font-size:11px;color:var(--orange);margin-left:2px;}
+.act-btns{display:flex;flex-direction:column;gap:8px;margin-top:20px;padding-bottom:20px;}
+.btn-p{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(26,111,212,0.25);}
+.btn-s{background:white;color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;width:100%;}
+
+/* ── TIMETABLE FORM ── */
+.tt-form{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:15px;margin-bottom:12px;box-shadow:var(--shadow);}
+.tt-row{display:flex;align-items:flex-end;gap:7px;margin-bottom:11px;}
+.tt-f{flex:1;}
+.stn-display-btn{width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);text-align:left;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;}
+.stn-display-btn .placeholder{color:var(--text3);font-weight:400;}
+.swap-btn{width:36px;height:40px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);flex-shrink:0;}
+.tt-date{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;color:var(--text);font-family:inherit;font-size:14px;width:100%;outline:none;}
+.srch-btn{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:13px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:2px;box-shadow:0 2px 8px rgba(26,111,212,0.2);}
+
+/* ── TT CARD ── */
+.tt-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:13px 15px;margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow);transition:box-shadow .15s;}
+.tt-card:active{background:var(--bg);}
+.tt-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.tt-times{font-size:21px;font-weight:800;letter-spacing:-0.5px;color:var(--text);}
+.tt-dur{font-size:12px;color:var(--text3);}
+.tt-mid{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.tt-route{font-size:13px;color:var(--text2);}
+
+/* ── FAVS ── */
+.fav-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:15px;margin-bottom:10px;box-shadow:var(--shadow);}
+.fav-name{font-size:16px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.fav-meta{font-size:12px;color:var(--text3);margin-bottom:9px;}
+.fav-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:11px;}
+.fav-tag{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-size:11px;color:var(--text2);}
+.fav-go{background:var(--accent-lt);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:9px;text-align:center;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;}
+
+/* ── SETTINGS ── */
+.sg{background:white;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);}
+.si{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;border-bottom:1px solid var(--border);}
+.si:last-child{border-bottom:none;}
+.si-left{display:flex;align-items:center;gap:10px;}
+.si-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.sk{font-size:15px;color:var(--text);}
+.sv{font-size:13px;color:var(--text3);}
+.sv.ok{color:var(--green);font-weight:500;}
+
+/* ── BELL CENTER ── */
+.bell-sec{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase;margin:14px 0 6px;}
+.bell-item{background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border);padding:12px 13px;margin-bottom:6px;}
+.bell-top{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
+.bdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.bdot.w{background:var(--accent);}
+.bdot.n{background:var(--green);}
+.bdot.e{background:var(--text3);}
+.btrain{font-size:14px;font-weight:600;flex:1;color:var(--text);}
+.bstat{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:500;}
+.bstat.w{background:var(--accent-lt);color:var(--accent);}
+.bstat.n{background:var(--green-lt);color:var(--green);}
+.bstat.e{background:var(--bg3);color:var(--text3);}
+.binfo{font-size:12px;color:var(--text3);}
+
+/* ── ALERT ── */
+.alert-ov{position:absolute;inset:0;background:rgba(20,40,90,0.4);z-index:300;display:none;align-items:center;justify-content:center;padding:22px;backdrop-filter:blur(4px);}
+.alert-ov.open{display:flex;}
+.alert-box{background:white;border-radius:20px;width:100%;padding:26px 20px;box-shadow:0 8px 32px rgba(26,64,128,0.18);}
+.al-icon{width:56px;height:56px;border-radius:50%;background:var(--accent-lt);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.al-title{font-size:19px;font-weight:700;text-align:center;margin-bottom:5px;color:var(--text);}
+.al-sub{font-size:14px;color:var(--text2);text-align:center;margin-bottom:22px;white-space:pre-line;}
+.al-btns{display:flex;flex-direction:column;gap:8px;}
+
+.empty-state{text-align:center;padding:48px 20px;color:var(--text3);}
+.empty-icon{display:flex;justify-content:center;margin-bottom:12px;}
+.empty-text{font-size:15px;}
+
+/* ── FAV SUB-TABS ── */
+.fav-subtabs{display:flex;gap:0;background:var(--bg3);border-radius:10px;padding:3px;margin-bottom:14px;}
+.fav-subtab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border-radius:8px;font-size:13px;font-weight:500;font-family:inherit;border:none;background:transparent;color:var(--text3);cursor:pointer;transition:all .15s;}
+.fav-subtab.active{background:white;color:var(--accent);font-weight:600;box-shadow:var(--shadow);}
+
+/* ── TT CARD HEART ── */
+.tt-card{position:relative;}
+.tt-heart-btn{position:absolute;top:11px;right:11px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:transparent;border:none;cursor:pointer;color:var(--text3);transition:color .15s,transform .15s;z-index:2;}
+.tt-heart-btn:active{transform:scale(0.82);}
+.tt-heart-btn.liked{color:var(--red);}
+.tt-fav-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:13px 15px;margin-bottom:8px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;}
+.tt-fav-body{flex:1;min-width:0;}
+.tt-fav-times{font-size:18px;font-weight:800;letter-spacing:-0.5px;color:var(--text);margin-bottom:5px;}
+.tt-fav-mid{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.tt-fav-route{font-size:13px;color:var(--text2);}
+.tt-fav-del{width:34px;height:34px;border-radius:50%;background:var(--red-lt);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+
+/* ── ANIMATIONS ── */
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.sheet-ov.open .sheet{animation:slideUp .3s cubic-bezier(.32,.72,0,1)}
+.detail-page.open{animation:fadeIn .2s ease}
+.alert-ov.open .alert-box{animation:scaleIn .22s cubic-bezier(.32,.72,0,1)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="4" width="18" height="14" rx="3" fill="white" fill-opacity="0.9"/>
+          <circle cx="8" cy="15" r="2" fill="#1a6fd4"/>
+          <circle cx="16" cy="15" r="2" fill="#1a6fd4"/>
+          <rect x="5" y="6" width="14" height="6" rx="1.5" fill="#1a6fd4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">Railshot</div>
+        <div class="logo-sub">鐵道攝影助手</div>
+      </div>
+    </div>
+    <div class="bell-btn" onclick="openSheet('bell-sheet')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="currentColor"/></svg>
+      <div class="bell-badge" id="bell-badge"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 1: 時刻表 (FIRST) -->
+<div class="screen active" id="tab-tt">
+<div class="sc">
+  <div class="tt-form">
+    <div class="tt-row">
+      <div class="tt-f">
+        <div class="fld-lbl">出發站</div>
+        <button class="stn-display-btn" onclick="openStnPicker('tt-from')">
+          <span id="tt-from-lbl" class="placeholder">選擇車站</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5z" fill="#8a9db8"/></svg>
+        </button>
+      </div>
+      <div class="swap-btn" onclick="swapTT()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" fill="#1a6fd4"/></svg>
+      </div>
+      <div class="tt-f">
+        <div class="fld-lbl">到達站</div>
+        <button class="stn-display-btn" onclick="openStnPicker('tt-to')">
+          <span id="tt-to-lbl" class="placeholder">選擇車站</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5z" fill="#8a9db8"/></svg>
+        </button>
+      </div>
+    </div>
+    <div style="margin-bottom:11px;">
+      <div class="fld-lbl">日期</div>
+      <input type="date" class="tt-date" id="tt-date"/>
+    </div>
+    <div class="chips-row" id="tt-type-chips" style="margin-bottom:11px;">
+      <div class="chip on" data-val="all" onclick="setChip(this,'tt-type-chips')">全部</div>
+      <div class="chip" data-val="exp3" onclick="setChip(this,'tt-type-chips')">自強3000</div>
+      <div class="chip" data-val="puy" onclick="setChip(this,'tt-type-chips')">普悠瑪</div>
+      <div class="chip" data-val="tze" onclick="setChip(this,'tt-type-chips')">太魯閣</div>
+      <div class="chip" data-val="exp" onclick="setChip(this,'tt-type-chips')">自強</div>
+      <div class="chip" data-val="moc" onclick="setChip(this,'tt-type-chips')">莒光</div>
+      <div class="chip" data-val="localx" onclick="setChip(this,'tt-type-chips')">區間快</div>
+      <div class="chip" data-val="local" onclick="setChip(this,'tt-type-chips')">區間</div>
+    </div>
+    <button class="srch-btn" onclick="searchTT()">查詢班次</button>
+  </div>
+  <div id="tt-results"></div>
+</div>
+</div>
+
+<!-- TAB 2: 拍車 (SECOND) -->
+<div class="screen" id="tab-shoot">
+<div class="sc">
+  <div class="sec">拍攝點</div>
+  <div class="loc-bar" onclick="openSheet('loc-sheet')">
+    <div>
+      <div class="loc-name" id="loc-display">單一車站</div>
+      <div class="loc-mode" id="loc-mode-display">點此設定拍攝點</div>
+    </div>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+  </div>
+
+  <div class="sec">時間範圍</div>
+  <div class="chips-row" id="time-chips">
+    <div class="chip" data-val="30" onclick="setChip(this,'time-chips')">30 分</div>
+    <div class="chip on" data-val="60" onclick="setChip(this,'time-chips')">1 小時</div>
+    <div class="chip" data-val="120" onclick="setChip(this,'time-chips')">2 小時</div>
+    <div class="chip" data-val="custom" onclick="setChip(this,'time-chips')">自訂</div>
+  </div>
+
+  <div class="sec" style="margin-top:12px;">方向</div>
+  <div class="chips-row" id="dir-chips">
+    <div class="chip on" data-val="all" onclick="setChip(this,'dir-chips');filterTrains()">全部</div>
+    <div class="chip" data-val="up" onclick="setChip(this,'dir-chips');filterTrains()">↑ 上行</div>
+    <div class="chip" data-val="down" onclick="setChip(this,'dir-chips');filterTrains()">↓ 下行</div>
+  </div>
+
+  <div class="sec" style="margin-top:12px;">車種</div>
+  <div class="chips-row" id="type-chips">
+    <div class="chip on" data-val="all" onclick="setChip(this,'type-chips');filterTrains()">全部</div>
+    <div class="chip" data-val="exp3" onclick="setChip(this,'type-chips');filterTrains()">自強3000</div>
+    <div class="chip" data-val="puy" onclick="setChip(this,'type-chips');filterTrains()">普悠瑪</div>
+    <div class="chip" data-val="tze" onclick="setChip(this,'type-chips');filterTrains()">太魯閣</div>
+    <div class="chip" data-val="exp" onclick="setChip(this,'type-chips');filterTrains()">自強</div>
+    <div class="chip" data-val="moc" onclick="setChip(this,'type-chips');filterTrains()">莒光</div>
+    <div class="chip" data-val="localx" onclick="setChip(this,'type-chips');filterTrains()">區間快</div>
+    <div class="chip" data-val="local" onclick="setChip(this,'type-chips');filterTrains()">區間</div>
+  </div>
+
+  <div style="margin-top:14px;">
+    <button class="btn-p" onclick="doSearch()">
+      <span style="display:flex;align-items:center;justify-content:center;gap:6px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="white"/></svg>
+        查詢列車
+      </span>
+    </button>
+  </div>
+
+  <div id="shoot-results" style="margin-top:16px;display:none;">
+    <div class="rh">
+      <div class="rt" id="res-loc"></div>
+      <div class="rc" id="res-count"></div>
+    </div>
+    <div id="train-list"></div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 3: 收藏 -->
+<div class="screen" id="tab-fav">
+<div class="sc">
+  <!-- Sub-tab switcher -->
+  <div class="fav-subtabs">
+    <button class="fav-subtab active" id="fst-tt" onclick="switchFavSubTab('tt',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
+      時刻表
+    </button>
+    <button class="fav-subtab" id="fst-shoot" onclick="switchFavSubTab('shoot',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 15.2A3.2 3.2 0 0 1 8.8 12 3.2 3.2 0 0 1 12 8.8 3.2 3.2 0 0 1 15.2 12 3.2 3.2 0 0 1 12 15.2M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z" fill="currentColor"/></svg>
+      拍車
+    </button>
+  </div>
+  <!-- TT Favs -->
+  <div id="fav-tt-panel">
+    <div id="fav-tt-list"></div>
+  </div>
+  <!-- Shoot Favs -->
+  <div id="fav-shoot-panel" style="display:none;">
+    <div id="fav-list"></div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 4: 設定 -->
+<div class="screen" id="tab-settings">
+<div class="sc">
+  <div class="sec">權限與狀態</div>
+  <div class="sg">
+    <div class="si">
+      <div class="si-left">
+        <div class="si-icon" style="background:#e8f1fd;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#1a6fd4"/></svg>
+        </div>
+        <span class="sk">定位權限</span>
+      </div>
+      <span class="sv ok">已授權</span>
+    </div>
+    <div class="si">
+      <div class="si-left">
+        <div class="si-icon" style="background:#e8f1fd;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="#1a6fd4"/></svg>
+        </div>
+        <span class="sk">通知權限</span>
+      </div>
+      <span class="sv ok">已授權</span>
+    </div>
+    <div class="si">
+      <div class="si-left">
+        <div class="si-icon" style="background:#e8f8ef;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1a9e5c" stroke-width="2"/><path d="M8 12l3 3 5-5" stroke="#1a9e5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="sk">API 狀態</span>
+      </div>
+      <span class="sv ok">TDX 已連線</span>
+    </div>
+    <div class="si">
+      <div class="si-left">
+        <div class="si-icon" style="background:#f0f4fa;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="#8a9db8"/></svg>
+        </div>
+        <span class="sk">資料更新</span>
+      </div>
+      <span class="sv">剛剛</span>
+    </div>
+  </div>
+  <div class="sec">預設值</div>
+  <div class="sg">
+    <div class="si"><div class="si-left"><div class="si-icon" style="background:#f0f4fa;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="#8a9db8"/></svg></div><span class="sk">預設時間範圍</span></div><span class="sv">1 小時 〉</span></div>
+    <div class="si"><div class="si-left"><div class="si-icon" style="background:#fff3e0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="#c06010"/></svg></div><span class="sk">預設提醒時間</span></div><span class="sv">通過前 5 分鐘 〉</span></div>
+    <div class="si"><div class="si-left"><div class="si-icon" style="background:#e8f1fd;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" stroke="#1a6fd4" stroke-width="2"/><path d="M3 9h18" stroke="#1a6fd4" stroke-width="2"/></svg></div><span class="sk">預設車種篩選</span></div><span class="sv">全部 〉</span></div>
+  </div>
+  <div class="sec">關於</div>
+  <div class="sg">
+    <div class="si"><div class="si-left"><div class="si-icon" style="background:#e8f1fd;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" fill="#1a6fd4" fill-opacity="0.15"/><circle cx="8" cy="15" r="1.5" fill="#1a6fd4"/><circle cx="16" cy="15" r="1.5" fill="#1a6fd4"/><rect x="5" y="6" width="14" height="5" rx="1" fill="#1a6fd4"/></svg></div><span class="sk">Railshot</span></div><span class="sv">v1.0.0</span></div>
+    <div class="si"><div class="si-left"><div class="si-icon" style="background:#e8f8ef;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1a9e5c" stroke-width="2"/><path d="M8 12l3 3 5-5" stroke="#1a9e5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="sk">資料來源</span></div><span class="sv">TDX 交通部</span></div>
+  </div>
+</div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <div class="tab-item active" onclick="switchTab('tt',this)" id="tbtn-tt">
+    <div class="tab-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
+    </div>
+    <div class="tab-label">時刻表</div>
+    <div class="tab-active-bar"></div>
+  </div>
+  <div class="tab-item" onclick="switchTab('shoot',this)" id="tbtn-shoot">
+    <div class="tab-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 15.2A3.2 3.2 0 0 1 8.8 12 3.2 3.2 0 0 1 12 8.8 3.2 3.2 0 0 1 15.2 12 3.2 3.2 0 0 1 12 15.2M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15a5 5 0 0 1-5-5 5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5z" fill="currentColor"/></svg>
+    </div>
+    <div class="tab-label">拍車</div>
+    <div class="tab-active-bar"></div>
+  </div>
+  <div class="tab-item" onclick="switchTab('fav',this)" id="tbtn-fav">
+    <div class="tab-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
+    </div>
+    <div class="tab-label">收藏</div>
+    <div class="tab-active-bar"></div>
+  </div>
+  <div class="tab-item" onclick="switchTab('settings',this)" id="tbtn-settings">
+    <div class="tab-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/></svg>
+    </div>
+    <div class="tab-label">設定</div>
+    <div class="tab-active-bar"></div>
+  </div>
+</div>
+
+<!-- SHEET: 提醒中心 -->
+<div class="sheet-ov" id="bell-sheet" onclick="closeOv(event,'bell-sheet')">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-hdr">
+      <div class="sh-title">提醒中心</div>
+      <div class="sh-close" onclick="closeSheet('bell-sheet')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+      </div>
+    </div>
+    <div class="sh-body" id="bell-body"></div>
+  </div>
+</div>
+
+<!-- SHEET: 拍攝點 -->
+<div class="sheet-ov" id="loc-sheet" onclick="closeOv(event,'loc-sheet')">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-hdr">
+      <div class="sh-title">選擇拍攝點</div>
+      <div class="sh-close" onclick="closeSheet('loc-sheet')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+      </div>
+    </div>
+    <div class="sh-body">
+      <!-- Mode selector: compact horizontal tabs -->
+      <div class="loc-mode-row">
+        <button class="loc-mode-tab active" id="mb-single" onclick="setLocMode('single')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
+          單一車站
+        </button>
+        <button class="loc-mode-tab" id="mb-between" onclick="setLocMode('between')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 11h12.17l-5.59-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4v-2z" fill="currentColor"/></svg>
+          兩站之間
+        </button>
+        <button class="loc-mode-tab" id="mb-gps" onclick="setLocMode('gps')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="currentColor"/></svg>
+          GPS
+        </button>
+      </div>
+
+      <!-- Single station mode -->
+      <div id="lc-single">
+        <button class="loc-stn-big-btn" id="lc-single-stn-btn" onclick="openLocStnPage('single')">
+          <div class="loc-stn-big-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
+          </div>
+          <div>
+            <div class="loc-stn-big-label">選擇車站</div>
+            <div class="loc-stn-big-name" id="lc-single-stn-lbl">尚未選擇</div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
+        </button>
+        <button class="btn-p" onclick="applyLocSingle()" style="margin-top:12px;">套用</button>
+      </div>
+
+      <!-- Between mode -->
+      <div id="lc-between" style="display:none;">
+        <button class="loc-stn-big-btn" onclick="openLocStnPage('b1')">
+          <div class="loc-stn-big-icon" style="background:var(--accent-lt);color:var(--accent);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="3" fill="currentColor"/><path d="M12 8v13" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2"/></svg>
+          </div>
+          <div>
+            <div class="loc-stn-big-label">第一站</div>
+            <div class="loc-stn-big-name" id="lc-b1-lbl">尚未選擇</div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
+        </button>
+        <button class="loc-stn-big-btn" onclick="openLocStnPage('b2')" style="margin-top:8px;">
+          <div class="loc-stn-big-icon" style="background:var(--puy-lt);color:var(--puy);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v13" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2"/><circle cx="12" cy="19" r="3" fill="currentColor"/></svg>
+          </div>
+          <div>
+            <div class="loc-stn-big-label">第二站</div>
+            <div class="loc-stn-big-name" id="lc-b2-lbl">尚未選擇</div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
+        </button>
+        <div class="fld-lbl" style="margin-top:14px;margin-bottom:7px;">拍攝位置</div>
+        <div class="chips-row" id="pos-chips" style="margin-bottom:8px;">
+          <div class="chip" data-val="25" onclick="setChip(this,'pos-chips');locState.pos=25;updSlider()">靠近前站 25%</div>
+          <div class="chip on" data-val="50" onclick="setChip(this,'pos-chips');locState.pos=50;updSlider()">中間 50%</div>
+          <div class="chip" data-val="75" onclick="setChip(this,'pos-chips');locState.pos=75;updSlider()">靠近後站 75%</div>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" min="0" max="100" value="50" id="pos-sl" oninput="locState.pos=+this.value;document.getElementById('pos-pct').textContent=this.value+'%'"/>
+          <div class="slider-labels">
+            <span id="pos-la">前站 0%</span>
+            <span id="pos-pct">50%</span>
+            <span id="pos-lb">後站 100%</span>
+          </div>
+        </div>
+        <button class="btn-p" onclick="applyLocBetween()">套用</button>
+      </div>
+
+      <div id="lc-gps" style="display:none;">
+        <div class="card" style="text-align:center;padding:22px;margin-bottom:14px;">
+          <div style="display:flex;justify-content:center;margin-bottom:12px;">
+            <div style="width:52px;height:52px;background:var(--green-lt);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="#1a9e5c"/></svg>
+            </div>
+          </div>
+          <div style="font-size:13px;color:var(--text3);margin-bottom:4px;">偵測到附近區間</div>
+          <div style="font-size:20px;font-weight:800;color:var(--accent);">大湖－路竹間</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:4px;">距離約 320m · 縱貫線</div>
+        </div>
+        <button class="btn-p" onclick="applyLocGPS()">套用此位置</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FULL-PAGE: 選擇車站 -->
+<div class="stn-page" id="stn-page">
+  <div class="stn-page-hdr">
+    <div class="stn-page-topbar">
+      <div class="stn-page-back" onclick="closeStnPage()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="white"/></svg>
+      </div>
+      <div class="stn-page-title">選擇車站</div>
+      <div class="stn-page-actions">
+        <div class="stn-page-search-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="white"/></svg>
+        </div>
+        <button class="stn-page-confirm" onclick="confirmStnPage()">確定</button>
+      </div>
+    </div>
+    <div class="stn-page-sel-row">
+      <div class="stn-sel-wrap active" id="sp-from-wrap">
+        <div class="stn-sel-label">出發</div>
+        <div class="stn-sel-box" id="sp-from-box" onclick="spSetActive('from')">
+          <div id="sp-from-inner"><span class="stn-sel-placeholder">請選擇</span></div>
+        </div>
+      </div>
+      <div class="stn-swap-wrap">
+        <div class="stn-swap-icon" onclick="spSwap()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" fill="white"/></svg>
+        </div>
+      </div>
+      <div class="stn-sel-wrap" id="sp-to-wrap">
+        <div class="stn-sel-label" style="text-align:center;">抵達</div>
+        <div class="stn-sel-box" id="sp-to-box" onclick="spSetActive('to')">
+          <div id="sp-to-inner"><span class="stn-sel-placeholder">請選擇</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="stn-body">
+    <div class="stn-county-col" id="sp-county-col"></div>
+    <div class="stn-list-col" id="sp-stn-col">
+      <div class="stn-empty-col">← 請先從左側選擇縣市</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- DETAIL PAGE -->
+<div class="detail-page" id="detail-page">
+  <div class="det-hdr">
+    <div class="back-btn" onclick="closeDetail()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="#1a6fd4"/></svg>
+      返回
+    </div>
+    <div style="font-size:14px;color:var(--text3);" id="det-hdr-title"></div>
+  </div>
+  <div class="det-body" id="det-body"></div>
+</div>
+
+<!-- ALERT SHEET -->
+<div class="alert-ov" id="alert-ov">
+  <div class="alert-box">
+    <div class="al-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" fill="#1a6fd4" fill-opacity="0.2"/><circle cx="8" cy="15" r="2" fill="#1a6fd4"/><circle cx="16" cy="15" r="2" fill="#1a6fd4"/><rect x="5" y="6" width="14" height="6" rx="1.5" fill="#1a6fd4"/></svg>
+    </div>
+    <div class="al-title" id="al-title"></div>
+    <div class="al-sub" id="al-sub"></div>
+    <div class="al-btns">
+      <button class="btn-p" onclick="alertDetail()">看詳細</button>
+      <button class="btn-s" onclick="dismissAlert()">知道了</button>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+// ===== STATION DATA (縣市 > 地區 > 車站) =====
+// 資料來源：台鐵官方站序（縱貫線、屏東線、北迴線、東部幹線等）
+const STN_DATA = {
+  '北部': {
+    '基隆': ['基隆','三坑','八堵','七堵','五堵','汐止','汐科','百福','海科館','暖暖'],
+    '臺北': ['南港','松山','臺北','萬華'],
+    '新北': ['板橋','浮洲','樹林','山佳','鶯歌'],
+    '桃園': ['桃園','內壢','中壢','埔心','楊梅','富岡','北湖','湖口','新豐'],
+    '新竹': ['竹北','新竹','三姓橋','香山','崎頂','竹南'],
+    '宜蘭': ['頭城','礁溪','宜蘭','二結','中里','羅東','冬山','蘇澳新','蘇澳'],
+  },
+  '中部': {
+    '苗栗': ['談文','大山','後龍','龍港','造橋','豐富','苗栗','南勢','銅鑼','三義','泰安'],
+    '臺中': ['后里','豐原','栗林','潭子','頭家厝','松竹','太原','臺中','精武','大慶','烏日','新烏日','成功'],
+    '彰化': ['彰化','花壇','大村','員林','永靖','社頭','田中','二水'],
+    '南投': ['集集','水里','車埕'],
+    '雲林': ['林內','石榴','斗六','斗南','石龜'],
+  },
+  '南部': {
+    '嘉義': ['大林','民雄','嘉義','水上','南靖','後壁','新營','柳營','林鳳營'],
+    '臺南': ['隆田','拔林','善化','南科','新市','永康','臺南','保安','仁德','大湖'],
+    '高雄': ['路竹','岡山','橋頭','楠梓','新左營','左營','内惟','美術館','鼓山','三塊厝','高雄','苓雅','正義','民族','科工館','鳳山','後庄','九曲堂'],
+    '屏東': ['六塊厝','屏東','歸來','麟洛','西勢','竹田','潮州','崁頂','南州','鎮安','林邊','佳冬','東海','枋寮','加祿','內獅','枋山'],
+  },
+  '東部': {
+    '花蓮': ['新城','花蓮','吉安','志學','壽豐','豐田','光復','富源','瑞穗','三民','玉里','東竹','富里'],
+    '臺東': ['池上','海端','關山','瑞和','瑞源','鹿野','山里','臺東'],
+  }
+};
+
+// 支線資料
+const BRANCH_LINES = {
+  '成追線': ['成功','追分','大肚','龍井','臺中港','沙鹿','清水','大甲','日南','大山','後龍'],
+  '平溪/深澳線': ['瑞芳','三貂嶺','牡丹','雙溪','大華','十分','望古','嶺腳','平溪','菁桐','海科館','深澳'],
+  '內灣/六家線': ['竹中','竹東','橫山','九讚頭','合興','富貴','內灣','北新竹','六家'],
+  '集集線': ['二水','源泉','濁水','龍泉','集集','水里','車埕'],
+  '沙崙線': ['中洲','沙崙'],
+};
+
+// Major stations (粗體顯示)
+const MAJOR = new Set(['基隆','臺北','板橋','桃園','中壢','新竹','苗栗','臺中','彰化','斗六','嘉義','臺南','高雄','左營','新左營','屏東','潮州','枋寮','花蓮','臺東','宜蘭','羅東']);
+
+const TYPE_INFO={
+  exp3:{label:'自強3000',cls:'b-exp3'},
+  puy:{label:'普悠瑪',cls:'b-puy'},
+  tze:{label:'太魯閣',cls:'b-tze'},
+  exp:{label:'自強號',cls:'b-exp'},
+  moc:{label:'莒光號',cls:'b-moc'},
+  localx:{label:'區間快',cls:'b-localx'},
+  local:{label:'區間車',cls:'b-local'},
+};
+
+const FAVS=[];
+
+const NOW=new Date();
+function tStr(h,m){return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');}
+function minsAdd(base,add){const t=new Date(base);t.setMinutes(t.getMinutes()+add);return tStr(t.getHours(),t.getMinutes());}
+function minsFromNow(ts){const[h,m]=ts.split(':').map(Number);const d=new Date(NOW);d.setHours(h,m,0,0);return Math.round((d-NOW)/60000);}
+
+const B=NOW;
+const TRAINS=[
+  {id:1,no:'123',type:'exp3',dir:'up',from:'屏東',to:'七堵',passTime:minsAdd(B,20),delay:3,
+   stops:[{s:'高雄',dep:minsAdd(B,5),late:3,mj:true},{s:'岡山',dep:minsAdd(B,13),late:3},{s:'路竹',dep:minsAdd(B,18),late:2},{s:'大湖',dep:minsAdd(B,23),late:3,mj:true},{s:'臺南',dep:minsAdd(B,41),late:3,mj:true},{s:'嘉義',dep:minsAdd(B,65),late:2,mj:true},{s:'台中',dep:minsAdd(B,100),late:1,mj:true},{s:'七堵',dep:minsAdd(B,175),late:0,mj:true}]},
+  {id:2,no:'457',type:'tze',dir:'down',from:'七堵',to:'屏東',passTime:minsAdd(B,8),delay:0,
+   stops:[{s:'七堵',dep:minsAdd(B,-50),late:0,mj:true},{s:'台中',dep:minsAdd(B,-20),late:0,mj:true},{s:'嘉義',dep:minsAdd(B,2),late:0,mj:true},{s:'臺南',dep:minsAdd(B,18),late:0,mj:true},{s:'大湖',dep:minsAdd(B,33),late:0,mj:true},{s:'路竹',dep:minsAdd(B,38),late:0},{s:'岡山',dep:minsAdd(B,44),late:0},{s:'高雄',dep:minsAdd(B,55),late:0,mj:true},{s:'屏東',dep:minsAdd(B,70),late:0,mj:true}]},
+  {id:3,no:'3157',type:'local',dir:'up',from:'屏東',to:'台北',passTime:minsAdd(B,35),delay:0,
+   stops:[{s:'高雄',dep:minsAdd(B,18),late:0,mj:true},{s:'岡山',dep:minsAdd(B,28),late:0},{s:'路竹',dep:minsAdd(B,33),late:0},{s:'大湖',dep:minsAdd(B,37),late:0,mj:true},{s:'臺南',dep:minsAdd(B,58),late:0,mj:true},{s:'台北',dep:minsAdd(B,160),late:0,mj:true}]},
+  {id:4,no:'521',type:'moc',dir:'down',from:'台北',to:'屏東',passTime:minsAdd(B,52),delay:8,
+   stops:[{s:'台北',dep:minsAdd(B,-60),late:8,mj:true},{s:'台中',dep:minsAdd(B,5),late:7,mj:true},{s:'嘉義',dep:minsAdd(B,30),late:8,mj:true},{s:'臺南',dep:minsAdd(B,48),late:8,mj:true},{s:'大湖',dep:minsAdd(B,56),late:8,mj:true},{s:'路竹',dep:minsAdd(B,62),late:8},{s:'岡山',dep:minsAdd(B,68),late:8},{s:'新左營',dep:minsAdd(B,78),late:7,mj:true},{s:'屏東',dep:minsAdd(B,95),late:8,mj:true}]},
+  {id:5,no:'889',type:'puy',dir:'up',from:'台東',to:'台北',passTime:minsAdd(B,14),delay:0,
+   stops:[{s:'臺南',dep:minsAdd(B,-5),late:0,mj:true},{s:'大湖',dep:minsAdd(B,16),late:0,mj:true},{s:'嘉義',dep:minsAdd(B,35),late:0,mj:true},{s:'台中',dep:minsAdd(B,70),late:0,mj:true},{s:'台北',dep:minsAdd(B,140),late:0,mj:true}]},
+  {id:6,no:'4201',type:'localx',dir:'down',from:'台中',to:'高雄',passTime:minsAdd(B,44),delay:2,
+   stops:[{s:'台中',dep:minsAdd(B,-10),late:2,mj:true},{s:'嘉義',dep:minsAdd(B,22),late:2,mj:true},{s:'臺南',dep:minsAdd(B,40),late:2,mj:true},{s:'大湖',dep:minsAdd(B,46),late:2,mj:true},{s:'路竹',dep:minsAdd(B,52),late:2},{s:'岡山',dep:minsAdd(B,58),late:1},{s:'高雄',dep:minsAdd(B,70),late:2,mj:true}]},
+  {id:7,no:'206',type:'exp',dir:'up',from:'新左營',to:'台北',passTime:minsAdd(B,27),delay:0,
+   stops:[{s:'新左營',dep:minsAdd(B,-30),late:0,mj:true},{s:'岡山',dep:minsAdd(B,12),late:0},{s:'路竹',dep:minsAdd(B,18),late:0},{s:'大湖',dep:minsAdd(B,25),late:0,mj:true},{s:'臺南',dep:minsAdd(B,43),late:0,mj:true},{s:'台中',dep:minsAdd(B,90),late:0,mj:true},{s:'台北',dep:minsAdd(B,155),late:0,mj:true}]},
+  {id:8,no:'678',type:'exp3',dir:'down',from:'台北',to:'新左營',passTime:minsAdd(B,58),delay:5,
+   stops:[{s:'台北',dep:minsAdd(B,-60),late:5,mj:true},{s:'台中',dep:minsAdd(B,-5),late:5,mj:true},{s:'嘉義',dep:minsAdd(B,20),late:5,mj:true},{s:'臺南',dep:minsAdd(B,45),late:5,mj:true},{s:'大湖',dep:minsAdd(B,60),late:5,mj:true},{s:'路竹',dep:minsAdd(B,67),late:4},{s:'岡山',dep:minsAdd(B,74),late:4},{s:'新左營',dep:minsAdd(B,82),late:5,mj:true}]},
+];
+const TT_TRAINS=[
+  {no:'4501',type:'exp3',dep:'07:30',arr:'09:20',dur:'1h50',delay:0,from:'台北',to:'台中'},
+  {no:'123', type:'exp3',dep:'08:12',arr:'10:01',dur:'1h49',delay:2,from:'台北',to:'台中'},
+  {no:'1001',type:'exp', dep:'08:30',arr:'11:05',dur:'2h35',delay:0,from:'台北',to:'台中'},
+  {no:'0101',type:'tze', dep:'06:30',arr:'08:35',dur:'2h05',delay:0,from:'台北',to:'花蓮'},
+  {no:'0105',type:'puy', dep:'07:00',arr:'09:05',dur:'2h05',delay:5,from:'台北',to:'台東'},
+  {no:'4001',type:'local',dep:'06:05',arr:'10:22',dur:'4h17',delay:0,from:'基隆',to:'台中'},
+  {no:'4101',type:'localx',dep:'06:50',arr:'09:45',dur:'2h55',delay:0,from:'台北',to:'台中'},
+  {no:'2003',type:'moc', dep:'08:10',arr:'11:32',dur:'3h22',delay:12,from:'台北',to:'屏東'},
+];
+
+let reminders=JSON.parse(localStorage.getItem('rs_rem')||'[]');
+let alertQueue=[],currentAlert=null;
+function saveR(){localStorage.setItem('rs_rem',JSON.stringify(reminders));}
+function updateBell(){document.getElementById('bell-badge').style.display=reminders.filter(r=>r.status==='waiting').length>0?'block':'none';}
+
+// ===== TABS =====
+function switchTab(name,el){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='fav'){ renderFavs(); renderTTFavs(); }
+}
+function switchFavSubTab(sub, btn){
+  document.querySelectorAll('.fav-subtab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('fav-tt-panel').style.display = sub==='tt'?'block':'none';
+  document.getElementById('fav-shoot-panel').style.display = sub==='shoot'?'block':'none';
+}
+function setChip(el,gid){
+  document.querySelectorAll('#'+gid+' .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ===== SHEETS =====
+function openSheet(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='bell-sheet')renderBell();
+  if(id==='loc-sheet')initLocSheet();
+}
+function closeSheet(id){document.getElementById(id).classList.remove('open');}
+function closeOv(e,id){if(e.target===document.getElementById(id))closeSheet(id);}
+
+// ===== FLAT COUNTY LIST (for left column) =====
+// Build a flat county list from STN_DATA
+const COUNTY_LIST = [];
+Object.entries(STN_DATA).forEach(([region, counties]) => {
+  Object.keys(counties).forEach(county => {
+    COUNTY_LIST.push({region, county});
+  });
+});
+const BRANCH_COUNTIES = Object.keys(BRANCH_LINES);
+
+// ===== STATION PAGE STATE =====
+let spState = {
+  active: 'from',   // which slot is being edited
+  from: '',
+  to: '',
+  county: '',       // currently selected county in left col
+  caller: null,     // 'tt' | 'loc-single' | 'loc-b1' | 'loc-b2'
+  callerCb: null,
+};
+
+function openStnPage(caller, initialFrom, initialTo, activeSlot, cb){
+  spState.caller = caller;
+  spState.from = initialFrom || '';
+  spState.to = initialTo || '';
+  spState.active = activeSlot || 'from';
+  spState.callerCb = cb || null;
+  spState.county = '';
+  spRenderHeader();
+  spRenderCountyCol();
+  spRenderStnCol();
+  document.getElementById('stn-page').classList.add('open');
+}
+function closeStnPage(){
+  document.getElementById('stn-page').classList.remove('open');
+}
+function confirmStnPage(){
+  if(spState.callerCb) spState.callerCb(spState.from, spState.to);
+  closeStnPage();
+}
+function spSetActive(slot){
+  spState.active = slot;
+  spRenderHeader();
+}
+function spSwap(){
+  const tmp = spState.from;
+  spState.from = spState.to;
+  spState.to = tmp;
+  spRenderHeader();
+}
+function spRenderHeader(){
+  const fromEl = document.getElementById('sp-from-inner');
+  const toEl = document.getElementById('sp-to-inner');
+  const fromWrap = document.getElementById('sp-from-wrap');
+  const toWrap = document.getElementById('sp-to-wrap');
+
+  fromEl.innerHTML = spState.from
+    ? `<span class="stn-sel-name">${spState.from}</span>`
+    : `<span class="stn-sel-placeholder">請選擇</span>`;
+  toEl.innerHTML = spState.to
+    ? `<span class="stn-sel-name">${spState.to}</span>`
+    : `<span class="stn-sel-placeholder">請選擇</span>`;
+
+  // Toggle active class — active wrap gets white border + full opacity
+  if(fromWrap) fromWrap.classList.toggle('active', spState.active === 'from');
+  if(toWrap)   toWrap.classList.toggle('active', spState.active === 'to');
+}
+const CHECKSVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/></svg>`;
+function spRenderCountyCol(){
+  const el = document.getElementById('sp-county-col');
+  // Check which stations are selected in current active slot
+  const curSel = spState.active === 'from' ? spState.from : spState.to;
+  let html = '';
+  COUNTY_LIST.forEach(({region, county}) => {
+    const isSel = spState.county === county;
+    // Check if selected station belongs to this county
+    const stns = spGetStationsForCounty(county);
+    const hasSelected = curSel && stns.includes(curSel);
+    html += `<div class="stn-county-item${isSel?' sel':''}" onclick="spSelectCounty('${county}')">
+      <span>${county}</span>
+      ${hasSelected ? `<span class="stn-county-check">${CHECKSVG}</span>` : ''}
+    </div>`;
+  });
+  BRANCH_COUNTIES.forEach(name => {
+    const isSel = spState.county === name;
+    const stns = spGetStationsForCounty(name);
+    const hasSelected = curSel && stns.includes(curSel);
+    html += `<div class="stn-county-item${isSel?' sel':''}" onclick="spSelectCounty('${name}')">
+      <span>${name}</span>
+      ${hasSelected ? `<span class="stn-county-check">${CHECKSVG}</span>` : ''}
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+function spSelectCounty(county){
+  spState.county = county;
+  spRenderCountyCol();
+  spRenderStnCol();
+  // Scroll station list back to top
+  const sc = document.getElementById('sp-stn-col');
+  if(sc) sc.scrollTop = 0;
+}
+function spGetStationsForCounty(county){
+  for(const [region, counties] of Object.entries(STN_DATA)){
+    if(counties[county]) return counties[county];
+  }
+  if(BRANCH_LINES[county]) return BRANCH_LINES[county];
+  return [];
+}
+function spRenderStnCol(){
+  const el = document.getElementById('sp-stn-col');
+  if(!spState.county){
+    el.innerHTML = `<div class="stn-empty-col">← 請先從左側選擇縣市</div>`;
+    return;
+  }
+  const stns = spGetStationsForCounty(spState.county);
+  const fromSel = spState.from;
+  const toSel = spState.to;
+  const curSel = spState.active === 'from' ? fromSel : toSel;
+  el.innerHTML = stns.map(s => {
+    const isCurSel = curSel === s;
+    // Also show if it's the other slot's selection (different color hint)
+    const isOtherSel = spState.active === 'from' ? toSel === s : fromSel === s;
+    const isMaj = MAJOR.has(s);
+    let cls = 'stn-list-item';
+    if(isCurSel) cls += ' sel';
+    if(isMaj) cls += ' major-stn';
+    return `<div class="${cls}" onclick="spSelectStation('${s}')">
+      <span>${s}</span>
+      ${isCurSel ? `<span class="stn-list-check">${CHECKSVG}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+function spSelectStation(s){
+  if(spState.active === 'from') spState.from = s;
+  else spState.to = s;
+  spRenderHeader();
+  spRenderCountyCol();
+  spRenderStnCol();
+  // Auto-switch to the other empty slot
+  if(spState.active === 'from' && !spState.to){
+    spState.active = 'to';
+    spRenderHeader();
+    spRenderStnCol();
+  } else if(spState.active === 'to' && !spState.from){
+    spState.active = 'from';
+    spRenderHeader();
+    spRenderStnCol();
+  }
+}
+
+// ===== OPEN STATION PAGE (from TT tab) =====
+function openStnPicker(target){
+  const isFrom = target === 'tt-from';
+  const fromLbl = document.getElementById('tt-from-lbl');
+  const toLbl = document.getElementById('tt-to-lbl');
+  const curFrom = fromLbl.classList.contains('placeholder') ? '' : fromLbl.textContent;
+  const curTo = toLbl.classList.contains('placeholder') ? '' : toLbl.textContent;
+  openStnPage('tt', curFrom, curTo, isFrom?'from':'to', (f, t) => {
+    if(f){ fromLbl.textContent = f; fromLbl.classList.remove('placeholder'); }
+    if(t){ toLbl.textContent = t; toLbl.classList.remove('placeholder'); }
+  });
+}
+function confirmStnPick(){ confirmStnPage(); }
+
+// ===== LOCATION PICKER =====
+let locState={mode:'single',s1:'',s2:'',pos:50};
+function initLocSheet(){
+  const setStnLbl = (id, val) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(val){ el.textContent=val; el.classList.remove('placeholder-name'); }
+    else{ el.textContent='尚未選擇'; el.classList.add('placeholder-name'); }
+  };
+  setStnLbl('lc-single-stn-lbl', locState.s1);
+  setStnLbl('lc-b1-lbl', locState.s1);
+  setStnLbl('lc-b2-lbl', locState.s2);
+  updPosLabels();
+}
+function openLocStnPage(slot){
+  const setStnLbl = (id, val) => {
+    const el = document.getElementById(id); if(!el) return;
+    if(val){ el.textContent=val; el.classList.remove('placeholder-name'); }
+    else{ el.textContent='尚未選擇'; el.classList.add('placeholder-name'); }
+  };
+  if(slot==='single'){
+    openStnPage('loc-single', locState.s1, '', 'from', (f)=>{
+      if(f){ locState.s1=f; setStnLbl('lc-single-stn-lbl', f); }
+    });
+  } else if(slot==='b1'){
+    openStnPage('loc-b1', locState.s1, '', 'from', (f)=>{
+      if(f){ locState.s1=f; setStnLbl('lc-b1-lbl', f); updPosLabels(); }
+    });
+  } else if(slot==='b2'){
+    openStnPage('loc-b2', locState.s2, '', 'from', (f)=>{
+      if(f){ locState.s2=f; setStnLbl('lc-b2-lbl', f); updPosLabels(); }
+    });
+  }
+}
+function updPosLabels(){
+  const la=document.getElementById('pos-la');
+  const lb=document.getElementById('pos-lb');
+  if(la) la.textContent=(locState.s1||'前站')+' 0%';
+  if(lb) lb.textContent=(locState.s2||'後站')+' 100%';
+}
+function updSlider(){
+  const sl=document.getElementById('pos-sl');
+  const pct=document.getElementById('pos-pct');
+  if(sl) sl.value=locState.pos;
+  if(pct) pct.textContent=locState.pos+'%';
+}
+function setLocMode(m){
+  locState.mode=m;
+  ['single','between','gps'].forEach(x=>{
+    const panel=document.getElementById('lc-'+x);
+    if(panel) panel.style.display=x===m?'block':'none';
+    const btn=document.getElementById('mb-'+x);
+    if(btn) btn.classList.toggle('active',x===m);
+  });
+}
+function applyLocSingle(){
+  const s=locState.s1;
+  if(!s){alert('請先選擇車站');return;}
+  document.getElementById('loc-display').textContent=s+'站';
+  document.getElementById('loc-mode-display').textContent='單一車站';
+  closeSheet('loc-sheet');
+}
+function applyLocBetween(){
+  const s1=locState.s1, s2=locState.s2;
+  if(!s1||!s2){alert('請選擇兩個車站');return;}
+  document.getElementById('loc-display').textContent=s1+'－'+s2+'間';
+  document.getElementById('loc-mode-display').textContent='兩站之間 · '+locState.pos+'%';
+  closeSheet('loc-sheet');
+}
+function applyLocFav(id){
+  const f=FAVS.find(x=>x.id===id);
+  document.getElementById('loc-display').textContent=f.loc;
+  document.getElementById('loc-mode-display').textContent=f.type==='between'?'兩站之間':'單一車站';
+  closeSheet('loc-sheet');
+}
+function applyLocGPS(){
+  document.getElementById('loc-display').textContent='大湖－路竹間';
+  document.getElementById('loc-mode-display').textContent='目前位置 · GPS';
+  closeSheet('loc-sheet');
+}
+function doSearch(){
+  const dv=document.querySelector('#dir-chips .chip.on').dataset.val;
+  const tv=document.querySelector('#type-chips .chip.on').dataset.val;
+  const list=TRAINS
+    .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||t.type===tv))
+    .sort((a,b)=>a.passTime.localeCompare(b.passTime));
+  const loc=document.getElementById('loc-display').textContent;
+  document.getElementById('res-loc').textContent=loc;
+  document.getElementById('res-count').textContent=list.length+' 班';
+  renderTrainList(list);
+  document.getElementById('shoot-results').style.display='block';
+}
+function filterTrains(){
+  if(document.getElementById('shoot-results').style.display==='none')return;
+  doSearch();
+}
+function renderTrainList(list){
+  const loc=document.getElementById('loc-display').textContent;
+  const el=document.getElementById('train-list');
+  if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="#8a9db8"/></svg></div><div class="empty-text">無符合條件的列車</div></div>';return;}
+  el.innerHTML=list.map(t=>{
+    const mins=minsFromNow(t.passTime);
+    const ti=TYPE_INFO[t.type];
+    const cdCls=mins<=5&&mins>=0?'tc-cd soon':mins<0?'tc-cd passed':'tc-cd wait';
+    const cdTxt=mins<0?'已通過':mins===0?'即將通過':'還有 '+mins+' 分';
+    return `<div class="train-card dir-${t.dir}" onclick="openDetail(${t.id})">
+      <div class="tc-top">
+        <div class="tc-time">${t.passTime}</div>
+        <div class="${cdCls}">${cdTxt}</div>
+      </div>
+      <div class="tc-mid">
+        <span class="badge ${ti.cls}">${ti.label}</span>
+        <span class="tno">${t.no}</span>
+        <span class="dir-tag ${t.dir}">${t.dir==='up'?'↑ 上行':'↓ 下行'}</span>
+      </div>
+      <div class="tc-route">${t.from} → ${t.to}</div>
+      <div class="tc-bot">
+        <div class="tc-loc">${loc}</div>
+        ${t.delay>0?`<div class="tc-delay">誤點 +${t.delay}分</div>`:`<div class="tc-ok">✓ 準點</div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== DETAIL =====
+function openDetail(id){
+  const t=TRAINS.find(x=>x.id===id);if(!t)return;
+  const ti=TYPE_INFO[t.type];
+  const loc=document.getElementById('loc-display').textContent;
+  document.getElementById('det-hdr-title').textContent=ti.label+' '+t.no;
+  document.getElementById('det-body').innerHTML=`
+    <div style="margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span class="badge ${ti.cls}" style="font-size:12px;padding:4px 11px;">${ti.label}</span>
+        <span class="dir-tag ${t.dir}" style="font-size:12px;">${t.dir==='up'?'↑ 上行':'↓ 下行'}</span>
+      </div>
+      <div class="det-no">${t.no}</div>
+      <div class="det-route">${t.from} → ${t.to}</div>
+    </div>
+    <div class="det-time">${t.passTime}</div>
+    <div class="det-lbl">預估通過 ${loc}</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="info-row"><span class="ik">誤點</span><span class="iv" style="color:${t.delay>0?'var(--orange)':'var(--green)'}">${t.delay>0?'+'+t.delay+' 分':'準點'}</span></div>
+      <div class="info-row"><span class="ik">方向</span><span class="iv">${t.dir==='up'?'上行（往北）':'下行（往南）'}</span></div>
+      <div class="info-row"><span class="ik">起終站</span><span class="iv">${t.from} → ${t.to}</span></div>
+    </div>
+    <div class="sec">停靠站時刻</div>
+    <div class="stop-list">
+      ${t.stops.map(s=>`<div class="stop-item">
+        <div class="stop-dot${s.mj?' mj':''}"></div>
+        <span class="sname${s.mj?' mj':''}">${s.s}</span>
+        <span class="stime">${s.dep}${s.late>0?`<span class="slate"> +${s.late}</span>`:''}</span>
+      </div>`).join('')}
+    </div>
+    <div class="act-btns">
+      <button class="btn-p" onclick="setReminder(${t.id})">
+        <span style="display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="white"/></svg>
+          通過前 5 分鐘提醒
+        </span>
+      </button>
+      <button class="btn-s">加入追蹤</button>
+      <button class="btn-s">收藏此拍攝點</button>
+    </div>`;
+  document.getElementById('detail-page').classList.add('open');
+}
+function closeDetail(){document.getElementById('detail-page').classList.remove('open');}
+
+// ===== TIMETABLE =====
+function swapTT(){
+  const a=document.getElementById('tt-from-lbl'),b=document.getElementById('tt-to-lbl');
+  const tmp=a.textContent;a.textContent=b.textContent;b.textContent=tmp;
+  const apc=a.classList.contains('placeholder'),bpc=b.classList.contains('placeholder');
+  if(apc)b.classList.add('placeholder');else b.classList.remove('placeholder');
+  if(bpc)a.classList.add('placeholder');else a.classList.remove('placeholder');
+}
+// TT Favourites stored in memory
+let ttFavs = JSON.parse(localStorage.getItem('rs_ttfavs') || '[]');
+function saveTTFavs(){ localStorage.setItem('rs_ttfavs', JSON.stringify(ttFavs)); }
+function isTTFaved(no){ return ttFavs.some(f=>f.no===no); }
+function toggleTTFav(no, event){
+  event.stopPropagation();
+  const t = TT_TRAINS.find(x=>x.no===no); if(!t) return;
+  const idx = ttFavs.findIndex(f=>f.no===no);
+  if(idx>-1){ ttFavs.splice(idx,1); }
+  else { ttFavs.push({...t, savedAt: Date.now()}); }
+  saveTTFavs();
+  // Re-render search results to update heart state
+  searchTT();
+  // If fav tab is open, re-render
+  if(document.getElementById('fav-tt-list')) renderTTFavs();
+}
+
+const HEART_FULL = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>`;
+const HEART_EMPTY = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" fill="currentColor"/></svg>`;
+
+function searchTT(){
+  const tv=document.querySelector('#tt-type-chips .chip.on').dataset.val;
+  let list=TT_TRAINS.filter(t=>tv==='all'||t.type===tv).sort((a,b)=>a.dep.localeCompare(b.dep));
+  const el=document.getElementById('tt-results');
+  if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon" style="display:flex;justify-content:center;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="#8a9db8"/></svg></div><div class="empty-text">查無班次</div></div>';return;}
+  el.innerHTML=list.map(t=>{
+    const ti=TYPE_INFO[t.type];
+    const faved=isTTFaved(t.no);
+    return `<div class="tt-card" onclick="openTTDetail('${t.no}')">
+      <button class="tt-heart-btn${faved?' liked':''}" onclick="toggleTTFav('${t.no}',event)" aria-label="${faved?'移除收藏':'加入收藏'}">
+        ${faved ? HEART_FULL : HEART_EMPTY}
+      </button>
+      <div class="tt-top" style="padding-right:32px;">
+        <div class="tt-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:17px;">→</span> ${t.arr}</div>
+        <div class="tt-dur">${t.dur}</div>
+      </div>
+      <div class="tt-mid">
+        <span class="badge ${ti.cls}">${ti.label}</span>
+        <span style="font-size:13px;font-weight:600;color:var(--text);">${t.no}</span>
+      </div>
+      <div class="tt-route">${t.from} → ${t.to}${t.delay>0?` <span style="color:var(--orange);font-size:12px;font-weight:600;">誤點 +${t.delay}分</span>`:''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderTTFavs(){
+  const el=document.getElementById('fav-tt-list');
+  if(!el) return;
+  if(!ttFavs.length){
+    el.innerHTML=`<div class="empty-state">
+      <div class="empty-icon" style="display:flex;justify-content:center;">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" fill="#dde6f5"/></svg>
+      </div>
+      <div class="empty-text">尚無收藏班次</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:6px;">在時刻表搜尋結果點 ♡ 收藏</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML=ttFavs.map(t=>{
+    const ti=TYPE_INFO[t.type];
+    return `<div class="tt-fav-card">
+      <div class="tt-fav-body">
+        <div class="tt-fav-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:15px;">→</span> ${t.arr}
+          <span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:6px;">${t.dur}</span>
+        </div>
+        <div class="tt-fav-mid">
+          <span class="badge ${ti.cls}">${ti.label}</span>
+          <span style="font-size:13px;font-weight:600;color:var(--text);">${t.no}</span>
+        </div>
+        <div class="tt-fav-route">${t.from} → ${t.to}</div>
+      </div>
+      <button class="tt-fav-del" onclick="removeTTFav('${t.no}')" aria-label="移除收藏">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="#d43030"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function removeTTFav(no){
+  ttFavs = ttFavs.filter(f=>f.no!==no);
+  saveTTFavs();
+  renderTTFavs();
+  // update heart in search results if visible
+  const hBtn = document.querySelector(`.tt-heart-btn`);
+  if(hBtn) searchTT();
+}
+function openTTDetail(no){
+  const t=TT_TRAINS.find(x=>x.no===no);if(!t)return;
+  const ti=TYPE_INFO[t.type];
+  document.getElementById('det-hdr-title').textContent=ti.label+' '+no;
+  document.getElementById('det-body').innerHTML=`
+    <div style="margin-bottom:8px;">
+      <span class="badge ${ti.cls}" style="font-size:12px;padding:4px 11px;margin-bottom:10px;display:inline-block;">${ti.label}</span>
+      <div class="det-no">${no}</div>
+      <div class="det-route">${t.from} → ${t.to}</div>
+    </div>
+    <div class="det-time">${t.dep}</div>
+    <div class="det-lbl">出發 · 抵達 ${t.arr}</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="info-row"><span class="ik">行車時間</span><span class="iv">${t.dur}</span></div>
+      <div class="info-row"><span class="ik">誤點</span><span class="iv" style="color:${t.delay>0?'var(--orange)':'var(--green)'}">${t.delay>0?'+'+t.delay+' 分':'準點'}</span></div>
+    </div>
+    <div class="act-btns"><button class="btn-s" onclick="closeDetail()">← 返回</button></div>`;
+  document.getElementById('detail-page').classList.add('open');
+}
+
+// ===== FAVS =====
+function renderFavs(){
+  const el = document.getElementById('fav-list');
+  if(!FAVS.length){
+    el.innerHTML=`<div class="empty-state">
+      <div class="empty-icon" style="display:flex;justify-content:center;">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#dde6f5"/></svg>
+      </div>
+      <div class="empty-text">尚無收藏拍攝點</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:6px;">在拍車頁面查詢後可收藏常用地點</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML=FAVS.map(f=>`
+    <div class="fav-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">
+        <div>
+          <div class="fav-name">${f.name}</div>
+          <div class="fav-meta">${f.type==='between'?'兩站之間':'單一車站'} · ${f.loc}${f.pos?' · '+f.pos:''}</div>
+        </div>
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--red-lt);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;" onclick="deleteFav(${f.id})">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="#d43030"/></svg>
+        </div>
+      </div>
+      <div class="fav-tags">
+        <div class="fav-tag">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="vertical-align:-1px;margin-right:3px;"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
+          ${f.timeRange}
+        </div>
+        <div class="fav-tag">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="vertical-align:-1px;margin-right:3px;"><rect x="3" y="4" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/></svg>
+          ${f.filter}
+        </div>
+      </div>
+      <div class="fav-go" onclick="goFav(${f.id})">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;margin-right:4px;"><path d="M12 15.2A3.2 3.2 0 0 1 8.8 12 3.2 3.2 0 0 1 12 8.8 3.2 3.2 0 0 1 15.2 12 3.2 3.2 0 0 1 12 15.2M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z" fill="currentColor"/></svg>
+        前往拍車
+      </div>
+    </div>`).join('');
+}
+function deleteFav(id){
+  if(!confirm('確定移除此收藏？')) return;
+  const idx = FAVS.findIndex(f=>f.id===id);
+  if(idx>-1) FAVS.splice(idx,1);
+  renderFavs();
+}
+function openAddFavHint(){
+  alert('請在「拍車」頁面查詢列車後，點選列車詳細頁面的「收藏此拍攝點」按鈕');
+}
+function goFav(id){
+  const f=FAVS.find(x=>x.id===id);
+  if(!f) return;
+  document.getElementById('loc-display').textContent=f.loc;
+  document.getElementById('loc-mode-display').textContent=f.type==='between'?'兩站之間':'單一車站';
+  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-shoot').classList.add('active');
+  document.getElementById('tbtn-shoot').classList.add('active');
+  setTimeout(doSearch,50);
+}
+
+// ===== REMINDERS =====
+function setReminder(tid){
+  const t=TRAINS.find(x=>x.id===tid);if(!t)return;
+  const ti=TYPE_INFO[t.type];
+  if(reminders.find(r=>r.tid===tid&&r.status==='waiting')){alert('已設定此提醒');return;}
+  const[ph,pm]=t.passTime.split(':').map(Number);
+  const ra=new Date(NOW);ra.setHours(ph,pm-5,0,0);
+  reminders.push({id:Date.now(),tid,label:ti.label+' '+t.no,time:t.passTime,
+    loc:document.getElementById('loc-display').textContent,remindAt:ra.getTime(),status:'waiting'});
+  saveR();updateBell();
+  alert('已設定提醒\n'+ti.label+' '+t.no+'\n通過前 5 分鐘提醒');
+}
+function renderBell(){
+  const[w,n,e]=[reminders.filter(r=>r.status==='waiting'),reminders.filter(r=>r.status==='notified'),reminders.filter(r=>r.status==='expired')];
+  let h='';
+  if(w.length){h+='<div class="bell-sec">等待中</div>'+w.map(r=>`<div class="bell-item"><div class="bell-top"><div class="bdot w"></div><div class="btrain">${r.label}</div><div class="bstat w">等待</div></div><div class="binfo">${r.time} · ${r.loc}</div></div>`).join('');}
+  if(n.length){h+='<div class="bell-sec">已提醒</div>'+n.map(r=>`<div class="bell-item"><div class="bell-top"><div class="bdot n"></div><div class="btrain">${r.label}</div><div class="bstat n">已提醒</div></div><div class="binfo">${r.time} · ${r.loc}</div></div>`).join('');}
+  if(e.length){h+='<div class="bell-sec">已過期略過</div>'+e.map(r=>`<div class="bell-item"><div class="bell-top"><div class="bdot e"></div><div class="btrain">${r.label}</div><div class="bstat e">已過期</div></div><div class="binfo">${r.time} · ${r.loc} · 已略過</div></div>`).join('');}
+  if(!h)h='<div class="empty-state" style="padding:2rem 0;"><div class="empty-icon" style="display:flex;justify-content:center;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="#8a9db8"/></svg></div><div class="empty-text">尚無提醒</div></div>';
+  document.getElementById('bell-body').innerHTML=h;
+}
+function checkReminders(){
+  const n=Date.now();
+  reminders.forEach(r=>{
+    if(r.status!=='waiting')return;
+    if(n<r.remindAt)return;
+    const[ph,pm]=r.time.split(':').map(Number);
+    const pt=new Date(NOW);pt.setHours(ph,pm,0,0);
+    if(n>=pt.getTime())r.status='expired';
+    else{alertQueue.push(r);r.status='notified';}
+    saveR();updateBell();
+  });
+  if(!currentAlert&&alertQueue.length)showNextAlert();
+}
+function showNextAlert(){
+  while(alertQueue.length){
+    const r=alertQueue.shift();
+    const[ph,pm]=r.time.split(':').map(Number);
+    const pt=new Date(NOW);pt.setHours(ph,pm,0,0);
+    if(Date.now()>=pt.getTime())continue;
+    currentAlert=r;
+    document.getElementById('al-title').textContent=r.label+' 即將經過';
+    document.getElementById('al-sub').textContent='預計 5 分鐘後通過\n'+r.loc;
+    document.getElementById('alert-ov').classList.add('open');
+    return;
+  }
+}
+function dismissAlert(){document.getElementById('alert-ov').classList.remove('open');currentAlert=null;setTimeout(()=>{if(alertQueue.length)showNextAlert();},300);}
+function alertDetail(){document.getElementById('alert-ov').classList.remove('open');if(currentAlert)openDetail(currentAlert.tid);currentAlert=null;}
+
+// ===== INIT =====
+document.getElementById('tt-date').valueAsDate=new Date();
+setLocMode('single');
+updateBell();
+setInterval(checkReminders,30000);
+checkReminders();
+setTimeout(doSearch,80);
+</script>
+</body>
+</html>
