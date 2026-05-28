@@ -213,30 +213,26 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
   flex-shrink:0;
 }
 .stn-page-topbar{
-  display:flex;align-items:center;height:50px;padding:0 4px;
+  display:flex;align-items:center;height:54px;padding:0 4px;
 }
 .stn-page-back{
   width:44px;height:44px;display:flex;align-items:center;justify-content:center;
   cursor:pointer;color:white;flex-shrink:0;
 }
 .stn-page-title{
-  flex:1;text-align:center;font-size:17px;font-weight:600;color:white;
+  flex:1;text-align:center;font-size:18px;font-weight:600;color:white;
 }
 .stn-page-actions{
-  display:flex;align-items:center;gap:4px;padding-right:6px;
-}
-.stn-page-search-btn{
-  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
-  color:white;cursor:pointer;
+  display:flex;align-items:center;padding-right:8px;
 }
 .stn-page-confirm{
-  padding:4px 10px;font-size:15px;font-weight:600;color:white;
+  padding:6px 14px;font-size:16px;font-weight:600;color:white;
   cursor:pointer;background:none;border:none;font-family:inherit;
 }
 
 /* Selected station display row */
 .stn-page-sel-row{
-  display:flex;align-items:stretch;gap:0;padding:8px 14px 14px;
+  display:flex;align-items:stretch;gap:0;padding:10px 14px 18px;
 }
 .stn-sel-wrap{flex:1;display:flex;flex-direction:column;}
 .stn-sel-label{
@@ -283,7 +279,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
   overflow-y:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;
 }
 .stn-county-item{
-  padding:15px 12px 15px 30px;font-size:17px;font-weight:400;color:#333;
+  padding:15px 12px 15px 60px;font-size:17px;font-weight:400;color:#333;
   cursor:pointer;border-bottom:0.5px solid #e8e8e8;
   display:flex;align-items:center;justify-content:space-between;
   transition:background .1s;position:relative;
@@ -806,9 +802,6 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
       </div>
       <div class="stn-page-title">選擇車站</div>
       <div class="stn-page-actions">
-        <div class="stn-page-search-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="white"/></svg>
-        </div>
         <button class="stn-page-confirm" onclick="confirmStnPage()">確定</button>
       </div>
     </div>
@@ -1062,11 +1055,42 @@ function openStnPage(caller, initialFrom, initialTo, activeSlot, cb){
   spState.to = initialTo || '';
   spState.active = activeSlot || 'from';
   spState.callerCb = cb || null;
-  spState.county = '';
+
+  // 帶入當下選取站的縣市
+  const curStn = spState.active === 'from' ? spState.from : spState.to;
+  spState.county = curStn ? spFindCountyOfStation(curStn) : '';
+
   spRenderHeader();
   spRenderCountyCol();
   spRenderStnCol();
+
+  // 若有縣市，滾到選中的縣市
+  if(spState.county) {
+    setTimeout(() => {
+      const items = document.querySelectorAll('.stn-county-item');
+      items.forEach(el => {
+        if(el.textContent.trim().startsWith(spState.county)) {
+          el.scrollIntoView({block:'center',behavior:'smooth'});
+        }
+      });
+    }, 100);
+  }
+
   document.getElementById('stn-page').classList.add('open');
+}
+
+function spFindCountyOfStation(stnName){
+  // 嘗試台/臺互換
+  const alts = [stnName, stnName.replace(/台/g,'臺'), stnName.replace(/臺/g,'台')];
+  for(const name of alts){
+    for(const {county} of COUNTY_LIST){
+      if(spGetStationsForCounty(county).includes(name)) return county;
+    }
+    for(const br of BRANCH_COUNTIES){
+      if(spGetStationsForCounty(br).includes(name)) return br;
+    }
+  }
+  return '';
 }
 function closeStnPage(){
   document.getElementById('stn-page').classList.remove('open');
