@@ -966,8 +966,9 @@ const TDX_ID = {
   '宜蘭':'Yilan','羅東':'Luodong','蘇澳新':'SuaoXin',
 };
 
+// getTDXId: 直接傳中文站名給 server，server 會自行轉換為 TDX StationID
 function getTDXId(name) {
-  return TDX_ID[name] || name;
+  return encodeURIComponent(name);
 }
 
 // TDX TrainTypeCode → 我們的 type key
