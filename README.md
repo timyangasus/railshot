@@ -1,44 +1,47 @@
-# Railshot 🚂
+# Railshot Server
 
-**鐵道攝影助手** — 給鐵道迷、鐵道攝影者使用的 PWA App
+Railshot 的後端 Proxy，負責向 TDX 取得真實台鐵資料。
 
-## 功能
+## API 端點
 
-- 📷 **拍車** — 選擇拍攝點，查詢未來會經過哪些列車、倒數分鐘、誤點狀態
-- 🕐 **時刻表** — 快速查詢站間班次
-- ⭐ **收藏** — 儲存常用拍攝點與班次
-- 🔔 **提醒** — 列車通過前 5 分鐘提醒
+| 端點 | 說明 |
+|------|------|
+| `GET /api/health` | 確認 server 是否正常 |
+| `GET /api/od/:from/:to/:date` | OD 時刻查詢（時刻表 Tab 用） |
+| `GET /api/station/:stationId/:date` | 依車站查詢當日班次（拍車 Tab 用） |
+| `GET /api/live` | 即時誤點資訊 |
+| `GET /api/stations` | 全台鐵車站清單 |
 
-## 安裝到手機（PWA）
+## 部署到 Render.com
 
-1. 用手機瀏覽器開啟網址
-2. **iOS Safari**：點下方 `分享` → `加入主畫面`
-3. **Android Chrome**：點右上角選單 → `安裝應用程式`
+1. 把這個資料夾推到 GitHub（獨立 repo 或子資料夾）
+2. 到 [render.com](https://render.com) → New → Web Service
+3. 選擇 repo
+4. 設定：
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+5. 新增環境變數：
+   - `TDX_CLIENT_ID` = `yangtim0918-0e5db012-c0c6-47d4`
+   - `TDX_CLIENT_SECRET` = `4e0fbdbe-271c-45cd-8d9a-a453d4ab906d`
+6. 部署完成後，複製 Render 給你的網址（例如 `https://railshot-server.onrender.com`）
 
-## 部署
+## 連接前端
 
-此為單一 HTML 檔，直接部署即可：
+打開 `railshot/index.html`，找到這一行：
 
-- **GitHub Pages**：將 `index.html` 推到 `main` 分支，啟用 GitHub Pages
-- **Netlify / Vercel**：拖曳資料夾上傳
+```js
+const API_BASE = '';  // 空字串 = 使用假資料模式
+```
 
-## 技術說明
+改成：
 
-- 純 HTML / CSS / JavaScript，無需框架
-- 目前使用假資料，可串接 [TDX 交通部 API](https://tdx.transportdata.tw) 取得真實台鐵時刻
-- 收藏資料儲存於 `localStorage`
+```js
+const API_BASE = 'https://railshot-server.onrender.com';
+```
 
-## 開發計畫
+存檔後推到 GitHub，前端就會使用真實 TDX 資料。
 
-- [ ] 串接 TDX API（需後端 Proxy 解決 CORS）
-- [ ] 即時誤點資料
-- [ ] 列車追蹤功能
-- [ ] 拍攝點地圖模式
+## 注意
 
-## 資料來源
-
-台鐵車站資料參考台鐵官方站序
-
----
-
-Made with ❤️ for 鐵道攝影愛好者
+- Render 免費方案閒置 15 分鐘後休眠，第一次請求需等約 30 秒喚醒
+- TDX 免費方案每日 50,000 次請求，個人使用完全足夠
