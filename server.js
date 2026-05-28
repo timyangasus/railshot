@@ -41,41 +41,81 @@ async function tdx(path) {
   return res.json();
 }
 
+async function tdxWithRetry(path, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const token = await getToken();
+      const res = await fetch(`https://tdx.transportdata.tw${path}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 429) {
+        if (i < retries) {
+          console.log('Rate limited, waiting 2s...');
+          await new Promise(r => setTimeout(r, 2000));
+          continue;
+        }
+        throw new Error('TDX 429: 請求過於頻繁，請稍後再試');
+      }
+      if (!res.ok) throw new Error(`TDX ${res.status}: ${path}`);
+      return res.json();
+    } catch (e) {
+      if (i === retries) throw e;
+    }
+  }
+}
+
+async function resolveStationId(name) {
+  if (/^\d+$/.test(name)) return name;
+  const map = await getStationMap();
+  if (map[name]) return map[name];
+  const alt = name.replace(/^台/, '臺').replace(/^臺/, '台');
+  if (map[alt]) return map[alt];
+  console.warn(`Station not found: "${name}"`);
+  return name;
+}
+
+app.get('/api/health', (req, res) => res.json({ ok: true }));
+
 // ── Station ID cache ─────────────────────────────────
 let stationCache = null;  // { '臺北': '1000', '高雄': '3300', ... }
 
 async function getStationMap() {
   if (stationCache) return stationCache;
   const data = await tdx('/api/basic/v3/Rail/TRA/Station?$format=JSON');
-  const stations = data.Stations || data;
+  // TDX v3 可能的格式：{ Stations: [...] } 或直接 [...]
+  let stations = [];
+  if (Array.isArray(data)) stations = data;
+  else if (Array.isArray(data.Stations)) stations = data.Stations;
+  else if (Array.isArray(data.value)) stations = data.value;
+
   stationCache = {};
   stations.forEach(s => {
-    const zhName = (s.StationName?.Zh_tw || s.StationName || '').trim();
-    const id = s.StationID || s.StationId || '';
+    // 中文站名可能在不同欄位
+    const zhName = (
+      s.StationName?.Zh_tw ||
+      s.StationName?.ZhTw ||
+      (typeof s.StationName === 'string' ? s.StationName : '') ||
+      ''
+    ).trim();
+    const id = String(s.StationID || s.StationId || s.StationCode || '').trim();
     if (zhName && id) stationCache[zhName] = id;
   });
   console.log(`Loaded ${Object.keys(stationCache).length} stations`);
+  if (Object.keys(stationCache).length > 0) {
+    // 印出前5筆確認格式
+    const sample = Object.entries(stationCache).slice(0, 5);
+    console.log('Sample stations:', JSON.stringify(sample));
+  }
   return stationCache;
 }
 
-async function resolveStationId(name) {
-  // 若已經是數字 ID 直接回傳
-  if (/^\d+$/.test(name)) return name;
-  const map = await getStationMap();
-  return map[name] || name;
-}
-
-// ── Health check ─────────────────────────────────────
-app.get('/api/health', (req, res) => res.json({ ok: true }));
-
-// ── 1. OD 時刻查詢 ───────────────────────────────────
 app.get('/api/od/:from/:to/:date', async (req, res) => {
   try {
     const { from, to, date } = req.params;
     const fromId = await resolveStationId(decodeURIComponent(from));
     const toId = await resolveStationId(decodeURIComponent(to));
     console.log(`OD query: ${from}(${fromId}) → ${to}(${toId}) on ${date}`);
-    const data = await tdx(
+    const data = await tdxWithRetry(
       `/api/basic/v3/Rail/TRA/DailyTrainTimetable/OD/${fromId}/to/${toId}/${date}?$format=JSON`
     );
     res.json(data);
@@ -85,13 +125,12 @@ app.get('/api/od/:from/:to/:date', async (req, res) => {
   }
 });
 
-// ── 2. 依車站查詢當日經過班次 ────────────────────────
 app.get('/api/station/:stationId/:date', async (req, res) => {
   try {
     const { stationId, date } = req.params;
     const id = await resolveStationId(decodeURIComponent(stationId));
     console.log(`Station query: ${stationId}(${id}) on ${date}`);
-    const data = await tdx(
+    const data = await tdxWithRetry(
       `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id}/${date}?$format=JSON`
     );
     res.json(data);
@@ -101,17 +140,15 @@ app.get('/api/station/:stationId/:date', async (req, res) => {
   }
 });
 
-// ── 3. 即時誤點 ───────────────────────────────────────
 app.get('/api/live', async (req, res) => {
   try {
-    const data = await tdx('/api/basic/v3/Rail/TRA/TrainLiveBoard?$format=JSON&$top=500');
+    const data = await tdxWithRetry('/api/basic/v3/Rail/TRA/TrainLiveBoard?$format=JSON&$top=500');
     res.json(data);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// ── 4. 車站清單 ───────────────────────────────────────
 app.get('/api/stations', async (req, res) => {
   try {
     const map = await getStationMap();
