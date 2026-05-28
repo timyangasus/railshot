@@ -973,11 +973,20 @@ function getTDXId(name) {
 
 // TDX TrainTypeCode → 我們的 type key
 const TDX_TYPE_MAP = {
-  '1':'tze','2':'moc','3':'exp','4':'exp3','10':'local','11':'localx',
-  '100':'puy', // 普悠瑪有時是獨立代碼
+  '1': 'tze',    // 太魯閣
+  '2': 'puy',    // 普悠瑪
+  '3': 'exp',    // 自強（EMU推拉式）
+  '4': 'exp',    // 自強（柴推）
+  '5': 'exp3',   // 自強3000（EMU3000）
+  '6': 'local',  // 區間車
+  '7': 'localx', // 區間快
+  '8': 'moc',    // 莒光
+  '9': 'moc',    // 復興（已停駛，用莒光顯示）
+  '10': 'local', // 區間車
+  '11': 'localx',// 區間快
+  '12': 'exp',   // 自強（另）
 };
 function tdxTypeToKey(code) {
-  // 太魯閣=1, 普悠瑪 有時以車次判斷
   return TDX_TYPE_MAP[String(code)] || 'exp';
 }
 
@@ -1733,30 +1742,58 @@ function renderTTList(list, isMock) {
   }).join('');
 }
 
-function openTTDetailObj(t){
+async function openTTDetailObj(t){
   if(typeof t==='string') t=JSON.parse(t);
   const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
   document.getElementById('det-hdr-title').textContent=ti.label+' '+t.no;
-  const stopsHtml = (t.stops||[]).map(s=>`
-    <div class="stop-item">
-      <div class="stop-dot${s.mj?' mj':''}"></div>
-      <span class="sname${s.mj?' mj':''}">${s.s}</span>
-      <span class="stime">${s.dep}${s.late>0?`<span class="slate"> +${s.late}</span>`:''}</span>
-    </div>`).join('');
-  document.getElementById('det-body').innerHTML=`
-    <div style="margin-bottom:8px;">
-      <span class="badge ${ti.cls}" style="font-size:12px;padding:4px 11px;margin-bottom:10px;display:inline-block;">${ti.label}</span>
-      <div class="det-no">${t.no}</div>
-      <div class="det-route">${t.from} → ${t.to}</div>
-    </div>
-    <div class="det-time">${t.dep}</div>
-    <div class="det-lbl">出發 · 抵達 ${t.arr}（${t.dur}）</div>
-    <div class="card" style="margin-bottom:16px;">
-      <div class="info-row"><span class="ik">誤點</span><span class="iv" style="color:${t.delay>0?'var(--orange)':'var(--green)'}">${t.delay>0?'+'+t.delay+' 分':'準點'}</span></div>
-    </div>
-    ${stopsHtml?`<div class="sec">停靠站時刻</div><div class="stop-list">${stopsHtml}</div>`:''}
-    <div class="act-btns"><button class="btn-s" onclick="closeDetail()">← 返回</button></div>`;
   document.getElementById('detail-page').classList.add('open');
+
+  // 先顯示已知資訊
+  const renderDetail = (stops) => {
+    const stopsHtml = stops.map(s=>`
+      <div class="stop-item">
+        <div class="stop-dot${s.mj?' mj':''}"></div>
+        <span class="sname${s.mj?' mj':''}">${s.s}</span>
+        <span class="stime">${s.dep}${s.late>0?`<span class="slate"> +${s.late}</span>`:''}</span>
+      </div>`).join('');
+    document.getElementById('det-body').innerHTML=`
+      <div style="margin-bottom:8px;">
+        <span class="badge ${ti.cls}" style="font-size:12px;padding:4px 11px;margin-bottom:10px;display:inline-block;">${ti.label}</span>
+        <div class="det-no">${t.no}</div>
+        <div class="det-route">${t.from} → ${t.to}</div>
+      </div>
+      <div class="det-time">${t.dep}</div>
+      <div class="det-lbl">出發 · 抵達 ${t.arr}（${t.dur}）</div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="info-row"><span class="ik">誤點</span><span class="iv" style="color:${t.delay>0?'var(--orange)':'var(--green)'}">${t.delay>0?'+'+t.delay+' 分':'準點'}</span></div>
+      </div>
+      ${stops.length?`<div class="sec">停靠站時刻</div><div class="stop-list">${stopsHtml}</div>`:''}
+      <div class="act-btns"><button class="btn-s" onclick="closeDetail()">← 返回</button></div>`;
+  };
+
+  // 先用已有的 stops 渲染
+  renderDetail(t.stops || []);
+
+  // 若有 API，嘗試抓完整停靠站
+  if(API_BASE && t.no) {
+    try {
+      const dateVal = document.getElementById('tt-date')?.value || new Date().toISOString().split('T')[0];
+      const resp = await fetch(`${API_BASE}/api/train/${t.no}/${dateVal}`);
+      if(resp.ok){
+        const data = await resp.json();
+        const timetables = data.TrainTimetables || [];
+        if(timetables.length > 0){
+          const stops = (timetables[0].StopTimes || []).map(s=>({
+            s:(s.StationName||{}).Zh_tw||'',
+            dep:s.DepartureTime||s.ArrivalTime||'',
+            late:t.delay||0,
+            mj:MAJOR.has((s.StationName||{}).Zh_tw||'')
+          }));
+          renderDetail(stops);
+        }
+      }
+    } catch(e) { /* 失敗就用原本的 stops */ }
+  }
 }
 
 function toggleTTFavObj(t, event){
