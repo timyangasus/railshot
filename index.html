@@ -281,14 +281,14 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
   overflow-y:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;
 }
 .stn-county-item{
-  padding:15px 12px;font-size:15px;font-weight:400;color:#333;
+  padding:15px 12px;font-size:17px;font-weight:400;color:#333;
   cursor:pointer;border-bottom:0.5px solid #e8e8e8;
   display:flex;align-items:center;justify-content:space-between;
   transition:background .1s;position:relative;
 }
 .stn-county-item:active{background:#eaeaea;}
 .stn-county-item.sel{
-  color:var(--accent);font-weight:600;background:#f5f5f5;
+  color:var(--accent);font-weight:700;background:#f5f5f5;
 }
 .stn-county-check{
   color:var(--accent);flex-shrink:0;
@@ -301,18 +301,18 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
   -webkit-overflow-scrolling:touch;
 }
 .stn-list-item{
-  padding:14px 18px;font-size:15px;font-weight:400;color:#333;
+  padding:14px 18px;font-size:17px;font-weight:400;color:#333;
   border-bottom:0.5px solid #ebebeb;cursor:pointer;
   display:flex;align-items:center;justify-content:space-between;
   transition:background .1s;
 }
 .stn-list-item:active{background:#f5f5f5;}
-.stn-list-item.sel{color:var(--accent);font-weight:600;}
+.stn-list-item.sel{color:var(--accent);font-weight:700;}
 .stn-list-item.major-stn{font-weight:500;}
 .stn-list-check{color:var(--accent);display:flex;align-items:center;}
 .stn-empty-col{
   padding:48px 16px;text-align:center;
-  color:#aaa;font-size:14px;line-height:1.6;
+  color:#aaa;font-size:16px;line-height:1.6;
 }
 .slider-wrap{padding:4px 0 12px;}
 .slider-wrap input[type=range]{width:100%;-webkit-appearance:none;height:5px;border-radius:3px;background:var(--border2);outline:none;}
@@ -1167,20 +1167,26 @@ function spRenderStnCol(){
   }).join('');
 }
 function spSelectStation(s){
-  if(spState.active === 'from') spState.from = s;
+  const wasFrom = spState.active === 'from';
+  if(wasFrom) spState.from = s;
   else spState.to = s;
-  spRenderHeader();
-  spRenderCountyCol();
-  spRenderStnCol();
-  // Auto-switch to the other empty slot
-  if(spState.active === 'from' && !spState.to){
+
+  if(wasFrom){
+    // 選完出發站 → 自動切換到抵達站，清空縣市讓使用者重選
     spState.active = 'to';
+    spState.county = '';
     spRenderHeader();
+    spRenderCountyCol();
     spRenderStnCol();
-  } else if(spState.active === 'to' && !spState.from){
-    spState.active = 'from';
+    // 左欄滾回頂部
+    const col = document.getElementById('sp-county-col');
+    if(col) col.scrollTop = 0;
+  } else {
+    // 選完抵達站 → 關閉
     spRenderHeader();
+    spRenderCountyCol();
     spRenderStnCol();
+    setTimeout(() => closeStnPage(), 300);
   }
 }
 
@@ -1191,9 +1197,17 @@ function openStnPicker(target){
   const toLbl = document.getElementById('tt-to-lbl');
   const curFrom = fromLbl.classList.contains('placeholder') ? '' : fromLbl.textContent;
   const curTo = toLbl.classList.contains('placeholder') ? '' : toLbl.textContent;
-  openStnPage('tt', curFrom, curTo, isFrom?'from':'to', (f, t) => {
-    if(f){ fromLbl.textContent = f; fromLbl.classList.remove('placeholder'); }
-    if(t){ toLbl.textContent = t; toLbl.classList.remove('placeholder'); }
+
+  openStnPage('tt', curFrom, curTo, isFrom ? 'from' : 'to', (f, t) => {
+    // 每次只更新被選的那一格
+    if(isFrom && f){
+      fromLbl.textContent = f;
+      fromLbl.classList.remove('placeholder');
+    }
+    if(!isFrom && t){
+      toLbl.textContent = t;
+      toLbl.classList.remove('placeholder');
+    }
   });
 }
 function confirmStnPick(){ confirmStnPage(); }
