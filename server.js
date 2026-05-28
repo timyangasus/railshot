@@ -121,11 +121,19 @@ app.get('/api/od/:from/:to/:date', async (req, res) => {
 
     // 二次驗證：確保每班車的停靠站列表中真的包含出發站
     if (data.TrainTimetables) {
+      // Debug: 印出第一班車的停靠站 ID 格式
+      if (data.TrainTimetables.length > 0) {
+        const firstStops = (data.TrainTimetables[0].StopTimes || []).slice(0, 3);
+        console.log('Sample StopTimes IDs:', JSON.stringify(firstStops.map(s => ({
+          id: s.StationID, name: (s.StationName||{}).Zh_tw
+        }))));
+      }
+      const before = data.TrainTimetables.length;
       data.TrainTimetables = data.TrainTimetables.filter(tt => {
         const stops = tt.StopTimes || [];
         return stops.some(s => String(s.StationID || '') === String(fromId));
       });
-      console.log(`After filter: ${data.TrainTimetables.length} trains actually stop at ${from}(${fromId})`);
+      console.log(`After filter: ${data.TrainTimetables.length}/${before} trains actually stop at ${from}(${fromId})`);
     }
 
     res.json(data);
