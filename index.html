@@ -488,14 +488,14 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
       </div>
     </div>
     <div class="chips-row" id="tt-type-chips" style="margin-bottom:11px;">
-      <div class="chip on" data-val="all" onclick="setChip(this,'tt-type-chips')">全部</div>
-      <div class="chip" data-val="exp3" onclick="setChip(this,'tt-type-chips')">自強3000</div>
-      <div class="chip" data-val="puy" onclick="setChip(this,'tt-type-chips')">普悠瑪</div>
-      <div class="chip" data-val="tze" onclick="setChip(this,'tt-type-chips')">太魯閣</div>
-      <div class="chip" data-val="exp" onclick="setChip(this,'tt-type-chips')">自強</div>
-      <div class="chip" data-val="moc" onclick="setChip(this,'tt-type-chips')">莒光</div>
-      <div class="chip" data-val="localx" onclick="setChip(this,'tt-type-chips')">區間快</div>
-      <div class="chip" data-val="local" onclick="setChip(this,'tt-type-chips')">區間</div>
+      <div class="chip on" data-val="all" onclick="setChip(this,'tt-type-chips');autoSearchTT()">全部</div>
+      <div class="chip" data-val="exp3" onclick="setChip(this,'tt-type-chips');autoSearchTT()">自強3000</div>
+      <div class="chip" data-val="puy" onclick="setChip(this,'tt-type-chips');autoSearchTT()">普悠瑪</div>
+      <div class="chip" data-val="tze" onclick="setChip(this,'tt-type-chips');autoSearchTT()">太魯閣</div>
+      <div class="chip" data-val="exp" onclick="setChip(this,'tt-type-chips');autoSearchTT()">自強</div>
+      <div class="chip" data-val="moc" onclick="setChip(this,'tt-type-chips');autoSearchTT()">莒光</div>
+      <div class="chip" data-val="localx" onclick="setChip(this,'tt-type-chips');autoSearchTT()">區間快</div>
+      <div class="chip" data-val="local" onclick="setChip(this,'tt-type-chips');autoSearchTT()">區間</div>
     </div>
     <button class="srch-btn" onclick="searchTT()">查詢班次</button>
   </div>
@@ -1003,11 +1003,25 @@ function updateBell(){document.getElementById('bell-badge').style.display=remind
 
 // ===== TABS =====
 function switchTab(name,el){
+  const currentActive = document.querySelector('.tab-item.active')?.id;
+  const isSameTab = currentActive === el.id;
+
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
   if(name==='fav'){ renderFavs(); renderTTFavs(); }
+
+  // 點同一個 tab icon → 滾回最頂部
+  if(isSameTab){
+    const screen = document.getElementById('tab-'+name);
+    if(screen) screen.scrollTop = 0;
+  }
+}
+function autoSearchTT(){
+  // 只有已經查過（有結果）才自動重查
+  const results = document.getElementById('tt-results');
+  if(results && results.innerHTML.trim()) searchTT();
 }
 function switchFavSubTab(sub, btn){
   document.querySelectorAll('.fav-subtab').forEach(b=>b.classList.remove('active'));
@@ -1795,7 +1809,12 @@ function renderTTList(list, isMock) {
         <span class="badge ${ti.cls}">${ti.label}</span>
         <span style="font-size:13px;font-weight:600;color:var(--text);">${t.no}</span>
       </div>
-      <div class="tt-route">${t.from} → ${t.to}${t.delay>0?` <span style="color:var(--orange);font-size:12px;font-weight:600;">誤點 +${t.delay}分</span>`:''}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="tt-route">${t.from} → ${t.to}</div>
+        ${t.delay>0
+          ? `<div style="font-size:12px;font-weight:600;color:var(--orange);">誤點 +${t.delay}分</div>`
+          : `<div style="font-size:12px;color:var(--green);font-weight:500;">✓ 準點</div>`}
+      </div>
     </div>`;
   }).join('');
 }
