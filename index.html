@@ -1101,7 +1101,22 @@ function confirmStnPage(){
 }
 function spSetActive(slot){
   spState.active = slot;
+  // 切換時帶入對應站的縣市
+  const curStn = slot === 'from' ? spState.from : spState.to;
+  spState.county = curStn ? spFindCountyOfStation(curStn) : '';
   spRenderHeader();
+  spRenderCountyCol();
+  spRenderStnCol();
+  // 滾到選中的縣市
+  if(spState.county){
+    setTimeout(()=>{
+      const items = document.querySelectorAll('.stn-county-item');
+      items.forEach(el=>{
+        if(el.textContent.trim().startsWith(spState.county))
+          el.scrollIntoView({block:'center',behavior:'smooth'});
+      });
+    },80);
+  }
 }
 function spSwap(){
   const tmp = spState.from;

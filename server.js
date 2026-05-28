@@ -135,8 +135,8 @@ app.get('/api/od/:from/:to/:date', async (req, res) => {
       });
       console.log(`After filter: ${data.TrainTimetables.length}/${before} trains actually stop at ${from}(${fromId})`);
 
-      // Debug: 印出前3班車種
-      const sample = data.TrainTimetables.slice(0, 3).map(tt => ({
+      // Debug: 印出所有班次車種
+      const sample = data.TrainTimetables.slice(0, 6).map(tt => ({
         no: tt.TrainInfo?.TrainNo,
         typeCode: tt.TrainInfo?.TrainTypeCode,
         typeName: tt.TrainInfo?.TrainTypeName?.Zh_tw
