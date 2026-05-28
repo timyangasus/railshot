@@ -242,26 +242,28 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .stn-sel-label{
   font-size:12px;font-weight:600;
   text-align:center;margin-bottom:5px;letter-spacing:0.3px;
-  color:rgba(255,255,255,0.55);
+  color:rgba(255,255,255,0.4);
   transition:color .15s;
 }
 .stn-sel-wrap.active .stn-sel-label{
   color:white;
 }
 .stn-sel-box{
-  background:white;border-radius:8px;padding:9px 12px;
+  background:transparent;border-radius:8px;padding:9px 12px;
   min-height:48px;display:flex;align-items:center;justify-content:center;
-  border:2.5px solid transparent;
-  transition:border-color .15s,opacity .15s;
-  cursor:pointer;opacity:0.72;
+  border:2px solid rgba(255,255,255,0.5);
+  transition:all .15s;
+  cursor:pointer;
 }
 .stn-sel-wrap.active .stn-sel-box{
-  border-color:white;
-  opacity:1;
-  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  background:white;
+  border:2px solid transparent;
+  box-shadow:0 2px 8px rgba(0,0,0,0.12);
 }
-.stn-sel-name{font-size:17px;font-weight:700;color:var(--accent);}
-.stn-sel-placeholder{font-size:14px;color:#aab;}
+.stn-sel-name{font-size:17px;font-weight:700;color:white;}
+.stn-sel-placeholder{font-size:14px;color:rgba(255,255,255,0.45);}
+.stn-sel-wrap.active .stn-sel-name{color:var(--accent);}
+.stn-sel-wrap.active .stn-sel-placeholder{color:#bbc;}
 .stn-swap-wrap{
   width:44px;display:flex;align-items:center;justify-content:center;
   padding-top:20px;
@@ -281,7 +283,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
   overflow-y:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;
 }
 .stn-county-item{
-  padding:15px 12px;font-size:17px;font-weight:400;color:#333;
+  padding:15px 12px 15px 30px;font-size:17px;font-weight:400;color:#333;
   cursor:pointer;border-bottom:0.5px solid #e8e8e8;
   display:flex;align-items:center;justify-content:space-between;
   transition:background .1s;position:relative;
@@ -301,14 +303,14 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
   -webkit-overflow-scrolling:touch;
 }
 .stn-list-item{
-  padding:14px 18px;font-size:17px;font-weight:400;color:#333;
+  padding:14px 18px 14px 30px;font-size:17px;font-weight:400;color:#666;
   border-bottom:0.5px solid #ebebeb;cursor:pointer;
   display:flex;align-items:center;justify-content:space-between;
   transition:background .1s;
 }
 .stn-list-item:active{background:#f5f5f5;}
 .stn-list-item.sel{color:var(--accent);font-weight:700;}
-.stn-list-item.major-stn{font-weight:500;}
+.stn-list-item.major-stn{font-weight:700;color:#1a1a1a;}
 .stn-list-check{color:var(--accent);display:flex;align-items:center;}
 .stn-empty-col{
   padding:48px 16px;text-align:center;
@@ -354,7 +356,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .stn-display-btn{width:100%;padding:15px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);text-align:left;font-size:15px;font-weight:600;color:var(--text);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;overflow:hidden;}
 .stn-display-btn .placeholder{color:var(--text3);font-weight:400;}
 .swap-btn{width:42px;height:52px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);flex-shrink:0;}
-.tt-date{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:15px 10px;color:var(--text);font-family:inherit;font-size:14px;width:100%;outline:none;overflow:hidden;-webkit-appearance:none;min-width:0;}
+.tt-date{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:15px 10px;color:var(--text);font-family:inherit;font-size:18px;width:100%;outline:none;overflow:hidden;-webkit-appearance:none;min-width:0;}
 .tt-now-btn{display:flex;align-items:center;gap:5px;padding:0 14px;background:var(--accent-lt);border:1.5px solid var(--accent);border-radius:var(--radius-sm);color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .tt-now-btn.active{background:var(--accent);color:white;}
 .srch-btn{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:4px;box-shadow:0 2px 8px rgba(26,111,212,0.2);}
@@ -1103,17 +1105,15 @@ function spRenderHeader(){
 const CHECKSVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/></svg>`;
 function spRenderCountyCol(){
   const el = document.getElementById('sp-county-col');
-  // Check which stations are selected in current active slot
   const curSel = spState.active === 'from' ? spState.from : spState.to;
   let html = '';
   COUNTY_LIST.forEach(({region, county}) => {
     const isSel = spState.county === county;
-    // Check if selected station belongs to this county
     const stns = spGetStationsForCounty(county);
     const hasSelected = curSel && stns.includes(curSel);
     html += `<div class="stn-county-item${isSel?' sel':''}" onclick="spSelectCounty('${county}')">
       <span>${county}</span>
-      ${hasSelected ? `<span class="stn-county-check">${CHECKSVG}</span>` : ''}
+      ${(isSel || hasSelected) ? `<span class="stn-county-check">${CHECKSVG}</span>` : ''}
     </div>`;
   });
   BRANCH_COUNTIES.forEach(name => {
@@ -1122,7 +1122,7 @@ function spRenderCountyCol(){
     const hasSelected = curSel && stns.includes(curSel);
     html += `<div class="stn-county-item${isSel?' sel':''}" onclick="spSelectCounty('${name}')">
       <span>${name}</span>
-      ${hasSelected ? `<span class="stn-county-check">${CHECKSVG}</span>` : ''}
+      ${(isSel || hasSelected) ? `<span class="stn-county-check">${CHECKSVG}</span>` : ''}
     </div>`;
   });
   el.innerHTML = html;
@@ -1178,15 +1178,16 @@ function spSelectStation(s){
     spRenderHeader();
     spRenderCountyCol();
     spRenderStnCol();
-    // 左欄滾回頂部
     const col = document.getElementById('sp-county-col');
     if(col) col.scrollTop = 0;
+    // 立即把出發站回傳給 callback
+    if(spState.callerCb) spState.callerCb(spState.from, spState.to);
   } else {
-    // 選完抵達站 → 關閉
+    // 選完抵達站 → 只更新畫面，等使用者按確定
     spRenderHeader();
     spRenderCountyCol();
     spRenderStnCol();
-    setTimeout(() => closeStnPage(), 300);
+    if(spState.callerCb) spState.callerCb(spState.from, spState.to);
   }
 }
 
@@ -1199,15 +1200,10 @@ function openStnPicker(target){
   const curTo = toLbl.classList.contains('placeholder') ? '' : toLbl.textContent;
 
   openStnPage('tt', curFrom, curTo, isFrom ? 'from' : 'to', (f, t) => {
-    // 每次只更新被選的那一格
-    if(isFrom && f){
-      fromLbl.textContent = f;
-      fromLbl.classList.remove('placeholder');
-    }
-    if(!isFrom && t){
-      toLbl.textContent = t;
-      toLbl.classList.remove('placeholder');
-    }
+    if(f){ fromLbl.textContent = f; fromLbl.classList.remove('placeholder'); }
+    else { fromLbl.textContent = '選擇車站'; fromLbl.classList.add('placeholder'); }
+    if(t){ toLbl.textContent = t; toLbl.classList.remove('placeholder'); }
+    else { toLbl.textContent = '選擇車站'; toLbl.classList.add('placeholder'); }
   });
 }
 function confirmStnPick(){ confirmStnPage(); }
