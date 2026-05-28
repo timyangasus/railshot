@@ -1381,7 +1381,11 @@ async function doSearch(){
   const timeRange = parseInt(document.querySelector('#time-chips .chip.on')?.dataset.val||'60');
 
   // ── 真實 API 模式 ──────────────────────────────────
-  if(API_BASE && loc && !loc.includes('設定')) {
+  // 排除預設文字，確認有選真正的車站
+  const defaultTexts = ['單一車站','點此設定拍攝點','尚未選擇','設定'];
+  const hasRealLoc = API_BASE && loc && !defaultTexts.some(d => loc.includes(d));
+
+  if(hasRealLoc) {
     document.getElementById('train-list').innerHTML=
       `<div style="text-align:center;padding:2rem 0;color:var(--text3);"><div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
     try {
@@ -1594,6 +1598,15 @@ async function searchTT(){
   const fromName = fromLbl.classList.contains('placeholder') ? '' : fromLbl.textContent;
   const toName = toLbl.classList.contains('placeholder') ? '' : toLbl.textContent;
 
+  // ── 未選車站提示 ───────────────────────────────────
+  if(API_BASE && (!fromName || !toName)){
+    el.innerHTML=`<div style="background:var(--accent-lt);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:14px 16px;text-align:center;">
+      <div style="font-size:15px;font-weight:600;color:var(--accent);margin-bottom:4px;">請先選擇車站</div>
+      <div style="font-size:13px;color:var(--text2);">點上方「出發站」和「到達站」選擇查詢區間</div>
+    </div>`;
+    return;
+  }
+
   // ── 真實 API 模式 ──────────────────────────────────
   if(API_BASE && fromName && toName) {
     el.innerHTML=`<div style="text-align:center;padding:2rem 0;color:var(--text3);">
@@ -1601,10 +1614,22 @@ async function searchTT(){
     try {
       const fromId = getTDXId(fromName);
       const toId = getTDXId(toName);
-      const resp = await fetch(`${API_BASE}/api/od/${fromId}/${toId}/${dateVal}`);
+      const apiUrl = `${API_BASE}/api/od/${fromId}/${toId}/${dateVal}`;
+      const resp = await fetch(apiUrl);
       if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();
       const timetables = data.TrainTimetables || [];
+
+      // debug: 顯示原始筆數
+      if(timetables.length === 0){
+        el.innerHTML=`<div style="background:var(--bg3);border-radius:var(--radius-sm);padding:14px;font-size:13px;color:var(--text2);">
+          <div style="font-weight:600;margin-bottom:6px;">TDX 回傳 0 筆資料</div>
+          <div style="color:var(--text3);word-break:break-all;">查詢：${fromName}(${fromId}) → ${toName}(${toId})</div>
+          <div style="color:var(--text3);margin-top:4px;">日期：${dateVal}</div>
+          <div style="color:var(--text3);margin-top:4px;font-size:11px;">可能原因：Station ID 不正確，或該日無班次</div>
+        </div>`;
+        return;
+      }
 
       // 取得即時誤點
       let liveMap = {};
@@ -1626,7 +1651,6 @@ async function searchTT(){
         const arrTime = arr.ArrivalTime || arr.DepartureTime || '??:??';
         const typeCode = String(info.TrainTypeCode||'3');
         const trainNo = info.TrainNo || '';
-        // 普悠瑪 / 太魯閣 由車種名稱判斷
         let typeKey = tdxTypeToKey(typeCode);
         const typeName = (info.TrainTypeName||{}).Zh_tw || '';
         if(typeName.includes('普悠瑪')) typeKey='puy';
