@@ -357,6 +357,7 @@ app.get('/api/between/:s1/:s2/:date', async (req, res) => {
 
     const startMins = timeToMins(startTime);
     const endMins = startMins + rangeMin;
+    const isSameStation = id1 === id2;
     const segMin = Math.min(km1, km2);
     const segMax = Math.max(km1, km2);
 
@@ -399,7 +400,13 @@ app.get('/api/between/:s1/:s2/:date', async (req, res) => {
       if (!stopKms.length) continue;
       const minKm = Math.min(...stopKms);
       const maxKm = Math.max(...stopKms);
-      if (maxKm < segMin || minKm > segMax) continue; // 不通過此區間
+      // 同站查詢：只要列車里程覆蓋到該站即可
+      // 兩站查詢：列車里程範圍必須覆蓋整段區間
+      if (isSameStation) {
+        if (maxKm < km1 || minKm > km1) continue;
+      } else {
+        if (maxKm < segMin || minKm > segMax) continue;
+      }
 
       // 找 s1 和 s2 的時間
       const stop1 = stops.find(s => String(s.StationID) === String(id1));

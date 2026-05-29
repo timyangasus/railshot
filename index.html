@@ -509,8 +509,8 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
   <div class="sec">拍攝點</div>
   <div class="loc-bar" onclick="openSheet('loc-sheet')">
     <div>
-      <div class="loc-name" id="loc-display">單一車站</div>
-      <div class="loc-mode" id="loc-mode-display">點此設定拍攝點</div>
+      <div class="loc-name" id="loc-display">點此設定拍攝點</div>
+      <div class="loc-mode" id="loc-mode-display"></div>
     </div>
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
   </div>
@@ -1522,12 +1522,14 @@ async function doSearch(){
 
   const timeRange = parseInt(document.querySelector('#time-chips .chip.on')?.dataset.val||'30');
   const _nowDate = new Date();
+  const nowMins = _nowDate.getHours()*60 + _nowDate.getMinutes();
+  const endMins = nowMins + timeRange;
   const nowStr = tStr(_nowDate.getHours(), _nowDate.getMinutes());
-  const cutoffDate = new Date(_nowDate.getTime() + timeRange * 60000);
-  const cutoff = tStr(cutoffDate.getHours(), cutoffDate.getMinutes());
   const today = _nowDate.toISOString().split('T')[0];
 
-  const defaultTexts = ['單一車站','點此設定拍攝點','尚未選擇','設定'];
+  function toMins(t){ if(!t||t==='??:??') return -1; const[h,m]=t.split(':').map(Number); return h*60+m; }
+
+  const defaultTexts = ['點此設定拍攝點','尚未選擇'];
   const hasRealLoc = API_BASE && loc && !defaultTexts.some(d => loc.includes(d));
 
   // ── 兩站之間模式 ─────────────────────────────────────
@@ -1536,8 +1538,8 @@ async function doSearch(){
       `<div style="text-align:center;padding:2rem 0;color:var(--text3);"><div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
     try {
       const parts = loc.replace('間','').split('－');
-      const s1Name = parts[0]?.trim() || '';
-      const s2Name = parts[1]?.trim() || '';
+      const s1Name = parts[0]?.trim().replace('站','') || '';
+      const s2Name = parts[1]?.trim().replace('站','') || '';
       const url = `${API_BASE}/api/between/${encodeURIComponent(s1Name)}/${encodeURIComponent(s2Name)}/${today}?start=${nowStr}&mins=${timeRange}&dir=${dv==='all'?'all':dv}`;
       const resp = await fetch(url);
       if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -1561,52 +1563,77 @@ async function doSearch(){
     document.getElementById('train-list').innerHTML=
       `<div style="text-align:center;padding:2rem 0;color:var(--text3);"><div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
     try {
-      const stnName = loc.replace('站','').split('－')[0].trim();
-      const stnId = getTDXId(stnName);
-      const resp = await fetch(`${API_BASE}/api/station/${stnId}/${today}`);
-      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      // 站名去掉「站」字
+      const stnName = loc.replace(/站$/, '').split('－')[0].trim();
+      // 使用 between API 同站查詢，讓 server 處理過路車
+      const url = `${API_BASE}/api/between/${encodeURIComponent(stnName)}/${encodeURIComponent(stnName)}/${today}?start=${nowStr}&mins=${timeRange}&dir=${dv==='all'?'all':dv}`;
+      const resp = await fetch(url);
+      if(!resp.ok) {
+        // fallback: 用 station API
+        const resp2 = await fetch(`${API_BASE}/api/station/${encodeURIComponent(stnName)}/${today}`);
+        if(!resp2.ok) throw new Error(`HTTP ${resp2.status}`);
+        const data = await resp2.json();
+        let liveMap={};
+        try{
+          const lr=await fetch(`${API_BASE}/api/live`);
+          const ld=await lr.json();
+          (ld.TrainLiveBoards||[]).forEach(t=>{liveMap[t.TrainNo]=t.DelayTime||0;});
+        }catch(e){}
+        const list = (data.TrainTimetables||[]).map((tt,idx)=>{
+          const info=tt.TrainInfo||{};
+          const stops=tt.StopTimes||[];
+          const stnStop=stops.find(s=>{
+            const n=(s.StationName||{}).Zh_tw||'';
+            return n===stnName || n===stnName.replace(/台/g,'臺') || n===stnName.replace(/臺/g,'台');
+          });
+          const rawTime = stnStop
+            ? (stnStop.ArrivalTime||stnStop.DepartureTime||'')
+            : (stops[0]?.DepartureTime||'');
+          if(!rawTime) return null;
+          const pm = toMins(rawTime);
+          if(pm < nowMins || pm > endMins) return null;
+          const trainNo = info.TrainNo||'';
+          const delay = liveMap[trainNo]||0;
+          const typeCode = String(info.TrainTypeCode||'3');
+          const typeName=(info.TrainTypeName||{}).Zh_tw||'';
+          let typeKey = tdxTypeToKey(typeCode);
+          if(typeName.includes('普悠瑪')) typeKey='puy';
+          else if(typeName.includes('太魯閣')) typeKey='tze';
+          else if(typeName.includes('EMU3000')||typeName.includes('3000')) typeKey='exp3';
+          else if(typeName.includes('莒光')) typeKey='moc';
+          else if(typeName.includes('區間快')) typeKey='localx';
+          else if(typeName.includes('區間')) typeKey='local';
+          const dir = info.Direction===0?'down':'up';
+          return {
+            id:idx, no:trainNo, type:typeKey, dir,
+            from:(info.StartingStationName||{}).Zh_tw||'',
+            to:(info.EndingStationName||{}).Zh_tw||'',
+            passTime:rawTime, delay,
+            stops:stops.map(s=>({
+              s:(s.StationName||{}).Zh_tw||'',
+              dep:s.DepartureTime||s.ArrivalTime||'',
+              late:delay,mj:MAJOR.has((s.StationName||{}).Zh_tw||'')
+            }))
+          };
+        }).filter(Boolean)
+          .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||Array.isArray(tv)&&tv.includes(t.type)))
+          .sort((a,b)=>toMins(a.passTime)-toMins(b.passTime));
+        document.getElementById('res-count').textContent=list.length+' 班';
+        renderTrainList(list);
+        return;
+      }
+      // between API 成功 → 用 between 渲染格式（單站顯示）
       const data = await resp.json();
-      let liveMap={};
-      try{
-        const lr=await fetch(`${API_BASE}/api/live`);
-        const ld=await lr.json();
-        (ld.TrainLiveBoards||[]).forEach(t=>{liveMap[t.TrainNo]=t.DelayTime||0;});
-      }catch(e){}
-      const list = (data.TrainTimetables||[]).map((tt,idx)=>{
-        const info=tt.TrainInfo||{};
-        const stops=tt.StopTimes||[];
-        const stnStop=stops.find(s=>(s.StationName||{}).Zh_tw===stnName);
-        const passTime = stnStop
-          ? (stnStop.ArrivalTime||stnStop.DepartureTime||'00:00')
-          : (stops[0]?.DepartureTime||'00:00');
-        if(passTime<nowStr||passTime>cutoff) return null;
-        let typeKey=tdxTypeToKey(String(info.TrainTypeCode||'3'));
-        const typeName=(info.TrainTypeName||{}).Zh_tw||'';
-        if(typeName.includes('普悠瑪')) typeKey='puy';
-        else if(typeName.includes('太魯閣')) typeKey='tze';
-        else if(typeName.includes('EMU3000') || typeName.includes('3000')) typeKey='exp3';
-        else if(typeName.includes('莒光')) typeKey='moc';
-        else if(typeName.includes('區間快')) typeKey='localx';
-        else if(typeName.includes('區間')) typeKey='local';
-        const dir = info.Direction===0?'down':'up';
-        const trainNo = info.TrainNo||'';
-        const delay = liveMap[trainNo]||0;
-        return {
-          id:idx, no:trainNo, type:typeKey, dir,
-          from:(info.StartingStationName||{}).Zh_tw||'',
-          to:(info.EndingStationName||{}).Zh_tw||'',
-          passTime, delay,
-          stops:stops.map(s=>({
-            s:(s.StationName||{}).Zh_tw||'',
-            dep:s.DepartureTime||s.ArrivalTime||'',
-            late:delay,mj:MAJOR.has((s.StationName||{}).Zh_tw||'')
-          }))
-        };
-      }).filter(Boolean)
-        .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||Array.isArray(tv)&&tv.includes(t.type)))
-        .sort((a,b)=>a.passTime.localeCompare(b.passTime));
-      document.getElementById('res-count').textContent=list.length+' 班';
-      renderTrainList(list);
+      let list = (data.trains || []);
+      if(tv !== 'all') list = list.filter(t => tv.includes(t.trainType));
+      // 轉成 renderTrainList 格式
+      const converted = list.map((t,idx)=>({
+        id:idx, no:t.trainNo, type:t.trainType, dir:t.direction,
+        from:t.fromStation, to:t.toStation,
+        passTime:t.s1Time, delay:t.delayMin, stops:[]
+      }));
+      document.getElementById('res-count').textContent=converted.length+' 班';
+      renderTrainList(converted);
       return;
     } catch(e) {
       document.getElementById('train-list').innerHTML=
