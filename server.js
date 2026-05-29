@@ -319,40 +319,35 @@ function estimatePassTime(stops, targetId, targetKm, delay) {
 app.get('/api/debug/dahu', async (req, res) => {
   try {
     const date = new Date().toISOString().split('T')[0];
+    // 直接用已知南迴/縱貫線可能的大湖站 ID 試
+    // 台鐵站 ID 格式：4碼數字
+    // 大湖（路竹區）在縱貫線，ID 可能在 4300~4400 區間
+    const candidateIds = ['4340','4350','4360','4370','4380','4330','4320'];
+    const results = [];
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-    // Step 1: 從 stationCache 找大湖站 ID
-    await buildStationData();
-    const dahuId = stationCache['大湖'] || stationCache['大湖站'];
-    const allDahu = Object.entries(stationCache).filter(([k]) => k.includes('大湖'));
-
-    if (!dahuId) {
-      return res.json({ error: '大湖站找不到', allDahu, sampleStations: Object.entries(stationCache).slice(0, 20) });
+    for (const id of candidateIds) {
+      try {
+        await sleep(800);
+        const data = await tdxWithRetry(
+          `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id}/${date}?$format=JSON&$top=2`
+        );
+        const tt = (data.TrainTimetables || [])[0];
+        const info = tt?.TrainInfo || {};
+        const stops = tt?.StopTimes || [];
+        const firstStop = stops[0];
+        results.push({
+          id,
+          success: true,
+          sampleStation: firstStop?.StationName?.Zh_tw,
+          trainNo: info.TrainNo,
+          stopKeys: firstStop ? Object.keys(firstStop) : []
+        });
+      } catch(e) {
+        results.push({ id, success: false, error: e.message });
+      }
     }
-
-    // Step 2: 查大湖站時刻表
-    const data = await tdxWithRetry(
-      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${dahuId}/${date}?$format=JSON&$top=10`
-    );
-    const timetables = data.TrainTimetables || [];
-
-    const result = timetables.map(tt => {
-      const info = tt.TrainInfo || {};
-      const stops = tt.StopTimes || [];
-      const sampleKeys = stops.length > 0 ? Object.keys(stops[0]) : [];
-      const dahuStop = stops.find(s =>
-        String(s.StationID) === String(dahuId) || s.StationName?.Zh_tw === '大湖'
-      );
-      const isPass = dahuStop ? dahuStop.ArrivalTime === dahuStop.DepartureTime : null;
-      return {
-        trainNo: info.TrainNo,
-        typeName: info.TrainTypeName?.Zh_tw,
-        stopTimesKeys: sampleKeys,
-        dahuStop,
-        verdict: isPass === true ? '通過' : isPass === false ? '停靠' : '大湖不在StopTimes'
-      };
-    });
-
-    res.json({ date, dahuId, allDahu, count: result.length, trains: result });
+    res.json({ date, results });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
