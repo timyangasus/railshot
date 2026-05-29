@@ -315,6 +315,54 @@ function estimatePassTime(stops, targetId, targetKm, delay) {
 }
 
 // ── Existing endpoints ───────────────────────────────
+// ── DEBUG: 驗證大湖站通過時間 ──────────────────────────
+app.get('/api/debug/dahu', async (req, res) => {
+  try {
+    // 1. 查大湖站 ID
+    const stnData = await tdxWithRetry('/api/basic/v3/Rail/TRA/Station?$format=JSON&$filter=contains(StationName/Zh_tw,\'大湖\')');
+    const stns = Array.isArray(stnData) ? stnData : (stnData.Stations || []);
+    const dahu = stns[0];
+
+    // 2. 查 108 次自強今天時刻
+    const date = new Date().toISOString().split('T')[0];
+    const trainData = await tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainNo/108/${date}?$format=JSON`);
+    const tt = (trainData.TrainTimetables || [])[0];
+    const stops = (tt?.StopTimes || []);
+
+    // 3. 找大湖站附近的停靠站（找大湖和周邊）
+    const relevant = stops.filter(s => {
+      const name = s.StationName?.Zh_tw || '';
+      return ['大湖','路竹','岡山','橋頭','楠梓','隆田','善化','拔林'].includes(name);
+    });
+
+    // 4. 印出所有欄位 key
+    const sampleKeys = stops.length > 0 ? Object.keys(stops[0]) : [];
+
+    // 5. 也查大湖站的 DailyStationTimetable（前5筆）
+    const dahuId = dahu?.StationID;
+    let stationTT = null;
+    if (dahuId) {
+      const stData = await tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${dahuId}/${date}?$format=JSON&$top=5`);
+      stationTT = (stData.TrainTimetables || []).map(tt => ({
+        trainNo: tt.TrainInfo?.TrainNo,
+        typeName: tt.TrainInfo?.TrainTypeName?.Zh_tw,
+        // 找大湖站的 stop
+        dahuStop: (tt.StopTimes || []).find(s => s.StationName?.Zh_tw === '大湖')
+      }));
+    }
+
+    res.json({
+      dahuStation: dahu,
+      stopTimesKeys: sampleKeys,
+      totalStops: stops.length,
+      relevantStops: relevant,
+      stationTimetableSample: stationTT
+    });
+  } catch(e) {
+    res.status(500).json({ error: e.message, stack: e.stack });
+  }
+});
+
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 app.get('/api/od/:from/:to/:date', async (req, res) => {
