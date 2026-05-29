@@ -15,6 +15,27 @@ app.use(express.static(path.join(__dirname)));
 let cachedToken = null;
 let tokenExpiry = 0;
 
+// ── Live data cache (60s) ─────────────────────────────
+let liveCache = null;
+let liveCacheExpiry = 0;
+
+async function getLiveMap() {
+  if (liveCache && Date.now() < liveCacheExpiry) return liveCache;
+  try {
+    const data = await tdxWithRetry('/api/basic/v3/Rail/TRA/TrainLiveBoard?$format=JSON&$top=500');
+    const map = {};
+    (data.TrainLiveBoards || data || []).forEach(t => {
+      map[t.TrainNo] = t.DelayTime || 0;
+    });
+    liveCache = map;
+    liveCacheExpiry = Date.now() + 60000;
+    return map;
+  } catch(e) {
+    console.log('Live unavailable');
+    return liveCache || {};
+  }
+}
+
 async function getToken() {
   if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
   const res = await fetch(
@@ -361,20 +382,20 @@ app.get('/api/between/:s1/:s2/:date', async (req, res) => {
     const segMin = Math.min(km1, km2);
     const segMax = Math.max(km1, km2);
 
-    // 即時誤點
-    let liveMap = {};
-    try {
-      const liveData = await tdxWithRetry('/api/basic/v3/Rail/TRA/TrainLiveBoard?$format=JSON&$top=500');
-      (liveData.TrainLiveBoards || liveData || []).forEach(t => {
-        liveMap[t.TrainNo] = t.DelayTime || 0;
-      });
-    } catch(e) { console.log('Live unavailable'); }
+    // 即時誤點（使用 cache，避免每次都打 TDX）
+    const liveMap = await getLiveMap();
 
-    // 查兩站各自的時刻表，取所有經過列車
-    const [data1, data2] = await Promise.all([
-      tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id1}/${date}?$format=JSON`),
-      tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id2}/${date}?$format=JSON`)
-    ]);
+    // 查時刻表：同站只查一次，不同站各查一次
+    let data1, data2;
+    if (isSameStation) {
+      data1 = await tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id1}/${date}?$format=JSON`);
+      data2 = data1;
+    } else {
+      [data1, data2] = await Promise.all([
+        tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id1}/${date}?$format=JSON`),
+        tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id2}/${date}?$format=JSON`)
+      ]);
+    }
 
     // 合併兩站的列車，建立 trainNo → timetable 的 Map
     const trainMap = new Map();
@@ -562,8 +583,8 @@ app.get('/api/station/:stationId/:date', async (req, res) => {
 
 app.get('/api/live', async (req, res) => {
   try {
-    const data = await tdxWithRetry('/api/basic/v3/Rail/TRA/TrainLiveBoard?$format=JSON&$top=500');
-    res.json(data);
+    const map = await getLiveMap();
+    res.json({ TrainLiveBoards: Object.entries(map).map(([TrainNo, DelayTime]) => ({ TrainNo, DelayTime })) });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
