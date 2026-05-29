@@ -319,17 +319,21 @@ function estimatePassTime(stops, targetId, targetKm, delay) {
 app.get('/api/debug/dahu', async (req, res) => {
   try {
     const date = new Date().toISOString().split('T')[0];
-    // 大湖站 ID = 4290（來源：railway.chienwen.net）
-    const dahuId = '4290';
+    // 用 OD 查臺南→岡山，這段必定經過大湖
+    // 只打一次 API
     const data = await tdxWithRetry(
-      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${dahuId}/${date}?$format=JSON&$top=8`
+      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/OD/1370/to/4310/${date}?$format=JSON&$top=6`
     );
     const timetables = data.TrainTimetables || [];
     const result = timetables.map(tt => {
       const info = tt.TrainInfo || {};
       const stops = tt.StopTimes || [];
       const keys = stops[0] ? Object.keys(stops[0]) : [];
-      const dahuStop = stops.find(s => String(s.StationID) === dahuId || s.StationName?.Zh_tw === '大湖');
+      // 找大湖站（ID 4290）
+      const dahuStop = stops.find(s =>
+        String(s.StationID) === '4290' ||
+        s.StationName?.Zh_tw === '大湖'
+      );
       const arr = dahuStop?.ArrivalTime;
       const dep = dahuStop?.DepartureTime;
       return {
@@ -337,10 +341,12 @@ app.get('/api/debug/dahu', async (req, res) => {
         type: info.TrainTypeName?.Zh_tw,
         stopTimesKeys: keys,
         dahuStop,
-        verdict: !dahuStop ? '大湖不在StopTimes' : arr === dep ? `通過 (${arr})` : `停靠 arr=${arr} dep=${dep}`
+        verdict: !dahuStop ? '大湖不在StopTimes'
+          : arr === dep ? `通過 (${arr})`
+          : `停靠 arr=${arr} dep=${dep}`
       };
     });
-    res.json({ date, dahuId, count: result.length, trains: result });
+    res.json({ date, count: result.length, trains: result });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
