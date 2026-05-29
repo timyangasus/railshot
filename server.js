@@ -318,25 +318,27 @@ function estimatePassTime(stops, targetId, targetKm, delay) {
 // ── DEBUG: 驗證大湖站通過時間 ─────────────────────────
 app.get('/api/debug/dahu', async (req, res) => {
   try {
-    // 只查一班，看原始結構
     const data = await tdxWithRetry(
       `/api/basic/v3/Rail/TRA/GeneralTrainTimetable/TrainNo/3121?$format=JSON`
     );
-    // 回傳完整原始結構（只取前幾層）
-    const raw = data.GeneralTrainTimetables?.[0];
-    const topKeys = raw ? Object.keys(raw) : Object.keys(data);
-    const trainInfoKeys = raw?.TrainInfo ? Object.keys(raw.TrainInfo) : [];
-    // StopTimes 或其他名稱
-    const stopKey = Object.keys(raw || {}).find(k => k.toLowerCase().includes('stop') || k.toLowerCase().includes('time'));
-    const stops = raw?.[stopKey] || [];
+    const tt = (data.TrainTimetables || [])[0];
+    const stops = tt?.StopTimes || [];
+    const stopKeys = stops[0] ? Object.keys(stops[0]) : [];
+    const dahuStop = stops.find(s =>
+      String(s.StationID) === '4290' || s.StationName?.Zh_tw === '大湖'
+    );
     res.json({
-      topLevelKeys: Object.keys(data),
-      recordKeys: topKeys,
-      trainInfoKeys,
-      stopKey,
-      stopCount: stops.length,
+      trainNo: tt?.TrainInfo?.TrainNo,
+      type: tt?.TrainInfo?.TrainTypeName?.Zh_tw,
+      totalStops: stops.length,
+      stopKeys,
       firstStop: stops[0],
-      rawSample: JSON.stringify(data).slice(0, 800)
+      lastStop: stops[stops.length-1],
+      dahuStop,
+      verdict: !dahuStop ? '大湖不在StopTimes'
+        : dahuStop.ArrivalTime === dahuStop.DepartureTime
+          ? `通過 arr=dep=${dahuStop.ArrivalTime}`
+          : `停靠 arr=${dahuStop.ArrivalTime} dep=${dahuStop.DepartureTime}`
     });
   } catch(e) {
     res.status(500).json({ error: e.message });
