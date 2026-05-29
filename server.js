@@ -319,37 +319,44 @@ function estimatePassTime(stops, targetId, targetKm, delay) {
 app.get('/api/debug/dahu', async (req, res) => {
   try {
     const date = new Date().toISOString().split('T')[0];
+    // 大湖站 StationID = 4370（縱貫線）
+    const dahuId = '4370';
 
-    // 1. 只查 108 次自強的完整停靠站
-    const trainData = await tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainNo/108/${date}?$format=JSON`);
-    const tt = (trainData.TrainTimetables || [])[0];
-    const stops = (tt?.StopTimes || []);
+    // 查大湖站當天時刻表（前10筆）
+    const data = await tdxWithRetry(
+      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${dahuId}/${date}?$format=JSON&$top=10`
+    );
+    const timetables = data.TrainTimetables || [];
 
-    // 所有欄位名稱
-    const sampleKeys = stops.length > 0 ? Object.keys(stops[0]) : [];
+    // 整理每班車在大湖站的資料
+    const result = timetables.map(tt => {
+      const info = tt.TrainInfo || {};
+      const stops = tt.StopTimes || [];
+      const sampleKeys = stops.length > 0 ? Object.keys(stops[0]) : [];
 
-    // 找大湖站和周邊站
-    const relevant = stops.filter(s => {
-      const name = s.StationName?.Zh_tw || '';
-      return ['大湖','路竹','岡山','橋頭','楠梓','隆田','善化','拔林','臺南','新左營'].includes(name);
+      // 找大湖站的 stop
+      const dahuStop = stops.find(s =>
+        String(s.StationID) === String(dahuId) ||
+        s.StationName?.Zh_tw === '大湖'
+      );
+
+      // ArrivalTime === DepartureTime?
+      const isPass = dahuStop
+        ? dahuStop.ArrivalTime === dahuStop.DepartureTime
+        : null;
+
+      return {
+        trainNo: info.TrainNo,
+        typeName: info.TrainTypeName?.Zh_tw,
+        direction: info.Direction,
+        stopTimesKeys: sampleKeys,
+        dahuStop,
+        isArrEqDep: isPass,
+        verdict: isPass === true ? '→ 通過不停靠' : isPass === false ? '→ 停靠' : '→ 大湖站不在StopTimes'
+      };
     });
 
-    // 找 ArrivalTime === DepartureTime 的所有站
-    const passingStops = stops.filter(s => s.ArrivalTime && s.DepartureTime && s.ArrivalTime === s.DepartureTime);
-
-    res.json({
-      trainInfo: {
-        no: tt?.TrainInfo?.TrainNo,
-        type: tt?.TrainInfo?.TrainTypeName?.Zh_tw,
-        from: tt?.TrainInfo?.StartingStationName?.Zh_tw,
-        to: tt?.TrainInfo?.EndingStationName?.Zh_tw
-      },
-      stopTimesKeys: sampleKeys,
-      totalStops: stops.length,
-      passingStopsCount: passingStops.length,
-      passingStopsSample: passingStops.slice(0, 5),
-      relevantStops: relevant,
-    });
+    res.json({ date, dahuId, count: result.length, trains: result });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
