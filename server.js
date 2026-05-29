@@ -315,42 +315,21 @@ function estimatePassTime(stops, targetId, targetKm, delay) {
 }
 
 // ── Existing endpoints ───────────────────────────────
-// ── DEBUG: 驗證大湖站通過時間 ──────────────────────────
+// ── DEBUG: 從快取查大湖站 ID ─────────────────────────
 app.get('/api/debug/dahu', async (req, res) => {
-  try {
-    const date = new Date().toISOString().split('T')[0];
-    // 直接用已知南迴/縱貫線可能的大湖站 ID 試
-    // 台鐵站 ID 格式：4碼數字
-    // 大湖（路竹區）在縱貫線，ID 可能在 4300~4400 區間
-    const candidateIds = ['4340','4350','4360','4370','4380','4330','4320'];
-    const results = [];
-    const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-    for (const id of candidateIds) {
-      try {
-        await sleep(800);
-        const data = await tdxWithRetry(
-          `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id}/${date}?$format=JSON&$top=2`
-        );
-        const tt = (data.TrainTimetables || [])[0];
-        const info = tt?.TrainInfo || {};
-        const stops = tt?.StopTimes || [];
-        const firstStop = stops[0];
-        results.push({
-          id,
-          success: true,
-          sampleStation: firstStop?.StationName?.Zh_tw,
-          trainNo: info.TrainNo,
-          stopKeys: firstStop ? Object.keys(firstStop) : []
-        });
-      } catch(e) {
-        results.push({ id, success: false, error: e.message });
-      }
-    }
-    res.json({ date, results });
-  } catch(e) {
-    res.status(500).json({ error: e.message });
+  // 只讀已快取的資料，不打任何新 TDX 請求
+  if (!stationCache) {
+    return res.json({ error: 'stationCache 尚未載入，請稍後再試' });
   }
+  const dahu = Object.entries(stationCache).filter(([k]) => k.includes('大湖'));
+  const sample = Object.entries(stationCache).slice(0, 10);
+  const dahuId = stationCache['大湖'];
+  res.json({
+    dahuId,
+    dahuMatches: dahu,
+    totalStations: Object.keys(stationCache).length,
+    sampleStations: sample
+  });
 });
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
@@ -429,6 +408,11 @@ app.get('/api/train/:trainNo/:date', async (req, res) => {
 
 app.listen(PORT, async () => {
   console.log(`Railshot proxy running on port ${PORT}`);
-  try { await buildStationData(); }
+  try {
+    await buildStationData();
+    // 印出大湖相關站
+    const dahu = Object.entries(stationCache).filter(([k]) => k.includes('大湖') || k.includes('路竹') || k.includes('岡山'));
+    console.log('大湖相關站:', JSON.stringify(dahu));
+  }
   catch(e) { console.error('Failed to preload stations:', e.message); }
 });
