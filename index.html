@@ -270,11 +270,11 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 
 /* LEFT: county list ~40% width, light grey bg */
 .stn-county-col{
-  width:38%;background:#f5f5f5;border-right:1px solid #e0e0e0;
+  width:45.6%;background:#f5f5f5;border-right:1px solid #e0e0e0;
   overflow-y:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;
 }
 .stn-county-item{
-  padding:15px 12px 15px 60px;font-size:17px;font-weight:400;color:#333;
+  padding:13px 10px 13px 46px;font-size:17px;font-weight:400;color:#333;
   cursor:pointer;border-bottom:0.5px solid #e8e8e8;
   display:flex;align-items:center;justify-content:space-between;
   transition:background .1s;position:relative;
@@ -282,6 +282,11 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .stn-county-item:active{background:#eaeaea;}
 .stn-county-item.sel{
   color:var(--accent);font-weight:700;background:#f5f5f5;
+}
+.stn-county-sep{
+  padding:8px 16px 5px 46px;font-size:10px;font-weight:700;color:#aaa;
+  letter-spacing:0.8px;text-transform:uppercase;background:#f5f5f5;
+  border-bottom:0.5px solid #e8e8e8;
 }
 .stn-county-check{
   color:var(--accent);flex-shrink:0;
@@ -837,47 +842,43 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 
 </div>
 <script>
-// ===== STATION DATA (縣市 > 地區 > 車站) =====
-// 資料來源：台鐵官方站序（縱貫線、屏東線、北迴線、東部幹線等）
+// ===== STATION DATA (縣市 > 車站) =====
+// 資料來源：台鐵官方網站縣市對應站名
 const STN_DATA = {
-  '北部': {
-    '基隆': ['基隆','三坑','八堵','七堵','五堵','汐止','汐科','百福','海科館','暖暖'],
-    '臺北': ['南港','松山','臺北','萬華'],
-    '新北': ['板橋','浮洲','樹林','山佳','鶯歌'],
-    '桃園': ['桃園','內壢','中壢','埔心','楊梅','富岡','北湖','湖口','新豐'],
-    '新竹': ['竹北','新竹','三姓橋','香山','崎頂','竹南'],
-    '宜蘭': ['頭城','礁溪','宜蘭','二結','中里','羅東','冬山','蘇澳新','蘇澳'],
-  },
-  '中部': {
-    '苗栗': ['談文','大山','後龍','龍港','造橋','豐富','苗栗','南勢','銅鑼','三義','泰安'],
-    '臺中': ['后里','豐原','栗林','潭子','頭家厝','松竹','太原','臺中','精武','大慶','烏日','新烏日','成功'],
-    '彰化': ['彰化','花壇','大村','員林','永靖','社頭','田中','二水'],
-    '南投': ['集集','水里','車埕'],
-    '雲林': ['林內','石榴','斗六','斗南','石龜'],
-  },
-  '南部': {
-    '嘉義': ['大林','民雄','嘉義','水上','南靖','後壁','新營','柳營','林鳳營'],
-    '臺南': ['隆田','拔林','善化','南科','新市','永康','臺南','保安','仁德','大湖'],
-    '高雄': ['路竹','岡山','橋頭','楠梓','新左營','左營','内惟','美術館','鼓山','三塊厝','高雄','苓雅','正義','民族','科工館','鳳山','後庄','九曲堂'],
-    '屏東': ['六塊厝','屏東','歸來','麟洛','西勢','竹田','潮州','崁頂','南州','鎮安','林邊','佳冬','東海','枋寮','加祿','內獅','枋山'],
-  },
-  '東部': {
-    '花蓮': ['新城','花蓮','吉安','志學','壽豐','豐田','光復','富源','瑞穗','三民','玉里','東竹','富里'],
-    '臺東': ['池上','海端','關山','瑞和','瑞源','鹿野','山里','臺東'],
-  }
+  '基隆市': ['基隆','三坑','八堵','七堵','百福','海科館','暖暖'],
+  '新北市': ['五堵','汐止','汐科','板橋','浮洲','樹林','南樹林','山佳','鶯歌','鳳鳴','福隆','貢寮','雙溪','牡丹','三貂嶺','大華','十分','望古','嶺腳','平溪','菁桐','猴硐','瑞芳','八斗子','四腳亭'],
+  '臺北市': ['南港','松山','臺北','萬華'],
+  '桃園市': ['桃園','內壢','中壢','埔心','楊梅','富岡','新富'],
+  '新竹縣': ['北湖','湖口','新豐','竹北','竹中','六家','上員','榮華','竹東','橫山','九讚頭','合興','富貴','內灣'],
+  '新竹市': ['北新竹','千甲','新莊','新竹','三姓橋','香山'],
+  '苗栗縣': ['崎頂','竹南','談文','大山','後龍','龍港','白沙屯','新埔','通霄','苑裡','造橋','豐富','苗栗','南勢','銅鑼','三義'],
+  '臺中市': ['日南','大甲','臺中港','清水','沙鹿','龍井','大肚','追分','泰安','后里','豐原','栗林','潭子','頭家厝','松竹','太原','精武','臺中','五權','大慶','烏日','新烏日','成功'],
+  '彰化縣': ['彰化','花壇','大村','員林','永靖','社頭','田中','二水','源泉'],
+  '南投縣': ['濁水','龍泉','集集','水里','車埕'],
+  '雲林縣': ['林內','石榴','斗六','斗南','石龜'],
+  '嘉義縣': ['大林','民雄','水上','南靖'],
+  '嘉義市': ['嘉北','嘉義'],
+  '臺南市': ['後壁','新營','柳營','林鳳營','隆田','拔林','善化','南科','新市','永康','大橋','臺南','保安','仁德','中洲','長榮大學','沙崙'],
+  '高雄市': ['大湖','路竹','岡山','橋頭','楠梓','新左營','左營','內惟','美術館','鼓山','三塊厝','高雄','民族','科工館','正義','鳳山','後庄','九曲堂'],
+  '屏東縣': ['六塊厝','屏東','歸來','麟洛','西勢','竹田','潮州','崁頂','南州','鎮安','林邊','佳冬','東海','枋寮','加祿','內獅','枋山'],
+  '臺東縣': ['大武','瀧溪','金崙','太麻里','知本','康樂','臺東','山里','鹿野','瑞源','瑞和','關山','海端','池上'],
+  '花蓮縣': ['富里','東竹','東里','玉里','三民','瑞穗','富源','大富','光復','萬榮','鳳林','南平','林榮新光','豐田','壽豐','平和','志學','吉安','花蓮','北埔','景美','新城','崇德','和仁','和平'],
+  '宜蘭縣': ['漢本','武塔','南澳','東澳','永樂','蘇澳','蘇澳新','冬山','羅東','中里','二結','宜蘭','四城','礁溪','頂埔','頭城','外澳','龜山','大溪','大里','石城'],
 };
 
 // 支線資料
 const BRANCH_LINES = {
-  '成追線': ['成功','追分','大肚','龍井','臺中港','沙鹿','清水','大甲','日南','大山','後龍'],
-  '平溪/深澳線': ['瑞芳','三貂嶺','牡丹','雙溪','大華','十分','望古','嶺腳','平溪','菁桐','海科館','深澳'],
-  '內灣/六家線': ['竹中','竹東','橫山','九讚頭','合興','富貴','內灣','北新竹','六家'],
+  '成追線': ['追分','成功'],
+  '平溪線': ['三貂嶺','大華','十分','望古','嶺腳','平溪','菁桐'],
+  '深澳線': ['瑞芳','海科館','八斗子','深澳'],
+  '六家線': ['竹中','六家'],
+  '內灣線': ['北新竹','千甲','新莊','竹中','上員','榮華','竹東','橫山','九讚頭','合興','富貴','內灣'],
   '集集線': ['二水','源泉','濁水','龍泉','集集','水里','車埕'],
-  '沙崙線': ['中洲','沙崙'],
+  '沙崙線': ['中洲','長榮大學','沙崙'],
 };
 
 // Major stations (粗體顯示)
-const MAJOR = new Set(['基隆','臺北','板橋','桃園','中壢','新竹','苗栗','臺中','彰化','斗六','嘉義','臺南','高雄','左營','新左營','屏東','潮州','枋寮','花蓮','臺東','宜蘭','羅東']);
+const MAJOR = new Set(['基隆','臺北','板橋','桃園','中壢','新竹','苗栗','臺中','彰化','斗六','嘉義','臺南','高雄','左營','新左營','屏東','潮州','枋寮','花蓮','臺東','宜蘭','羅東','花蓮','豐原','員林','嘉北']);
 
 const TYPE_INFO={
   exp3:{label:'自強3000',cls:'b-exp3'},
@@ -1063,13 +1064,7 @@ function closeSheet(id){document.getElementById(id).classList.remove('open');}
 function closeOv(e,id){if(e.target===document.getElementById(id))closeSheet(id);}
 
 // ===== FLAT COUNTY LIST (for left column) =====
-// Build a flat county list from STN_DATA
-const COUNTY_LIST = [];
-Object.entries(STN_DATA).forEach(([region, counties]) => {
-  Object.keys(counties).forEach(county => {
-    COUNTY_LIST.push({region, county});
-  });
-});
+const COUNTY_LIST = Object.keys(STN_DATA);
 const BRANCH_COUNTIES = Object.keys(BRANCH_LINES);
 
 // ===== STATION PAGE STATE =====
@@ -1128,14 +1123,13 @@ function openStnPage(caller, initialFrom, initialTo, activeSlot, cb){
 }
 
 function spFindCountyOfStation(stnName){
-  // 嘗試台/臺互換
   const alts = [stnName, stnName.replace(/台/g,'臺'), stnName.replace(/臺/g,'台')];
   for(const name of alts){
-    for(const {county} of COUNTY_LIST){
-      if(spGetStationsForCounty(county).includes(name)) return county;
+    for(const county of COUNTY_LIST){
+      if(STN_DATA[county].includes(name)) return county;
     }
     for(const br of BRANCH_COUNTIES){
-      if(spGetStationsForCounty(br).includes(name)) return br;
+      if(BRANCH_LINES[br].includes(name)) return br;
     }
   }
   return '';
@@ -1202,7 +1196,7 @@ function spRenderCountyCol(){
   const el = document.getElementById('sp-county-col');
   const curSel = spState.active === 'from' ? spState.from : spState.to;
   let html = '';
-  COUNTY_LIST.forEach(({region, county}) => {
+  COUNTY_LIST.forEach(county => {
     const isSel = spState.county === county;
     const stns = spGetStationsForCounty(county);
     const hasSelected = curSel && stns.includes(curSel);
@@ -1211,6 +1205,7 @@ function spRenderCountyCol(){
       ${(isSel || hasSelected) ? `<span class="stn-county-check">${CHECKSVG}</span>` : ''}
     </div>`;
   });
+  html += `<div class="stn-county-sep">支線</div>`;
   BRANCH_COUNTIES.forEach(name => {
     const isSel = spState.county === name;
     const stns = spGetStationsForCounty(name);
@@ -1231,9 +1226,7 @@ function spSelectCounty(county){
   if(sc) sc.scrollTop = 0;
 }
 function spGetStationsForCounty(county){
-  for(const [region, counties] of Object.entries(STN_DATA)){
-    if(counties[county]) return counties[county];
-  }
+  if(STN_DATA[county]) return STN_DATA[county];
   if(BRANCH_LINES[county]) return BRANCH_LINES[county];
   return [];
 }
