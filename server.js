@@ -51,10 +51,185 @@ async function tdxWithRetry(urlPath, retries = 2) {
   }
 }
 
-// ── Station cache (name→id, id→mileage) ─────────────
-let stationCache = null;    // { '臺北': '1000', ... }
-let stationMileage = null;  // { '1000': 0.0, '1010': 3.5, ... } km from start
-let stationOrder = null;    // ['1000','1010',...] ordered by mileage
+// ── 內建台鐵里程表（km，從基隆起算） ──────────────────
+// 來源：台鐵官方里程表，縱貫線 + 屏東線 + 北迴線 + 南迴線
+const STATION_KM = {
+  // 縱貫線（北段）
+  '0900':0,    // 基隆
+  '0910':3.4,  // 三坑
+  '0920':6.0,  // 八堵
+  '0930':7.6,  // 暖暖
+  '0940':9.7,  // 四腳亭
+  '1000':13.0, // 瑞芳
+  '1010':16.4, // 猴硐
+  '1020':19.4, // 三貂嶺
+  '1030':22.0, // 大華
+  '1040':24.0, // 十分
+  '1050':26.0, // 望古
+  '1060':27.6, // 嶺腳
+  '1070':29.4, // 平溪
+  '1080':32.0, // 菁桐
+  // 縱貫線主線
+  '1090':19.0, // 牡丹（宜蘭線）
+  '1100':24.5, // 雙溪
+  '1110':29.6, // 貢寮
+  '1120':32.8, // 福隆
+  '1130':37.5, // 石城
+  '1140':40.9, // 大里
+  '1150':43.0, // 大溪
+  '1160':46.0, // 龜山
+  '1170':50.3, // 外澳
+  '1180':52.5, // 頭城
+  '1190':57.9, // 頂埔
+  '1200':60.4, // 礁溪
+  '1210':65.0, // 四城
+  '1220':67.3, // 宜蘭
+  '1230':71.0, // 二結
+  '1240':73.7, // 中里
+  '1250':76.3, // 山腳
+  '1260':79.0, // 羅東
+  '1270':82.6, // 冬山
+  '1280':86.5, // 新馬
+  '1290':89.6, // 蘇澳新
+  '1300':91.6, // 蘇澳
+  // 縱貫線（台北都會）
+  '1340':27.7, // 松山
+  '1350':28.8, // 八德（廢）
+  '1360':31.0, // 南港
+  '1370':34.3, // 臺北
+  '1380':36.5, // 萬華
+  '1390':40.0, // 板橋
+  '1400':42.5, // 浮洲
+  '1410':44.3, // 樹林
+  '1420':46.0, // 山佳
+  '1430':48.6, // 鶯歌
+  '1440':52.8, // 桃園
+  '1450':55.3, // 內壢
+  '1460':57.4, // 中壢
+  '1470':60.0, // 埔心
+  '1480':63.8, // 楊梅
+  '1490':67.4, // 富岡
+  '1500':71.3, // 新富岡（廢）
+  '1510':73.9, // 湖口
+  '1520':78.0, // 新豐
+  '1530':80.8, // 竹北
+  '1540':83.5, // 北新竹
+  '1550':85.0, // 新竹
+  '1560':87.9, // 三姓橋
+  '1570':90.2, // 香山
+  '1580':93.6, // 崎頂
+  '1590':97.9, // 竹南
+  '1600':101.3,// 談文
+  '1610':104.1,// 大山
+  '1620':107.3,// 後龍
+  '1630':110.8,// 龍港
+  '1640':113.0,// 白沙屯
+  '1650':116.0,// 新埔
+  '1660':119.6,// 通霄
+  '1670':124.0,// 苑裡
+  '1680':128.0,// 日南
+  '1690':131.4,// 大甲
+  '1700':135.5,// 台中港（廢）
+  '1710':138.0,// 清水
+  '1720':141.4,// 沙鹿
+  '1730':143.8,// 龍井
+  '1740':146.9,// 大肚
+  '2000':149.3,// 追分
+  '2010':154.1,// 烏日
+  '2020':156.2,// 新烏日
+  '2030':159.0,// 成功
+  '2040':161.2,// 大慶
+  '2050':163.8,// 臺中
+  '2060':165.6,// 精武
+  '2070':168.0,// 太原
+  '2080':169.8,// 頭家厝
+  '2090':171.9,// 松竹
+  '2100':174.2,// 潭子
+  '2110':176.7,// 栗林
+  '2120':179.2,// 豐原
+  '2130':181.8,// 后里
+  '2140':185.8,// 泰安
+  '2150':189.6,// 苗栗
+  '2160':192.2,// 南勢
+  '2170':195.5,// 銅鑼
+  '2180':199.3,// 三義
+  '2190':204.5,// 泰安舊站（廢）
+  '2200':207.0,// 后里（舊）
+  '3000':171.5,// 彰化（從追分算）
+  // 縱貫線（彰化以南）
+  '3010':174.8,// 花壇
+  '3020':178.2,// 大村
+  '3030':180.8,// 員林
+  '3040':183.9,// 永靖
+  '3050':186.1,// 社頭
+  '3060':188.4,// 田中
+  '3070':191.8,// 二水
+  '3080':196.9,// 林內
+  '3090':199.2,// 石榴
+  '3100':201.5,// 斗六
+  '3110':204.8,// 斗南
+  '3120':208.6,// 石龜
+  '3130':210.6,// 大林
+  '3140':213.4,// 民雄
+  '3150':215.9,// 北回歸線
+  '3160':217.8,// 嘉義
+  '4080':217.8,// 嘉義（同上）
+  '4090':221.2,// 水上
+  '4100':224.1,// 南靖
+  '4110':226.5,// 後壁
+  '4120':229.4,// 新營
+  '4130':232.2,// 柳營
+  '4140':234.8,// 林鳳營
+  '4150':237.5,// 隆田
+  '4160':240.0,// 拔林
+  '4170':242.5,// 善化
+  '4180':244.7,// 南科
+  '4190':247.0,// 新市
+  '4200':249.8,// 永康
+  '4210':252.6,// 大橋
+  '4220':255.5,// 臺南
+  '1370':255.5,// 臺南（同 4220）
+  '4230':258.2,// 保安
+  '4240':260.8,// 仁德
+  '4250':263.0,// 中洲
+  '4260':265.2,// 大湖
+  '4290':265.2,// 大湖（確認 ID）
+  '4270':267.5,// 路竹
+  '4280':269.8,// 岡山
+  '4310':269.8,// 岡山（確認 ID）
+  '4320':272.8,// 橋頭
+  '4330':275.5,// 楠梓
+  '4340':278.5,// 新左營
+  '4350':282.0,// 左營
+  '4360':283.5,// 內惟
+  '4370':285.0,// 美術館
+  '4380':286.8,// 鼓山
+  '4390':288.0,// 三塊厝
+  '4400':289.5,// 高雄
+  '4410':291.2,// 民族
+  '4420':292.8,// 科工館
+  '4430':294.0,// 正義
+  '4440':295.2,// 鳳山
+  '4450':297.0,// 鳳山（新）
+  '4460':299.5,// 九曲堂
+  '4470':301.5,// 六塊厝
+  '5000':304.5,// 屏東
+  '5010':308.2,// 歸來
+  '5020':311.0,// 麟洛
+  '5030':314.5,// 西勢
+  '5040':317.0,// 竹田
+  '5050':320.0,// 潮州
+  '5060':323.5,// 崁頂
+  '5070':326.8,// 南州
+  '5080':330.5,// 鎮安
+  '5090':333.0,// 林邊
+  '5100':335.5,// 佳冬
+  '5110':338.0,// 東海
+  '5120':340.5,// 枋寮
+};
+
+// ── Station name→ID cache（只從 TDX 查名稱，不查里程） ──
+let stationCache = null;
 
 async function buildStationData() {
   if (stationCache) return;
@@ -64,26 +239,12 @@ async function buildStationData() {
     : Array.isArray(data.value) ? data.value : [];
 
   stationCache = {};
-  stationMileage = {};
-
   stations.forEach(s => {
-    const zhName = (s.StationName?.Zh_tw || s.StationName?.ZhTw ||
-      (typeof s.StationName === 'string' ? s.StationName : '') || '').trim();
-    const id = String(s.StationID || s.StationId || s.StationCode || '').trim();
-    const km = parseFloat(s.StationPosition?.GeoDecimalDegree?.Mileage
-      || s.Mileage || s.CumulativeDistance || 0);
-    if (zhName && id) {
-      stationCache[zhName] = id;
-      stationMileage[id] = km;
-    }
+    const zhName = (s.StationName?.Zh_tw || '').trim();
+    const id = String(s.StationID || '').trim();
+    if (zhName && id) stationCache[zhName] = id;
   });
-
-  // Order stations by mileage
-  stationOrder = Object.entries(stationMileage)
-    .sort((a, b) => a[1] - b[1])
-    .map(e => e[0]);
-
-  console.log(`Loaded ${Object.keys(stationCache).length} stations`);
+  console.log(`Loaded ${Object.keys(stationCache).length} station names`);
 }
 
 async function resolveStationId(name) {
@@ -96,19 +257,19 @@ async function resolveStationId(name) {
   return name;
 }
 
-// ── Time helpers ────────────────────────────────────
+// ── Time helpers ─────────────────────────────────────
 function timeToMins(t) {
   if (!t || t === '??:??') return -1;
   const [h, m] = t.split(':').map(Number);
   return h * 60 + m;
 }
 function minsToTime(m) {
-  const h = Math.floor(m / 60) % 24;
-  const min = m % 60;
+  const h = Math.floor(((m % 1440) + 1440) % 1440 / 60);
+  const min = ((m % 1440) + 1440) % 1440 % 60;
   return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
 }
 
-// ── Train type from TDX ─────────────────────────────
+// ── Train type ────────────────────────────────────────
 function getTrainType(info) {
   const code = String(info.TrainTypeCode || '3');
   const name = (info.TrainTypeName?.Zh_tw || '');
@@ -123,223 +284,198 @@ function getTrainType(info) {
   return map[code] || 'exp';
 }
 
-// ── Core: query all trains passing between two stations ──
-// GET /api/between/:s1/:s2/:date?start=HH:MM&mins=30
+// ── 里程插值推算通過時間 ──────────────────────────────
+// stops: StopTimes 陣列
+// targetId: 目標站 StationID
+// 回傳 HH:MM 或 null
+function estimatePassTime(stops, targetId) {
+  const targetKm = STATION_KM[String(targetId)];
+  if (targetKm === undefined) return null;
+
+  let prev = null, next = null;
+
+  for (const stop of stops) {
+    const stopId = String(stop.StationID);
+    const km = STATION_KM[stopId];
+    if (km === undefined) continue;
+    const t = stop.DepartureTime || stop.ArrivalTime;
+    if (!t) continue;
+
+    if (km <= targetKm) {
+      if (!prev || km > STATION_KM[String(prev.StationID)]) prev = stop;
+    } else {
+      if (!next || km < STATION_KM[String(next.StationID)]) next = stop;
+    }
+  }
+
+  if (!prev || !next) return null;
+
+  const prevKm = STATION_KM[String(prev.StationID)];
+  const nextKm = STATION_KM[String(next.StationID)];
+  const prevMins = timeToMins(prev.DepartureTime || prev.ArrivalTime);
+  const nextMins = timeToMins(next.ArrivalTime || next.DepartureTime);
+
+  if (nextKm === prevKm || nextMins <= prevMins) return null;
+
+  const ratio = (targetKm - prevKm) / (nextKm - prevKm);
+  return minsToTime(Math.round(prevMins + ratio * (nextMins - prevMins)));
+}
+
+// ── /api/between：兩站間所有列車（含過路車） ───────────
 app.get('/api/between/:s1/:s2/:date', async (req, res) => {
   try {
     const { s1, s2, date } = req.params;
-    const startTime = req.query.start || '00:00';   // HH:MM
+    const startTime = req.query.start || '00:00';
     const rangeMin = parseInt(req.query.mins || '30');
-    const dirFilter = req.query.dir || 'all'; // 'all','up','down'
+    const dirFilter = req.query.dir || 'all';
 
     const id1 = await resolveStationId(decodeURIComponent(s1));
     const id2 = await resolveStationId(decodeURIComponent(s2));
-    console.log(`Between query: ${s1}(${id1}) ↔ ${s2}(${id2}) on ${date} from ${startTime} +${rangeMin}min`);
+    const km1 = STATION_KM[id1];
+    const km2 = STATION_KM[id2];
+
+    console.log(`Between: ${s1}(${id1},${km1}km) ↔ ${s2}(${id2},${km2}km) on ${date} from ${startTime}+${rangeMin}min`);
+
+    if (km1 === undefined || km2 === undefined) {
+      return res.status(400).json({ error: `里程表找不到站: ${km1===undefined?s1:s2}` });
+    }
 
     const startMins = timeToMins(startTime);
     const endMins = startMins + rangeMin;
+    const segMin = Math.min(km1, km2);
+    const segMax = Math.max(km1, km2);
 
-    // 1. Get live delay map
+    // 即時誤點
     let liveMap = {};
     try {
       const liveData = await tdxWithRetry('/api/basic/v3/Rail/TRA/TrainLiveBoard?$format=JSON&$top=500');
       (liveData.TrainLiveBoards || liveData || []).forEach(t => {
         liveMap[t.TrainNo] = t.DelayTime || 0;
       });
-    } catch(e) { console.log('Live data unavailable'); }
+    } catch(e) { console.log('Live unavailable'); }
 
-    // 2. Get full timetable for the date (all trains)
-    // Use station-based query for s1 to get all passing trains
+    // 查兩站各自的時刻表，取所有經過列車
     const [data1, data2] = await Promise.all([
       tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id1}/${date}?$format=JSON`),
       tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id2}/${date}?$format=JSON`)
     ]);
 
-    // Build set of train numbers from both stations
-    const trains1 = new Map(); // trainNo → timetable
-    const trains2 = new Map();
-
-    (data1.TrainTimetables || []).forEach(tt => {
-      trains1.set(tt.TrainInfo?.TrainNo, tt);
-    });
-    (data2.TrainTimetables || []).forEach(tt => {
-      trains2.set(tt.TrainInfo?.TrainNo, tt);
-    });
-
-    // 3. For trains stopping at BOTH stations → use actual times
-    // For trains stopping at only ONE of the two → estimate pass time
-    // We need to find all trains that pass through the s1↔s2 segment
-
-    // Get mileage positions
-    const km1 = stationMileage[id1] || 0;
-    const km2 = stationMileage[id2] || 0;
-    const segStart = Math.min(km1, km2);
-    const segEnd = Math.max(km1, km2);
+    // 合併兩站的列車，建立 trainNo → timetable 的 Map
+    const trainMap = new Map();
+    for (const tt of [...(data1.TrainTimetables||[]), ...(data2.TrainTimetables||[])]) {
+      const no = tt.TrainInfo?.TrainNo;
+      if (no && !trainMap.has(no)) trainMap.set(no, tt);
+    }
 
     const results = [];
 
-    // Collect all train numbers from either station
-    const allTrainNos = new Set([...trains1.keys(), ...trains2.keys()]);
-
-    for (const trainNo of allTrainNos) {
-      const tt1 = trains1.get(trainNo);
-      const tt2 = trains2.get(trainNo);
-      const tt = tt1 || tt2;
+    for (const [trainNo, tt] of trainMap) {
       const info = tt.TrainInfo || {};
-
+      const stops = tt.StopTimes || [];
       const delay = liveMap[trainNo] || 0;
       const trainType = getTrainType(info);
-      const direction = info.Direction; // 0=down, 1=up
-      const dirStr = direction === 0 ? 'down' : 'up';
+      const dir = info.Direction === 0 ? 'down' : 'up';
 
-      // Direction filter
-      if (dirFilter !== 'all' && dirStr !== dirFilter) continue;
+      if (dirFilter !== 'all' && dir !== dirFilter) continue;
 
-      const stops = tt.StopTimes || [];
+      // 確認此列車確實通過這段區間
+      // 方法：找此車所有已知停靠站的里程，確認有在 s1 之前和 s2 之後的站
+      const stopKms = stops.map(s => STATION_KM[String(s.StationID)]).filter(k => k !== undefined);
+      if (!stopKms.length) continue;
+      const minKm = Math.min(...stopKms);
+      const maxKm = Math.max(...stopKms);
+      if (maxKm < segMin || minKm > segMax) continue; // 不通過此區間
 
-      // Find stop times at s1 and s2
+      // 找 s1 和 s2 的時間
       const stop1 = stops.find(s => String(s.StationID) === String(id1));
       const stop2 = stops.find(s => String(s.StationID) === String(id2));
 
-      let passTime1, passTime2, isEstimated;
+      let time1, time2, isEstimated;
 
       if (stop1 && stop2) {
-        // Both stations are stops → actual times
-        passTime1 = stop1.ArrivalTime || stop1.DepartureTime;
-        passTime2 = stop2.ArrivalTime || stop2.DepartureTime;
+        time1 = stop1.ArrivalTime || stop1.DepartureTime;
+        time2 = stop2.ArrivalTime || stop2.DepartureTime;
         isEstimated = false;
-      } else if (stop1 && !stop2) {
-        // Only s1 is a stop → estimate s2 from adjacent stops
-        passTime1 = stop1.ArrivalTime || stop1.DepartureTime;
-        passTime2 = estimatePassTime(stops, id2, km2, delay);
+      } else if (stop1) {
+        time1 = stop1.ArrivalTime || stop1.DepartureTime;
+        time2 = estimatePassTime(stops, id2);
         isEstimated = true;
-      } else if (!stop1 && stop2) {
-        // Only s2 is a stop → estimate s1 from adjacent stops
-        passTime1 = estimatePassTime(stops, id1, km1, delay);
-        passTime2 = stop2.ArrivalTime || stop2.DepartureTime;
+      } else if (stop2) {
+        time1 = estimatePassTime(stops, id1);
+        time2 = stop2.ArrivalTime || stop2.DepartureTime;
         isEstimated = true;
       } else {
-        // Neither station is a stop → estimate both
-        passTime1 = estimatePassTime(stops, id1, km1, delay);
-        passTime2 = estimatePassTime(stops, id2, km2, delay);
+        time1 = estimatePassTime(stops, id1);
+        time2 = estimatePassTime(stops, id2);
         isEstimated = true;
       }
 
-      if (!passTime1) continue;
+      if (!time1) continue;
 
-      // Check if train actually passes through the segment
-      // by verifying it has stops on BOTH sides of the segment
-      const stopKms = stops.map(s => stationMileage[String(s.StationID)] || null).filter(k => k !== null);
-      const minStopKm = Math.min(...stopKms);
-      const maxStopKm = Math.max(...stopKms);
-      if (maxStopKm < segStart || minStopKm > segEnd) continue; // doesn't pass through
-
-      // Check time window
-      const pass1Mins = timeToMins(passTime1) + (isEstimated ? delay : 0);
-      if (pass1Mins < 0 || pass1Mins < startMins || pass1Mins > endMins) continue;
-
-      // Determine which station is "first" based on direction
-      const s1IsFirst = direction === 0
-        ? (km1 <= km2)   // down: smaller km first
-        : (km1 >= km2);  // up: larger km first
+      // 時間窗口篩選（加上誤點）
+      const pass1Mins = timeToMins(time1) + delay;
+      if (pass1Mins < startMins || pass1Mins > endMins) continue;
 
       results.push({
         trainNo,
         trainType,
-        direction: dirStr,
-        fromStation: (info.StartingStationName?.Zh_tw || ''),
-        toStation: (info.EndingStationName?.Zh_tw || ''),
-        s1Name: decodeURIComponent(s1),
-        s2Name: decodeURIComponent(s2),
-        s1Time: passTime1,
-        s2Time: passTime2,
-        s1Delay: isEstimated ? 0 : delay,
-        s2Delay: isEstimated ? 0 : delay,
+        direction: dir,
+        fromStation: info.StartingStationName?.Zh_tw || '',
+        toStation: info.EndingStationName?.Zh_tw || '',
+        s1Time: time1,
+        s2Time: time2 || '--',
         delayMin: delay,
         isEstimated,
-        passTimeMins: pass1Mins, // for sorting
+        passTimeMins: pass1Mins,
       });
     }
 
-    // Sort by pass time at s1
     results.sort((a, b) => a.passTimeMins - b.passTimeMins);
-
-    console.log(`Between result: ${results.length} trains (${results.filter(r=>!r.isEstimated).length} actual, ${results.filter(r=>r.isEstimated).length} estimated)`);
+    const actualCount = results.filter(r => !r.isEstimated).length;
+    const estimatedCount = results.filter(r => r.isEstimated).length;
+    console.log(`Between result: ${results.length} trains (actual:${actualCount} estimated:${estimatedCount})`);
     res.json({ trains: results });
 
-  } catch (e) {
+  } catch(e) {
     console.error('Between error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
 
-// ── Estimate pass time using adjacent stops + mileage ──
-function estimatePassTime(stops, targetId, targetKm, delay) {
-  if (!stationMileage || targetKm === 0) return null;
-
-  // Find adjacent stops (before and after target km)
-  let prevStop = null, nextStop = null;
-
-  for (const stop of stops) {
-    const stopId = String(stop.StationID);
-    const stopKm = stationMileage[stopId];
-    if (stopKm === undefined) continue;
-
-    const stopTime = stop.ArrivalTime || stop.DepartureTime;
-    if (!stopTime) continue;
-
-    if (stopKm <= targetKm) {
-      if (!prevStop || stopKm > (stationMileage[String(prevStop.StationID)] || 0)) {
-        prevStop = stop;
-      }
-    } else {
-      if (!nextStop || stopKm < (stationMileage[String(nextStop.StationID)] || 0)) {
-        nextStop = stop;
-      }
-    }
-  }
-
-  if (!prevStop || !nextStop) return null;
-
-  const prevKm = stationMileage[String(prevStop.StationID)] || 0;
-  const nextKm = stationMileage[String(nextStop.StationID)] || 0;
-  const prevTime = timeToMins(prevStop.DepartureTime || prevStop.ArrivalTime);
-  const nextTime = timeToMins(nextStop.ArrivalTime || nextStop.DepartureTime);
-
-  if (nextKm === prevKm || nextTime <= prevTime) return null;
-
-  // Linear interpolation
-  const ratio = (targetKm - prevKm) / (nextKm - prevKm);
-  const estimatedMins = Math.round(prevTime + ratio * (nextTime - prevTime));
-  return minsToTime(estimatedMins);
-}
-
-// ── Existing endpoints ───────────────────────────────
-// ── DEBUG: 驗證大湖站通過時間 ─────────────────────────
+// ── DEBUG ─────────────────────────────────────────────
 app.get('/api/debug/dahu', async (req, res) => {
   try {
-    // 查 Station API 看里程欄位
+    // 只查一班，看里程推算是否正確
+    // 108 自強：有停岡山、臺南，大湖在中間，應推算約 06:30
     const data = await tdxWithRetry(
-      `/api/basic/v3/Rail/TRA/Station?$format=JSON&$top=3`
+      `/api/basic/v3/Rail/TRA/GeneralTrainTimetable/TrainNo/108?$format=JSON`
     );
-    const stations = Array.isArray(data) ? data : (data.Stations || data.value || []);
+    const tt = (data.TrainTimetables || [])[0];
+    const stops = tt?.StopTimes || [];
+    const dahuId = '4290';
+    const dahuStop = stops.find(s => String(s.StationID) === dahuId);
+    const estimated = estimatePassTime(stops, dahuId);
+    // 找前後停靠站
+    const dahuKm = STATION_KM[dahuId];
+    const prevStop = stops.filter(s => (STATION_KM[String(s.StationID)]||999) < dahuKm).slice(-1)[0];
+    const nextStop = stops.find(s => (STATION_KM[String(s.StationID)]||0) > dahuKm);
     res.json({
-      count: stations.length,
-      firstStationKeys: stations[0] ? Object.keys(stations[0]) : [],
-      positionKeys: stations[0]?.StationPosition ? Object.keys(stations[0].StationPosition) : [],
-      sample: stations.slice(0, 3).map(s => ({
-        id: s.StationID,
-        name: s.StationName?.Zh_tw,
-        mileage: s.Mileage,
-        cumulativeDistance: s.CumulativeDistance,
-        position: s.StationPosition,
-      }))
+      trainNo: tt?.TrainInfo?.TrainNo,
+      type: tt?.TrainInfo?.TrainTypeName?.Zh_tw,
+      totalStops: stops.length,
+      dahuKm,
+      dahuInStopTimes: !!dahuStop,
+      prevStop: prevStop ? { id: prevStop.StationID, name: prevStop.StationName?.Zh_tw, dep: prevStop.DepartureTime, km: STATION_KM[String(prevStop.StationID)] } : null,
+      nextStop: nextStop ? { id: nextStop.StationID, name: nextStop.StationName?.Zh_tw, arr: nextStop.ArrivalTime, km: STATION_KM[String(nextStop.StationID)] } : null,
+      estimatedPassTime: estimated,
+      officialWebsite: '(06:31)',
     });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
 });
 
+// ── 其他 API 端點 ─────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 app.get('/api/od/:from/:to/:date', async (req, res) => {
@@ -347,25 +483,23 @@ app.get('/api/od/:from/:to/:date', async (req, res) => {
     const { from, to, date } = req.params;
     const fromId = await resolveStationId(decodeURIComponent(from));
     const toId = await resolveStationId(decodeURIComponent(to));
-    console.log(`OD query: ${from}(${fromId}) → ${to}(${toId}) on ${date}`);
+    console.log(`OD: ${from}(${fromId}) → ${to}(${toId}) on ${date}`);
     const data = await tdxWithRetry(
       `/api/basic/v3/Rail/TRA/DailyTrainTimetable/OD/${fromId}/to/${toId}/${date}?$format=JSON`
     );
     if (data.TrainTimetables) {
-      const before = data.TrainTimetables.length;
-      data.TrainTimetables = data.TrainTimetables.filter(tt => {
-        const stops = tt.StopTimes || [];
-        return stops.some(s => String(s.StationID) === String(fromId));
-      });
-      console.log(`OD filter: ${data.TrainTimetables.length}/${before} trains stop at ${from}`);
+      data.TrainTimetables = data.TrainTimetables.filter(tt =>
+        (tt.StopTimes||[]).some(s => String(s.StationID) === String(fromId))
+      );
       const sample = data.TrainTimetables.slice(0,3).map(tt=>({
-        no:tt.TrainInfo?.TrainNo,typeCode:tt.TrainInfo?.TrainTypeCode,
+        no:tt.TrainInfo?.TrainNo,
+        typeCode:tt.TrainInfo?.TrainTypeCode,
         typeName:tt.TrainInfo?.TrainTypeName?.Zh_tw
       }));
-      console.log('Train type sample:', JSON.stringify(sample));
+      console.log('Sample:', JSON.stringify(sample));
     }
     res.json(data);
-  } catch (e) {
+  } catch(e) {
     console.error('OD error:', e.message);
     res.status(500).json({ error: e.message });
   }
@@ -379,7 +513,7 @@ app.get('/api/station/:stationId/:date', async (req, res) => {
       `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id}/${date}?$format=JSON`
     );
     res.json(data);
-  } catch (e) {
+  } catch(e) {
     res.status(500).json({ error: e.message });
   }
 });
@@ -388,7 +522,7 @@ app.get('/api/live', async (req, res) => {
   try {
     const data = await tdxWithRetry('/api/basic/v3/Rail/TRA/TrainLiveBoard?$format=JSON&$top=500');
     res.json(data);
-  } catch (e) {
+  } catch(e) {
     res.status(500).json({ error: e.message });
   }
 });
@@ -397,7 +531,7 @@ app.get('/api/stations', async (req, res) => {
   try {
     await buildStationData();
     res.json(stationCache);
-  } catch (e) {
+  } catch(e) {
     res.status(500).json({ error: e.message });
   }
 });
@@ -409,7 +543,7 @@ app.get('/api/train/:trainNo/:date', async (req, res) => {
       `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainNo/${trainNo}/${date}?$format=JSON`
     );
     res.json(data);
-  } catch (e) {
+  } catch(e) {
     res.status(500).json({ error: e.message });
   }
 });
