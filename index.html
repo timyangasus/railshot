@@ -235,31 +235,26 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
   display:flex;align-items:stretch;gap:0;padding:10px 14px 18px;
 }
 .stn-sel-wrap{flex:1;display:flex;flex-direction:column;}
-.stn-sel-label{
-  font-size:12px;font-weight:600;
-  text-align:center;margin-bottom:5px;letter-spacing:0.3px;
-  color:rgba(255,255,255,0.4);
-  transition:color .15s;
-}
-.stn-sel-wrap.active .stn-sel-label{
-  color:white;
-}
 .stn-sel-box{
-  background:transparent;border-radius:8px;padding:9px 12px;
+  background:transparent !important;border-radius:8px;padding:9px 12px;
   min-height:48px;display:flex;align-items:center;justify-content:center;
-  border:2px solid rgba(255,255,255,0.5);
-  transition:all .15s;
-  cursor:pointer;
+  border:2.5px solid rgba(255,255,255,0.4);
+  transition:all .15s;cursor:pointer;
 }
 .stn-sel-wrap.active .stn-sel-box{
-  background:white;
-  border:2px solid transparent;
-  box-shadow:0 2px 8px rgba(0,0,0,0.12);
+  background:transparent !important;
+  border:2.5px solid rgba(255,255,255,1);
+  box-shadow:none;
 }
-.stn-sel-name{font-size:17px;font-weight:700;color:white;}
-.stn-sel-placeholder{font-size:14px;color:rgba(255,255,255,0.45);}
-.stn-sel-wrap.active .stn-sel-name{color:var(--accent);}
-.stn-sel-wrap.active .stn-sel-placeholder{color:#bbc;}
+.stn-sel-name{font-size:17px;font-weight:700;color:rgba(255,255,255,1);}
+.stn-sel-placeholder{font-size:14px;color:rgba(255,255,255,0.4);}
+.stn-sel-wrap.active .stn-sel-name{color:rgba(255,255,255,1);}
+.stn-sel-wrap.active .stn-sel-placeholder{color:rgba(255,255,255,0.5);}
+.stn-sel-label{
+  font-size:12px;font-weight:600;text-align:center;margin-bottom:5px;
+  letter-spacing:0.3px;color:rgba(255,255,255,0.4);transition:color .15s;
+}
+.stn-sel-wrap.active .stn-sel-label{color:rgba(255,255,255,1);}
 .stn-swap-wrap{
   width:44px;display:flex;align-items:center;justify-content:center;
   padding-top:20px;
@@ -488,14 +483,14 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
       </div>
     </div>
     <div class="chips-row" id="tt-type-chips" style="margin-bottom:11px;">
-      <div class="chip on" data-val="all" onclick="setChip(this,'tt-type-chips');autoSearchTT()">全部</div>
-      <div class="chip" data-val="exp3" onclick="setChip(this,'tt-type-chips');autoSearchTT()">自強3000</div>
-      <div class="chip" data-val="puy" onclick="setChip(this,'tt-type-chips');autoSearchTT()">普悠瑪</div>
-      <div class="chip" data-val="tze" onclick="setChip(this,'tt-type-chips');autoSearchTT()">太魯閣</div>
-      <div class="chip" data-val="exp" onclick="setChip(this,'tt-type-chips');autoSearchTT()">自強</div>
-      <div class="chip" data-val="moc" onclick="setChip(this,'tt-type-chips');autoSearchTT()">莒光</div>
-      <div class="chip" data-val="localx" onclick="setChip(this,'tt-type-chips');autoSearchTT()">區間快</div>
-      <div class="chip" data-val="local" onclick="setChip(this,'tt-type-chips');autoSearchTT()">區間</div>
+      <div class="chip on" data-val="all" onclick="ttChipToggle(this,'all')">全部</div>
+      <div class="chip" data-val="exp3" onclick="ttChipToggle(this,'exp3')">自強3000</div>
+      <div class="chip" data-val="puy" onclick="ttChipToggle(this,'puy')">普悠瑪</div>
+      <div class="chip" data-val="exp" onclick="ttChipToggle(this,'exp')">自強</div>
+      <div class="chip" data-val="moc" onclick="ttChipToggle(this,'moc')">莒光</div>
+      <div class="chip" data-val="localx" onclick="ttChipToggle(this,'localx')">區間快</div>
+      <div class="chip" data-val="local" onclick="ttChipToggle(this,'local')">區間</div>
+      <div class="chip" data-val="tze" onclick="ttChipToggle(this,'tze')">太魯閣</div>
     </div>
     <button class="srch-btn" onclick="searchTT()">查詢班次</button>
   </div>
@@ -517,10 +512,10 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 
   <div class="sec">時間範圍</div>
   <div class="chips-row" id="time-chips">
-    <div class="chip" data-val="30" onclick="setChip(this,'time-chips')">30 分</div>
-    <div class="chip on" data-val="60" onclick="setChip(this,'time-chips')">1 小時</div>
-    <div class="chip" data-val="120" onclick="setChip(this,'time-chips')">2 小時</div>
-    <div class="chip" data-val="custom" onclick="setChip(this,'time-chips')">自訂</div>
+    <div class="chip on" data-val="30" onclick="setChip(this,'time-chips');filterTrains()">30 分</div>
+    <div class="chip" data-val="60" onclick="setChip(this,'time-chips');filterTrains()">1 小時</div>
+    <div class="chip" data-val="120" onclick="setChip(this,'time-chips');filterTrains()">2 小時</div>
+    <div class="chip" data-val="180" onclick="setChip(this,'time-chips');filterTrains()">3 小時</div>
   </div>
 
   <div class="sec" style="margin-top:12px;">方向</div>
@@ -532,14 +527,14 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 
   <div class="sec" style="margin-top:12px;">車種</div>
   <div class="chips-row" id="type-chips">
-    <div class="chip on" data-val="all" onclick="setChip(this,'type-chips');filterTrains()">全部</div>
-    <div class="chip" data-val="exp3" onclick="setChip(this,'type-chips');filterTrains()">自強3000</div>
-    <div class="chip" data-val="puy" onclick="setChip(this,'type-chips');filterTrains()">普悠瑪</div>
-    <div class="chip" data-val="tze" onclick="setChip(this,'type-chips');filterTrains()">太魯閣</div>
-    <div class="chip" data-val="exp" onclick="setChip(this,'type-chips');filterTrains()">自強</div>
-    <div class="chip" data-val="moc" onclick="setChip(this,'type-chips');filterTrains()">莒光</div>
-    <div class="chip" data-val="localx" onclick="setChip(this,'type-chips');filterTrains()">區間快</div>
-    <div class="chip" data-val="local" onclick="setChip(this,'type-chips');filterTrains()">區間</div>
+    <div class="chip on" data-val="all" onclick="shootChipToggle(this,'all')">全部</div>
+    <div class="chip" data-val="exp3" onclick="shootChipToggle(this,'exp3')">自強3000</div>
+    <div class="chip" data-val="puy" onclick="shootChipToggle(this,'puy')">普悠瑪</div>
+    <div class="chip" data-val="exp" onclick="shootChipToggle(this,'exp')">自強</div>
+    <div class="chip" data-val="moc" onclick="shootChipToggle(this,'moc')">莒光</div>
+    <div class="chip" data-val="localx" onclick="shootChipToggle(this,'localx')">區間快</div>
+    <div class="chip" data-val="local" onclick="shootChipToggle(this,'local')">區間</div>
+    <div class="chip" data-val="tze" onclick="shootChipToggle(this,'tze')">太魯閣</div>
   </div>
 
   <div style="margin-top:14px;">
@@ -699,7 +694,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
       </div>
     </div>
     <div class="sh-body">
-      <!-- Mode selector: compact horizontal tabs -->
+      <!-- Mode selector -->
       <div class="loc-mode-row">
         <button class="loc-mode-tab active" id="mb-single" onclick="setLocMode('single')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
@@ -709,20 +704,27 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 11h12.17l-5.59-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4v-2z" fill="currentColor"/></svg>
           兩站之間
         </button>
-        <button class="loc-mode-tab" id="mb-gps" onclick="setLocMode('gps')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="currentColor"/></svg>
-          GPS
-        </button>
       </div>
 
       <!-- Single station mode -->
       <div id="lc-single">
-        <button class="loc-stn-big-btn" id="lc-single-stn-btn" onclick="openLocStnPage('single')">
+        <button class="loc-stn-big-btn" onclick="doGPSLocate()" id="lc-gps-quick-btn">
+          <div class="loc-stn-big-icon" style="background:var(--green-lt);color:var(--green);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="currentColor"/></svg>
+          </div>
+          <div>
+            <div class="loc-stn-big-label">使用 GPS</div>
+            <div class="loc-stn-big-name" id="lc-gps-quick-lbl" style="font-size:14px;font-weight:400;color:var(--text3);">偵測最近車站</div>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
+        </button>
+        <div id="lc-gps-inline-result" style="margin-top:8px;"></div>
+        <button class="loc-stn-big-btn" id="lc-single-stn-btn" onclick="openLocStnPage('single')" style="margin-top:8px;">
           <div class="loc-stn-big-icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
           </div>
           <div>
-            <div class="loc-stn-big-label">選擇車站</div>
+            <div class="loc-stn-big-label">手動選擇車站</div>
             <div class="loc-stn-big-name" id="lc-single-stn-lbl">尚未選擇</div>
           </div>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
@@ -752,43 +754,9 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
           </div>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
         </button>
-        <div class="fld-lbl" style="margin-top:14px;margin-bottom:7px;">拍攝位置</div>
-        <div class="chips-row" id="pos-chips" style="margin-bottom:8px;">
-          <div class="chip" data-val="25" onclick="setChip(this,'pos-chips');locState.pos=25;updSlider()">靠近前站 25%</div>
-          <div class="chip on" data-val="50" onclick="setChip(this,'pos-chips');locState.pos=50;updSlider()">中間 50%</div>
-          <div class="chip" data-val="75" onclick="setChip(this,'pos-chips');locState.pos=75;updSlider()">靠近後站 75%</div>
-        </div>
-        <div class="slider-wrap">
-          <input type="range" min="0" max="100" value="50" id="pos-sl" oninput="locState.pos=+this.value;document.getElementById('pos-pct').textContent=this.value+'%'"/>
-          <div class="slider-labels">
-            <span id="pos-la">前站 0%</span>
-            <span id="pos-pct">50%</span>
-            <span id="pos-lb">後站 100%</span>
-          </div>
-        </div>
-        <button class="btn-p" onclick="applyLocBetween()">套用</button>
+        <button class="btn-p" onclick="applyLocBetween()" style="margin-top:12px;">套用</button>
       </div>
 
-      <div id="lc-gps" style="display:none;">
-        <div id="gps-panel">
-          <div style="text-align:center;padding:20px 0 16px;">
-            <div style="display:flex;justify-content:center;margin-bottom:12px;">
-              <div style="width:52px;height:52px;background:var(--green-lt);border-radius:50%;display:flex;align-items:center;justify-content:center;">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="#1a9e5c"/></svg>
-              </div>
-            </div>
-            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;">偵測目前位置</div>
-            <div style="font-size:13px;color:var(--text3);">找出距離最近的台鐵車站</div>
-          </div>
-          <button class="btn-p" onclick="doGPSLocate()" id="gps-locate-btn">
-            <span style="display:flex;align-items:center;justify-content:center;gap:6px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="white"/></svg>
-              取得目前位置
-            </span>
-          </button>
-          <div id="gps-result" style="margin-top:12px;"></div>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -805,22 +773,33 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
         <button class="stn-page-confirm" onclick="confirmStnPage()">確定</button>
       </div>
     </div>
-    <div class="stn-page-sel-row">
-      <div class="stn-sel-wrap active" id="sp-from-wrap">
-        <div class="stn-sel-label">出發</div>
-        <div class="stn-sel-box" id="sp-from-box" onclick="spSetActive('from')">
-          <div id="sp-from-inner"><span class="stn-sel-placeholder">請選擇</span></div>
+    <div class="stn-page-sel-row" id="sp-sel-row">
+      <!-- 單框模式（拍車單一車站 / GPS） -->
+      <div id="sp-single-mode" style="display:none;width:100%;">
+        <div class="stn-sel-wrap active" style="width:100%;">
+          <div class="stn-sel-box" style="width:100%;">
+            <div id="sp-single-inner"><span class="stn-sel-placeholder">請選擇車站</span></div>
+          </div>
         </div>
       </div>
-      <div class="stn-swap-wrap">
-        <div class="stn-swap-icon" onclick="spSwap()">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" fill="white"/></svg>
+      <!-- 雙框模式（時刻表 / 兩站之間） -->
+      <div id="sp-double-mode" style="display:flex;flex:1;align-items:stretch;gap:0;">
+        <div class="stn-sel-wrap active" id="sp-from-wrap">
+          <div class="stn-sel-label">出發</div>
+          <div class="stn-sel-box" id="sp-from-box" onclick="spSetActive('from')">
+            <div id="sp-from-inner"><span class="stn-sel-placeholder">請選擇</span></div>
+          </div>
         </div>
-      </div>
-      <div class="stn-sel-wrap" id="sp-to-wrap">
-        <div class="stn-sel-label" style="text-align:center;">抵達</div>
-        <div class="stn-sel-box" id="sp-to-box" onclick="spSetActive('to')">
-          <div id="sp-to-inner"><span class="stn-sel-placeholder">請選擇</span></div>
+        <div class="stn-swap-wrap">
+          <div class="stn-swap-icon" onclick="spSwap()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" fill="white"/></svg>
+          </div>
+        </div>
+        <div class="stn-sel-wrap" id="sp-to-wrap">
+          <div class="stn-sel-label" style="text-align:center;">抵達</div>
+          <div class="stn-sel-box" id="sp-to-box" onclick="spSetActive('to')">
+            <div id="sp-to-inner"><span class="stn-sel-placeholder">請選擇</span></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1018,6 +997,51 @@ function switchTab(name,el){
     if(screen) screen.scrollTop = 0;
   }
 }
+function ttChipToggle(el, val){
+  const chips = document.querySelectorAll('#tt-type-chips .chip');
+  const allChip = document.querySelector('#tt-type-chips .chip[data-val="all"]');
+
+  if(val === 'all'){
+    // 點「全部」→ 清除其他，只選全部
+    chips.forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+  } else {
+    // 點特定車種
+    allChip.classList.remove('on'); // 取消「全部」
+    el.classList.toggle('on');
+    // 如果全部都沒選，回到「全部」
+    const anyOn = Array.from(chips).some(c => c.classList.contains('on') && c.dataset.val !== 'all');
+    if(!anyOn) allChip.classList.add('on');
+  }
+  autoSearchTT();
+}
+
+function getTTSelectedTypes(){
+  const allChip = document.querySelector('#tt-type-chips .chip[data-val="all"]');
+  if(allChip.classList.contains('on')) return 'all';
+  return Array.from(document.querySelectorAll('#tt-type-chips .chip.on'))
+    .map(c => c.dataset.val);
+}
+
+function shootChipToggle(el, val){
+  const chips = document.querySelectorAll('#type-chips .chip');
+  const allChip = document.querySelector('#type-chips .chip[data-val="all"]');
+  if(val === 'all'){
+    chips.forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+  } else {
+    allChip.classList.remove('on');
+    el.classList.toggle('on');
+    const anyOn = Array.from(chips).some(c => c.classList.contains('on') && c.dataset.val !== 'all');
+    if(!anyOn) allChip.classList.add('on');
+  }
+  filterTrains();
+}
+function getShootSelectedTypes(){
+  const allChip = document.querySelector('#type-chips .chip[data-val="all"]');
+  if(allChip && allChip.classList.contains('on')) return 'all';
+  return Array.from(document.querySelectorAll('#type-chips .chip.on')).map(c => c.dataset.val);
+}
 function autoSearchTT(){
   // 只有已經查過（有結果）才自動重查
   const results = document.getElementById('tt-results');
@@ -1069,6 +1093,11 @@ function openStnPage(caller, initialFrom, initialTo, activeSlot, cb){
   spState.to = initialTo || '';
   spState.active = activeSlot || 'from';
   spState.callerCb = cb || null;
+
+  // 單框 vs 雙框模式
+  const isSingle = caller === 'loc-single' || caller === 'loc-b1' || caller === 'loc-b2';
+  document.getElementById('sp-single-mode').style.display = isSingle ? 'block' : 'none';
+  document.getElementById('sp-double-mode').style.display = isSingle ? 'none' : 'flex';
 
   // 帶入當下選取站的縣市
   const curStn = spState.active === 'from' ? spState.from : spState.to;
@@ -1143,15 +1172,23 @@ function spRenderHeader(){
   const toEl = document.getElementById('sp-to-inner');
   const fromWrap = document.getElementById('sp-from-wrap');
   const toWrap = document.getElementById('sp-to-wrap');
+  const singleInner = document.getElementById('sp-single-inner');
 
-  fromEl.innerHTML = spState.from
+  // 單框模式 — 顯示當前 active slot 的站名
+  if(singleInner){
+    const curStn = spState.active === 'from' ? spState.from : spState.to;
+    singleInner.innerHTML = curStn
+      ? `<span class="stn-sel-name">${curStn}</span>`
+      : `<span class="stn-sel-placeholder">請選擇車站</span>`;
+  }
+
+  if(fromEl) fromEl.innerHTML = spState.from
     ? `<span class="stn-sel-name">${spState.from}</span>`
     : `<span class="stn-sel-placeholder">請選擇</span>`;
-  toEl.innerHTML = spState.to
+  if(toEl) toEl.innerHTML = spState.to
     ? `<span class="stn-sel-name">${spState.to}</span>`
     : `<span class="stn-sel-placeholder">請選擇</span>`;
 
-  // Toggle active class — active wrap gets white border + full opacity
   if(fromWrap) fromWrap.classList.toggle('active', spState.active === 'from');
   if(toWrap)   toWrap.classList.toggle('active', spState.active === 'to');
 }
@@ -1224,6 +1261,35 @@ function spSelectStation(s){
   if(wasFrom) spState.from = s;
   else spState.to = s;
 
+  // 拍攝點模式
+  if(spState.caller && spState.caller.startsWith('loc-')){
+    if(spState.caller === 'loc-single'){
+      // 單一車站：選完直接關閉
+      spRenderHeader();
+      setTimeout(() => {
+        if(spState.callerCb) spState.callerCb(spState.from, spState.to);
+        closeStnPage();
+      }, 200);
+    } else if(spState.caller === 'loc-b1' && wasFrom){
+      // 第一站選完 → 切換到第二站模式
+      spState.active = 'to';
+      spState.county = '';
+      spRenderHeader();
+      spRenderCountyCol();
+      spRenderStnCol();
+      const col = document.getElementById('sp-county-col');
+      if(col) col.scrollTop = 0;
+      if(spState.callerCb) spState.callerCb(spState.from, spState.to);
+    } else {
+      // 第二站選完 → 更新畫面，等按確定
+      spRenderHeader();
+      spRenderCountyCol();
+      spRenderStnCol();
+      if(spState.callerCb) spState.callerCb(spState.from, spState.to);
+    }
+    return;
+  }
+
   if(wasFrom){
     // 選完出發站 → 自動切換到抵達站，清空縣市讓使用者重選
     spState.active = 'to';
@@ -1282,16 +1348,20 @@ function openLocStnPage(slot){
     else{ el.textContent='尚未選擇'; el.classList.add('placeholder-name'); }
   };
   if(slot==='single'){
-    openStnPage('loc-single', locState.s1, '', 'from', (f)=>{
-      if(f){ locState.s1=f; setStnLbl('lc-single-stn-lbl', f); }
+    // 只選單一站，用 from slot，選完自動關閉
+    openStnPage('loc-single', locState.s1, '', 'from', (f, t)=>{
+      const chosen = f || t;
+      if(chosen){ locState.s1=chosen; setStnLbl('lc-single-stn-lbl', chosen); }
     });
   } else if(slot==='b1'){
-    openStnPage('loc-b1', locState.s1, '', 'from', (f)=>{
+    openStnPage('loc-b1', locState.s1, locState.s2, 'from', (f, t)=>{
       if(f){ locState.s1=f; setStnLbl('lc-b1-lbl', f); updPosLabels(); }
+      if(t){ locState.s2=t; setStnLbl('lc-b2-lbl', t); updPosLabels(); }
     });
   } else if(slot==='b2'){
-    openStnPage('loc-b2', locState.s2, '', 'from', (f)=>{
-      if(f){ locState.s2=f; setStnLbl('lc-b2-lbl', f); updPosLabels(); }
+    openStnPage('loc-b2', locState.s1, locState.s2, 'to', (f, t)=>{
+      if(f){ locState.s1=f; setStnLbl('lc-b1-lbl', f); updPosLabels(); }
+      if(t){ locState.s2=t; setStnLbl('lc-b2-lbl', t); updPosLabels(); }
     });
   }
 }
@@ -1309,7 +1379,7 @@ function updSlider(){
 }
 function setLocMode(m){
   locState.mode=m;
-  ['single','between','gps'].forEach(x=>{
+  ['single','between'].forEach(x=>{
     const panel=document.getElementById('lc-'+x);
     if(panel) panel.style.display=x===m?'block':'none';
     const btn=document.getElementById('mb-'+x);
@@ -1391,8 +1461,9 @@ function findNearestStations(lat, lng, n=3){
 
 let gpsNearest = null;
 function doGPSLocate(){
-  const btn = document.getElementById('gps-locate-btn');
-  const result = document.getElementById('gps-result');
+  const btn = document.getElementById('gps-locate-btn') || document.getElementById('lc-gps-quick-btn');
+  const result = document.getElementById('gps-result') || document.getElementById('lc-gps-inline-result');
+  const lblEl = document.getElementById('lc-gps-quick-lbl');
   if(!navigator.geolocation){
     result.innerHTML=`<div style="background:var(--red-lt);border-radius:var(--radius-sm);padding:12px;text-align:center;font-size:13px;color:var(--red);">此裝置不支援 GPS 定位</div>`;
     return;
@@ -1429,6 +1500,16 @@ function doGPSLocate(){
   );
 }
 function applyGPSStation(name){
+  locState.s1 = name;
+  const setStnLbl = (id, val) => {
+    const el = document.getElementById(id); if(!el) return;
+    if(val){ el.textContent=val; el.classList.remove('placeholder-name'); }
+    else{ el.textContent='尚未選擇'; el.classList.add('placeholder-name'); }
+  };
+  setStnLbl('lc-single-stn-lbl', name);
+  if(document.getElementById('lc-gps-quick-lbl'))
+    document.getElementById('lc-gps-quick-lbl').textContent = name+'站 已選取';
+  // 如果在 GPS tab 模式
   document.getElementById('loc-display').textContent = name+'站';
   document.getElementById('loc-mode-display').textContent = '目前位置 · GPS';
   closeSheet('loc-sheet');
@@ -1444,14 +1525,18 @@ function applyLocGPS(){
 }
 async function doSearch(){
   const dv=document.querySelector('#dir-chips .chip.on').dataset.val;
-  const tv=document.querySelector('#type-chips .chip.on').dataset.val;
+  const tv=getShootSelectedTypes();
   const loc=document.getElementById('loc-display').textContent;
   const locMode=document.getElementById('loc-mode-display').textContent;
   document.getElementById('res-loc').textContent=loc;
   document.getElementById('shoot-results').style.display='block';
 
-  // 時間範圍（分鐘）
+  // 時間範圍（分鐘）— 從現在往後
   const timeRange = parseInt(document.querySelector('#time-chips .chip.on')?.dataset.val||'60');
+  const _nowDate = new Date();
+  const nowStr = tStr(_nowDate.getHours(), _nowDate.getMinutes());
+  const cutoffDate = new Date(_nowDate.getTime() + timeRange * 60000);
+  const cutoff = tStr(cutoffDate.getHours(), cutoffDate.getMinutes());
 
   // ── 真實 API 模式 ──────────────────────────────────
   // 排除預設文字，確認有選真正的車站
@@ -1479,7 +1564,7 @@ async function doSearch(){
       }catch(e){}
 
       const nowStr = tStr(NOW.getHours(), NOW.getMinutes());
-      const cutoff = minsAdd(NOW, timeRange);
+      
 
       const list = (data.TrainTimetables||[]).map((tt,idx)=>{
         const info=tt.TrainInfo||{};
@@ -1517,7 +1602,7 @@ async function doSearch(){
           }))
         };
       }).filter(Boolean)
-        .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||t.type===tv))
+        .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||Array.isArray(tv)&&tv.includes(t.type)))
         .sort((a,b)=>a.passTime.localeCompare(b.passTime));
 
       document.getElementById('res-count').textContent=list.length+' 班';
@@ -1534,7 +1619,7 @@ async function doSearch(){
 
   // ── 假資料模式 ────────────────────────────────────
   const list=TRAINS
-    .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||t.type===tv))
+    .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||Array.isArray(tv)&&tv.includes(t.type)))
     .sort((a,b)=>a.passTime.localeCompare(b.passTime));
   document.getElementById('res-count').textContent=list.length+' 班';
   renderTrainList(list);
@@ -1664,7 +1749,7 @@ function calcDurStr(dep, arr) {
 }
 
 async function searchTT(){
-  const tv=document.querySelector('#tt-type-chips .chip.on').dataset.val;
+  const selectedTypes = getTTSelectedTypes();
   const el=document.getElementById('tt-results');
   const _now = new Date();
   const nowStr = tStr(_now.getHours(), _now.getMinutes());
@@ -1754,7 +1839,7 @@ async function searchTT(){
       }).filter(Boolean);
 
       // 車種篩選
-      if(tv!=='all') list=list.filter(t=>t.type===tv);
+      if(selectedTypes !== 'all') list=list.filter(t=>selectedTypes.includes(t.type));
       // 排序
       list.sort((a,b)=>a.dep.localeCompare(b.dep));
       // 現在時刻篩選 — 嚴格過濾已過班次
@@ -1772,7 +1857,7 @@ async function searchTT(){
   }
 
   // ── 假資料模式（API_BASE 未設定）──────────────────
-  let list=TT_TRAINS.filter(t=>tv==='all'||t.type===tv).sort((a,b)=>a.dep.localeCompare(b.dep));
+  let list=TT_TRAINS.filter(t=>selectedTypes==='all'||selectedTypes.includes(t.type)).sort((a,b)=>a.dep.localeCompare(b.dep));
   if(ttNowMode){
     const fut=list.filter(t=>t.dep>=nowStr);
     if(fut.length) list=fut;
@@ -1997,7 +2082,7 @@ function goFav(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('tab-shoot').classList.add('active');
   document.getElementById('tbtn-shoot').classList.add('active');
-  setTimeout(doSearch,50);
+setTimeout(doSearch,80);
 }
 
 // ===== REMINDERS =====
@@ -2058,7 +2143,6 @@ setLocMode('single');
 updateBell();
 setInterval(checkReminders,30000);
 checkReminders();
-setTimeout(doSearch,80);
 </script>
 </body>
 </html>
