@@ -708,27 +708,22 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 
       <!-- Single station mode -->
       <div id="lc-single">
-        <button class="loc-stn-big-btn" onclick="doGPSLocate()" id="lc-gps-quick-btn">
-          <div class="loc-stn-big-icon" style="background:var(--green-lt);color:var(--green);">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="currentColor"/></svg>
-          </div>
-          <div>
-            <div class="loc-stn-big-label">使用 GPS</div>
-            <div class="loc-stn-big-name" id="lc-gps-quick-lbl" style="font-size:14px;font-weight:400;color:var(--text3);">偵測最近車站</div>
-          </div>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
-        </button>
+        <div style="display:flex;gap:8px;align-items:stretch;">
+          <button class="loc-stn-big-btn" id="lc-single-stn-btn" onclick="openLocStnPage('single')" style="flex:1;">
+            <div class="loc-stn-big-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
+            </div>
+            <div>
+              <div class="loc-stn-big-label">選擇車站</div>
+              <div class="loc-stn-big-name" id="lc-single-stn-lbl">尚未選擇</div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
+          </button>
+          <button onclick="doGPSLocate()" id="lc-gps-quick-btn" style="width:56px;flex-shrink:0;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--green);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="currentColor"/></svg>
+          </button>
+        </div>
         <div id="lc-gps-inline-result" style="margin-top:8px;"></div>
-        <button class="loc-stn-big-btn" id="lc-single-stn-btn" onclick="openLocStnPage('single')" style="margin-top:8px;">
-          <div class="loc-stn-big-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
-          </div>
-          <div>
-            <div class="loc-stn-big-label">手動選擇車站</div>
-            <div class="loc-stn-big-name" id="lc-single-stn-lbl">尚未選擇</div>
-          </div>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
-        </button>
         <button class="btn-p" onclick="applyLocSingle()" style="margin-top:12px;">套用</button>
       </div>
 
@@ -783,20 +778,20 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
         </div>
       </div>
       <!-- 雙框模式（時刻表 / 兩站之間） -->
-      <div id="sp-double-mode" style="display:flex;flex:1;align-items:stretch;gap:0;">
+      <div id="sp-double-mode" style="display:flex;flex:1;align-items:stretch;gap:20px;">
         <div class="stn-sel-wrap active" id="sp-from-wrap">
-          <div class="stn-sel-label">出發</div>
+          <div class="stn-sel-label" id="sp-from-label">出發</div>
           <div class="stn-sel-box" id="sp-from-box" onclick="spSetActive('from')">
             <div id="sp-from-inner"><span class="stn-sel-placeholder">請選擇</span></div>
           </div>
         </div>
-        <div class="stn-swap-wrap">
+        <div class="stn-swap-wrap" id="sp-swap-wrap">
           <div class="stn-swap-icon" onclick="spSwap()">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" fill="white"/></svg>
           </div>
         </div>
         <div class="stn-sel-wrap" id="sp-to-wrap">
-          <div class="stn-sel-label" style="text-align:center;">抵達</div>
+          <div class="stn-sel-label" style="text-align:center;" id="sp-to-label">抵達</div>
           <div class="stn-sel-box" id="sp-to-box" onclick="spSetActive('to')">
             <div id="sp-to-inner"><span class="stn-sel-placeholder">請選擇</span></div>
           </div>
@@ -1095,9 +1090,19 @@ function openStnPage(caller, initialFrom, initialTo, activeSlot, cb){
   spState.callerCb = cb || null;
 
   // 單框 vs 雙框模式
-  const isSingle = caller === 'loc-single' || caller === 'loc-b1' || caller === 'loc-b2';
+  const isSingle = caller === 'loc-single' || caller === 'loc-b2';
+  const isBetween = caller === 'loc-b1';
   document.getElementById('sp-single-mode').style.display = isSingle ? 'block' : 'none';
   document.getElementById('sp-double-mode').style.display = isSingle ? 'none' : 'flex';
+
+  // 標籤：兩站之間用「第一站」「第二站」，時刻表用「出發」「抵達」
+  const fromLabel = document.getElementById('sp-from-label');
+  const toLabel = document.getElementById('sp-to-label');
+  const swapWrap = document.getElementById('sp-swap-wrap');
+  if(fromLabel) fromLabel.textContent = isBetween ? '第一站' : '出發';
+  if(toLabel) toLabel.textContent = isBetween ? '第二站' : '抵達';
+  // 兩站之間不需要對調按鈕
+  if(swapWrap) swapWrap.style.display = isBetween ? 'none' : 'flex';
 
   // 帶入當下選取站的縣市
   const curStn = spState.active === 'from' ? spState.from : spState.to;
@@ -1263,15 +1268,15 @@ function spSelectStation(s){
 
   // 拍攝點模式
   if(spState.caller && spState.caller.startsWith('loc-')){
-    if(spState.caller === 'loc-single'){
-      // 單一車站：選完直接關閉
+    if(spState.caller === 'loc-single' || spState.caller === 'loc-b2'){
+      // 單框：選完直接關閉
       spRenderHeader();
       setTimeout(() => {
         if(spState.callerCb) spState.callerCb(spState.from, spState.to);
         closeStnPage();
       }, 200);
     } else if(spState.caller === 'loc-b1' && wasFrom){
-      // 第一站選完 → 切換到第二站模式
+      // 兩站之間：選完第一站 → 切換到第二站
       spState.active = 'to';
       spState.county = '';
       spRenderHeader();
@@ -1281,7 +1286,7 @@ function spSelectStation(s){
       if(col) col.scrollTop = 0;
       if(spState.callerCb) spState.callerCb(spState.from, spState.to);
     } else {
-      // 第二站選完 → 更新畫面，等按確定
+      // 兩站之間：選完第二站 → 更新畫面，等按確定
       spRenderHeader();
       spRenderCountyCol();
       spRenderStnCol();
@@ -1397,7 +1402,7 @@ function applyLocBetween(){
   const s1=locState.s1, s2=locState.s2;
   if(!s1||!s2){alert('請選擇兩個車站');return;}
   document.getElementById('loc-display').textContent=s1+'－'+s2+'間';
-  document.getElementById('loc-mode-display').textContent='兩站之間 · '+locState.pos+'%';
+  document.getElementById('loc-mode-display').textContent='兩站之間';
   closeSheet('loc-sheet');
 }
 function applyLocFav(id){
@@ -1461,58 +1466,49 @@ function findNearestStations(lat, lng, n=3){
 
 let gpsNearest = null;
 function doGPSLocate(){
-  const btn = document.getElementById('gps-locate-btn') || document.getElementById('lc-gps-quick-btn');
-  const result = document.getElementById('gps-result') || document.getElementById('lc-gps-inline-result');
-  const lblEl = document.getElementById('lc-gps-quick-lbl');
+  const btn = document.getElementById('lc-gps-quick-btn');
+  const result = document.getElementById('lc-gps-inline-result');
   if(!navigator.geolocation){
-    result.innerHTML=`<div style="background:var(--red-lt);border-radius:var(--radius-sm);padding:12px;text-align:center;font-size:13px;color:var(--red);">此裝置不支援 GPS 定位</div>`;
+    if(result) result.innerHTML=`<div style="font-size:12px;color:var(--red);padding:6px 0;">不支援 GPS</div>`;
     return;
   }
-  btn.innerHTML=`<span style="display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0 0 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 0 0 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z" fill="white"/></svg> 定位中...</span>`;
-  btn.disabled = true;
+  // 旋轉動畫
+  if(btn) btn.style.opacity='0.5';
   navigator.geolocation.getCurrentPosition(
     pos=>{
+      if(btn) btn.style.opacity='1';
       const {latitude:lat, longitude:lng} = pos.coords;
       const nearest = findNearestStations(lat, lng, 3);
       gpsNearest = nearest[0];
-      btn.innerHTML=`<span style="display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="white"/></svg> 重新定位</span>`;
-      btn.disabled = false;
-      result.innerHTML=`
-        <div style="font-size:12px;color:var(--text3);margin-bottom:8px;text-align:center;">
-          偵測到你的位置，附近台鐵車站：
-        </div>
+      // 自動填入最近站
+      applyGPSStation(nearest[0].n);
+      // 顯示其他選項
+      if(result) result.innerHTML=`
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">附近車站（點可更換）</div>
         ${nearest.map((s,i)=>`
-          <div style="background:${i===0?'var(--accent-lter)':'var(--bg)'};border:${i===0?'1.5px solid var(--accent)':'1px solid var(--border)'};border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="applyGPSStation('${s.n}')">
+          <div style="background:${i===0?'var(--accent-lter)':'var(--bg)'};border:${i===0?'1.5px solid var(--accent)':'1px solid var(--border)'};border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="applyGPSStation('${s.n}')">
             <div>
-              <div style="font-size:15px;font-weight:${i===0?'700':'500'};color:${i===0?'var(--accent)':'var(--text)'};">${i===0?'📍 ':''}${s.n}站</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:2px;">距離約 ${s.dist<1?(s.dist*1000).toFixed(0)+'m':s.dist.toFixed(1)+'km'}</div>
+              <span style="font-size:14px;font-weight:${i===0?'700':'500'};color:${i===0?'var(--accent)':'var(--text)'};">${s.n}站</span>
+              <span style="font-size:11px;color:var(--text3);margin-left:6px;">${s.dist<1?(s.dist*1000).toFixed(0)+'m':s.dist.toFixed(1)+'km'}</span>
             </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="${i===0?'var(--accent)':'#8a9db8'}"/></svg>
+            ${i===0?`<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="var(--accent)"/></svg>`:''}
           </div>`).join('')}`;
     },
     err=>{
-      btn.innerHTML=`<span style="display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="white"/></svg> 重試</span>`;
-      btn.disabled = false;
-      const msgs = {1:'請在設定中允許定位權限',2:'定位逾時，請再試一次',3:'無法取得位置資訊'};
-      result.innerHTML=`<div style="background:var(--red-lt);border-radius:var(--radius-sm);padding:12px;text-align:center;font-size:13px;color:var(--red);">${msgs[err.code]||'定位失敗'}</div>`;
+      if(btn) btn.style.opacity='1';
+      const msgs = {1:'請允許定位權限',2:'定位逾時',3:'無法取得位置'};
+      if(result) result.innerHTML=`<div style="font-size:12px;color:var(--red);padding:6px 0;">${msgs[err.code]||'定位失敗'}</div>`;
     },
     {timeout:10000, enableHighAccuracy:true}
   );
 }
 function applyGPSStation(name){
   locState.s1 = name;
-  const setStnLbl = (id, val) => {
-    const el = document.getElementById(id); if(!el) return;
-    if(val){ el.textContent=val; el.classList.remove('placeholder-name'); }
-    else{ el.textContent='尚未選擇'; el.classList.add('placeholder-name'); }
-  };
-  setStnLbl('lc-single-stn-lbl', name);
-  if(document.getElementById('lc-gps-quick-lbl'))
-    document.getElementById('lc-gps-quick-lbl').textContent = name+'站 已選取';
-  // 如果在 GPS tab 模式
-  document.getElementById('loc-display').textContent = name+'站';
-  document.getElementById('loc-mode-display').textContent = '目前位置 · GPS';
-  closeSheet('loc-sheet');
+  const lbl = document.getElementById('lc-single-stn-lbl');
+  if(lbl){ lbl.textContent = name; lbl.classList.remove('placeholder-name'); }
+  // 清除 inline result
+  const res = document.getElementById('lc-gps-inline-result');
+  if(res) res.innerHTML = '';
 }
 function applyLocGPS(){
   if(gpsNearest){
@@ -1531,51 +1527,66 @@ async function doSearch(){
   document.getElementById('res-loc').textContent=loc;
   document.getElementById('shoot-results').style.display='block';
 
-  // 時間範圍（分鐘）— 從現在往後
-  const timeRange = parseInt(document.querySelector('#time-chips .chip.on')?.dataset.val||'60');
+  const timeRange = parseInt(document.querySelector('#time-chips .chip.on')?.dataset.val||'30');
   const _nowDate = new Date();
   const nowStr = tStr(_nowDate.getHours(), _nowDate.getMinutes());
   const cutoffDate = new Date(_nowDate.getTime() + timeRange * 60000);
   const cutoff = tStr(cutoffDate.getHours(), cutoffDate.getMinutes());
+  const today = _nowDate.toISOString().split('T')[0];
 
-  // ── 真實 API 模式 ──────────────────────────────────
-  // 排除預設文字，確認有選真正的車站
   const defaultTexts = ['單一車站','點此設定拍攝點','尚未選擇','設定'];
   const hasRealLoc = API_BASE && loc && !defaultTexts.some(d => loc.includes(d));
 
+  // ── 兩站之間模式 ─────────────────────────────────────
+  if(hasRealLoc && locMode.includes('兩站之間')){
+    document.getElementById('train-list').innerHTML=
+      `<div style="text-align:center;padding:2rem 0;color:var(--text3);"><div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
+    try {
+      const parts = loc.replace('間','').split('－');
+      const s1Name = parts[0]?.trim() || '';
+      const s2Name = parts[1]?.trim() || '';
+      const url = `${API_BASE}/api/between/${encodeURIComponent(s1Name)}/${encodeURIComponent(s2Name)}/${today}?start=${nowStr}&mins=${timeRange}&dir=${dv==='all'?'all':dv}`;
+      const resp = await fetch(url);
+      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      let list = (data.trains || []);
+      if(tv !== 'all') list = list.filter(t => tv.includes(t.trainType));
+      document.getElementById('res-count').textContent = list.length + ' 班';
+      renderBetweenList(list, s1Name, s2Name);
+      return;
+    } catch(e) {
+      document.getElementById('train-list').innerHTML=
+        `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-sm);padding:14px;color:var(--red);font-size:14px;">
+          ⚠️ 查詢失敗：${e.message}
+        </div>`;
+      return;
+    }
+  }
+
+  // ── 單一車站模式 ──────────────────────────────────────
   if(hasRealLoc) {
     document.getElementById('train-list').innerHTML=
       `<div style="text-align:center;padding:2rem 0;color:var(--text3);"><div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
     try {
-      // 取出車站名稱（單站或兩站間取第一站）
       const stnName = loc.replace('站','').split('－')[0].trim();
       const stnId = getTDXId(stnName);
-      const today = new Date().toISOString().split('T')[0];
       const resp = await fetch(`${API_BASE}/api/station/${stnId}/${today}`);
       if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const data = await resp.json();
-
-      // 即時誤點
       let liveMap={};
       try{
         const lr=await fetch(`${API_BASE}/api/live`);
         const ld=await lr.json();
         (ld.TrainLiveBoards||[]).forEach(t=>{liveMap[t.TrainNo]=t.DelayTime||0;});
       }catch(e){}
-
-      const nowStr = tStr(NOW.getHours(), NOW.getMinutes());
-      
-
       const list = (data.TrainTimetables||[]).map((tt,idx)=>{
         const info=tt.TrainInfo||{};
         const stops=tt.StopTimes||[];
-        // 找到該站的到站時間
         const stnStop=stops.find(s=>(s.StationName||{}).Zh_tw===stnName);
         const passTime = stnStop
           ? (stnStop.ArrivalTime||stnStop.DepartureTime||'00:00')
           : (stops[0]?.DepartureTime||'00:00');
         if(passTime<nowStr||passTime>cutoff) return null;
-
         let typeKey=tdxTypeToKey(String(info.TrainTypeCode||'3'));
         const typeName=(info.TrainTypeName||{}).Zh_tw||'';
         if(typeName.includes('普悠瑪')) typeKey='puy';
@@ -1584,12 +1595,9 @@ async function doSearch(){
         else if(typeName.includes('莒光')) typeKey='moc';
         else if(typeName.includes('區間快')) typeKey='localx';
         else if(typeName.includes('區間')) typeKey='local';
-
-        // 方向
         const dir = info.Direction===0?'down':'up';
         const trainNo = info.TrainNo||'';
         const delay = liveMap[trainNo]||0;
-
         return {
           id:idx, no:trainNo, type:typeKey, dir,
           from:(info.StartingStationName||{}).Zh_tw||'',
@@ -1604,7 +1612,6 @@ async function doSearch(){
       }).filter(Boolean)
         .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||Array.isArray(tv)&&tv.includes(t.type)))
         .sort((a,b)=>a.passTime.localeCompare(b.passTime));
-
       document.getElementById('res-count').textContent=list.length+' 班';
       renderTrainList(list);
       return;
@@ -1617,7 +1624,7 @@ async function doSearch(){
     }
   }
 
-  // ── 假資料模式 ────────────────────────────────────
+  // ── 假資料模式 ────────────────────────────────────────
   const list=TRAINS
     .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||Array.isArray(tv)&&tv.includes(t.type)))
     .sort((a,b)=>a.passTime.localeCompare(b.passTime));
@@ -1627,6 +1634,63 @@ async function doSearch(){
 function filterTrains(){
   if(document.getElementById('shoot-results').style.display==='none')return;
   doSearch();
+}
+
+// ── 兩站之間結果渲染 ─────────────────────────────────
+function renderBetweenList(list, s1Name, s2Name){
+  const el = document.getElementById('train-list');
+  if(!list.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-text">查無列車</div><div style="font-size:13px;color:var(--text3);margin-top:6px;">此時段無列車通過</div></div>`;
+    return;
+  }
+
+  const TYPE_INFO_LOCAL = TYPE_INFO;
+  const ACTUAL_DOT = `<span style="color:var(--accent);font-weight:700;font-size:13px;">●</span>`;
+  const EST_DOT    = `<span style="color:var(--text3);font-weight:700;font-size:13px;">≈</span>`;
+
+  el.innerHTML = list.map(t => {
+    const ti = TYPE_INFO_LOCAL[t.trainType] || {label:'其他', cls:'b-exp'};
+    const isEst = t.isEstimated;
+    const dot = isEst ? EST_DOT : ACTUAL_DOT;
+    const label = isEst ? '預估通過' : '實際時刻';
+    const labelColor = isEst ? 'var(--text3)' : 'var(--accent)';
+    const dirIcon = t.direction === 'up' ? '↑' : '↓';
+    const dirLabel = t.direction === 'up' ? '上行' : '下行';
+
+    // Times with 約 prefix for estimated
+    const t1 = isEst ? `約${t.s1Time}` : t.s1Time;
+    const t2 = isEst ? `約${t.s2Time||'--'}` : (t.s2Time||'--');
+    const delayStr = t.delayMin > 0
+      ? `<span style="color:var(--orange);font-size:12px;font-weight:600;">誤點 +${t.delayMin}分</span>`
+      : `<span style="color:var(--green);font-size:12px;">✓ 準點</span>`;
+
+    return `<div class="train-card ${t.direction==='up'?'dir-up':'dir-down'}" style="padding:13px 15px;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${dot}
+          <span class="badge ${ti.cls}">${ti.label}</span>
+          <span style="font-size:14px;font-weight:700;color:var(--text);">${t.trainNo}</span>
+          <span style="font-size:12px;color:var(--text3);">${dirIcon} ${dirLabel}</span>
+        </div>
+        <span style="font-size:11px;color:${labelColor};font-weight:600;">${label}</span>
+      </div>
+      <div style="display:flex;gap:0;align-items:stretch;">
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">${s1Name}</div>
+          <div style="font-size:20px;font-weight:800;color:var(--text);">${t1}</div>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 8px;color:var(--text3);">→</div>
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">${s2Name}</div>
+          <div style="font-size:20px;font-weight:800;color:${isEst?'var(--text2)':'var(--text)'};">${t2}</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+        <div style="font-size:12px;color:var(--text3);">${t.fromStation} → ${t.toStation}</div>
+        ${delayStr}
+      </div>
+    </div>`;
+  }).join('');
 }
 function renderTrainList(list){
   const loc=document.getElementById('loc-display').textContent;
@@ -1740,12 +1804,14 @@ const HEART_FULL = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
 const HEART_EMPTY = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" fill="currentColor"/></svg>`;
 
 function calcDurStr(dep, arr) {
+  if(!dep || !arr || dep==='??:??' || arr==='??:??') return '';
   const [dh,dm]=dep.split(':').map(Number);
   const [ah,am]=arr.split(':').map(Number);
   let mins=(ah*60+am)-(dh*60+dm);
   if(mins<0) mins+=1440;
   const h=Math.floor(mins/60), m=mins%60;
-  return h ? `${h}h${String(m).padStart(2,'0')}` : `${m}分`;
+  if(h===0) return `${m}分`;
+  return `${h}h${String(m).padStart(2,'0')}`;
 }
 
 async function searchTT(){
@@ -1880,11 +1946,11 @@ function renderTTList(list, isMock) {
     const faved=isTTFaved(t.no);
     return `<div class="tt-card" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
       <button class="tt-heart-btn${faved?' liked':''}" onclick="toggleTTFavObj(${JSON.stringify(t).replace(/"/g,'&quot;')},event)">${faved?HEART_FULL:HEART_EMPTY}</button>
-      <div class="tt-top" style="padding-right:36px;">
+      <div style="padding-right:36px;">
         <div class="tt-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:17px;">→</span> ${t.arr}</div>
-        <div class="tt-dur">${t.dur}</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:6px;">(${t.dur})</div>
       </div>
-      <div class="tt-mid">
+      <div class="tt-mid" style="margin-bottom:3px;">
         <span class="badge ${ti.cls}">${ti.label}</span>
         <span style="font-size:13px;font-weight:600;color:var(--text);">${t.no}</span>
       </div>
