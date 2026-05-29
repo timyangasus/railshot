@@ -318,40 +318,22 @@ function estimatePassTime(stops, targetId, targetKm, delay) {
 // ── DEBUG: 驗證大湖站通過時間 ─────────────────────────
 app.get('/api/debug/dahu', async (req, res) => {
   try {
-    // 108 自強，台鐵官網顯示 (6:31) 通過大湖
+    // 查 Station API 看里程欄位
     const data = await tdxWithRetry(
-      `/api/basic/v3/Rail/TRA/GeneralTrainTimetable/TrainNo/108?$format=JSON`
+      `/api/basic/v3/Rail/TRA/Station?$format=JSON&$top=3`
     );
-    const tt = (data.TrainTimetables || [])[0];
-    const stops = tt?.StopTimes || [];
-
-    // 找大湖站
-    const dahuStop = stops.find(s =>
-      String(s.StationID) === '4290' || s.StationName?.Zh_tw === '大湖'
-    );
-
-    // 找大湖前後站
-    const dahuSeq = dahuStop?.StopSequence;
-    const prevStop = dahuSeq ? stops.find(s => s.StopSequence === dahuSeq - 1) : null;
-    const nextStop = dahuSeq ? stops.find(s => s.StopSequence === dahuSeq + 1) : null;
-
-    // 也把大湖附近全部列出（序號 ±3）
-    const nearby = dahuSeq
-      ? stops.filter(s => Math.abs(s.StopSequence - dahuSeq) <= 3)
-      : stops.slice(0, 5);
-
+    const stations = Array.isArray(data) ? data : (data.Stations || data.value || []);
     res.json({
-      trainNo: tt?.TrainInfo?.TrainNo,
-      type: tt?.TrainInfo?.TrainTypeName?.Zh_tw,
-      totalStops: stops.length,
-      dahuStop,
-      prevStop,
-      nextStop,
-      nearby,
-      verdict: !dahuStop ? '大湖完全不在StopTimes → 需要推算'
-        : dahuStop.ArrivalTime === dahuStop.DepartureTime
-          ? `大湖在StopTimes arr=dep=${dahuStop.ArrivalTime} → 需進一步判斷`
-          : `停靠 arr=${dahuStop.ArrivalTime} dep=${dahuStop.DepartureTime}`
+      count: stations.length,
+      firstStationKeys: stations[0] ? Object.keys(stations[0]) : [],
+      positionKeys: stations[0]?.StationPosition ? Object.keys(stations[0].StationPosition) : [],
+      sample: stations.slice(0, 3).map(s => ({
+        id: s.StationID,
+        name: s.StationName?.Zh_tw,
+        mileage: s.Mileage,
+        cumulativeDistance: s.CumulativeDistance,
+        position: s.StationPosition,
+      }))
     });
   } catch(e) {
     res.status(500).json({ error: e.message });
