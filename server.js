@@ -318,26 +318,39 @@ function estimatePassTime(stops, targetId, targetKm, delay) {
 // ── DEBUG: 驗證大湖站通過時間 ─────────────────────────
 app.get('/api/debug/dahu', async (req, res) => {
   try {
+    // 108 自強，台鐵官網顯示 (6:31) 通過大湖
     const data = await tdxWithRetry(
-      `/api/basic/v3/Rail/TRA/GeneralTrainTimetable/TrainNo/3121?$format=JSON`
+      `/api/basic/v3/Rail/TRA/GeneralTrainTimetable/TrainNo/108?$format=JSON`
     );
     const tt = (data.TrainTimetables || [])[0];
     const stops = tt?.StopTimes || [];
-    const stopKeys = stops[0] ? Object.keys(stops[0]) : [];
+
+    // 找大湖站
     const dahuStop = stops.find(s =>
       String(s.StationID) === '4290' || s.StationName?.Zh_tw === '大湖'
     );
+
+    // 找大湖前後站
+    const dahuSeq = dahuStop?.StopSequence;
+    const prevStop = dahuSeq ? stops.find(s => s.StopSequence === dahuSeq - 1) : null;
+    const nextStop = dahuSeq ? stops.find(s => s.StopSequence === dahuSeq + 1) : null;
+
+    // 也把大湖附近全部列出（序號 ±3）
+    const nearby = dahuSeq
+      ? stops.filter(s => Math.abs(s.StopSequence - dahuSeq) <= 3)
+      : stops.slice(0, 5);
+
     res.json({
       trainNo: tt?.TrainInfo?.TrainNo,
       type: tt?.TrainInfo?.TrainTypeName?.Zh_tw,
       totalStops: stops.length,
-      stopKeys,
-      firstStop: stops[0],
-      lastStop: stops[stops.length-1],
       dahuStop,
-      verdict: !dahuStop ? '大湖不在StopTimes'
+      prevStop,
+      nextStop,
+      nearby,
+      verdict: !dahuStop ? '大湖完全不在StopTimes → 需要推算'
         : dahuStop.ArrivalTime === dahuStop.DepartureTime
-          ? `通過 arr=dep=${dahuStop.ArrivalTime}`
+          ? `大湖在StopTimes arr=dep=${dahuStop.ArrivalTime} → 需進一步判斷`
           : `停靠 arr=${dahuStop.ArrivalTime} dep=${dahuStop.DepartureTime}`
     });
   } catch(e) {
