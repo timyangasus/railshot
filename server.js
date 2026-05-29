@@ -420,13 +420,6 @@ app.get('/api/train/:trainNo/:date', async (req, res) => {
   }
 });
 
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
   console.log(`Railshot proxy running on port ${PORT}`);
-  try {
-    await buildStationData();
-    // 印出大湖相關站
-    const dahu = Object.entries(stationCache).filter(([k]) => k.includes('大湖') || k.includes('路竹') || k.includes('岡山'));
-    console.log('大湖相關站:', JSON.stringify(dahu));
-  }
-  catch(e) { console.error('Failed to preload stations:', e.message); }
 });
