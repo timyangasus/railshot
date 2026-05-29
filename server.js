@@ -36,6 +36,21 @@ async function getLiveMap() {
   }
 }
 
+// ── Station timetable cache (10 min per station per date) ──
+const stationTTCache = new Map();
+
+async function getStationTimetable(stationId, date) {
+  const key = `${stationId}:${date}`;
+  if (stationTTCache.has(key)) return stationTTCache.get(key);
+  const data = await tdxWithRetry(
+    `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${stationId}/${date}?$format=JSON`
+  );
+  stationTTCache.set(key, data);
+  // 10分後清除
+  setTimeout(() => stationTTCache.delete(key), 10 * 60 * 1000);
+  return data;
+}
+
 async function getToken() {
   if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
   const res = await fetch(
@@ -468,12 +483,12 @@ app.get('/api/between/:s1/:s2/:date', async (req, res) => {
     // 查時刻表：同站只查一次，不同站各查一次
     let data1, data2;
     if (isSameStation) {
-      data1 = await tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id1}/${date}?$format=JSON`);
+      data1 = await getStationTimetable(id1, date);
       data2 = data1;
     } else {
       [data1, data2] = await Promise.all([
-        tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id1}/${date}?$format=JSON`),
-        tdxWithRetry(`/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id2}/${date}?$format=JSON`)
+        getStationTimetable(id1, date),
+        getStationTimetable(id2, date)
       ]);
     }
 
@@ -654,17 +669,12 @@ app.get('/api/station/:stationId/:date', async (req, res) => {
     const id = await resolveStationId(decodeURIComponent(stationId));
     let data;
     try {
-      data = await tdxWithRetry(
-        `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id}/${date}?$format=JSON`
-      );
+      data = await getStationTimetable(id, date);
     } catch(e) {
-      // 若 404，嘗試補零到 5 碼
       if (e.message.includes('404') && id.length < 5) {
         const paddedId = id.padStart(5, '0');
         console.log(`Station ${id} 404, retry with ${paddedId}`);
-        data = await tdxWithRetry(
-          `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${paddedId}/${date}?$format=JSON`
-        );
+        data = await getStationTimetable(paddedId, date);
       } else {
         throw e;
       }
