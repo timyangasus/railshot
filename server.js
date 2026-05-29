@@ -652,9 +652,23 @@ app.get('/api/station/:stationId/:date', async (req, res) => {
   try {
     const { stationId, date } = req.params;
     const id = await resolveStationId(decodeURIComponent(stationId));
-    const data = await tdxWithRetry(
-      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id}/${date}?$format=JSON`
-    );
+    let data;
+    try {
+      data = await tdxWithRetry(
+        `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${id}/${date}?$format=JSON`
+      );
+    } catch(e) {
+      // 若 404，嘗試補零到 5 碼
+      if (e.message.includes('404') && id.length < 5) {
+        const paddedId = id.padStart(5, '0');
+        console.log(`Station ${id} 404, retry with ${paddedId}`);
+        data = await tdxWithRetry(
+          `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${paddedId}/${date}?$format=JSON`
+        );
+      } else {
+        throw e;
+      }
+    }
     res.json(data);
   } catch(e) {
     res.status(500).json({ error: e.message });
