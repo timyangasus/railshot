@@ -318,35 +318,39 @@ function estimatePassTime(stops, targetId, targetKm, delay) {
 // ── DEBUG: 驗證大湖站通過時間 ─────────────────────────
 app.get('/api/debug/dahu', async (req, res) => {
   try {
-    const date = new Date().toISOString().split('T')[0];
-    // 用 OD 查臺南→岡山，這段必定經過大湖
-    // 只打一次 API
-    const data = await tdxWithRetry(
-      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/OD/1370/to/4310/${date}?$format=JSON&$top=6`
-    );
-    const timetables = data.TrainTimetables || [];
-    const result = timetables.map(tt => {
-      const info = tt.TrainInfo || {};
-      const stops = tt.StopTimes || [];
-      const keys = stops[0] ? Object.keys(stops[0]) : [];
-      // 找大湖站（ID 4290）
-      const dahuStop = stops.find(s =>
-        String(s.StationID) === '4290' ||
-        s.StationName?.Zh_tw === '大湖'
-      );
-      const arr = dahuStop?.ArrivalTime;
-      const dep = dahuStop?.DepartureTime;
-      return {
-        trainNo: info.TrainNo,
-        type: info.TrainTypeName?.Zh_tw,
-        stopTimesKeys: keys,
-        dahuStop,
-        verdict: !dahuStop ? '大湖不在StopTimes'
-          : arr === dep ? `通過 (${arr})`
-          : `停靠 arr=${arr} dep=${dep}`
-      };
-    });
-    res.json({ date, count: result.length, trains: result });
+    // 用 GeneralTrainTimetable 查固定班表（不需日期，不容易 404）
+    // 查車次 3121（區間，停大湖）和 108（自強，過大湖）
+    const results = [];
+    for (const trainNo of ['3121', '108', '301', '110']) {
+      try {
+        const data = await tdxWithRetry(
+          `/api/basic/v3/Rail/TRA/GeneralTrainTimetable/TrainNo/${trainNo}?$format=JSON`
+        );
+        const tt = (data.GeneralTrainTimetables || [])[0];
+        const info = tt?.TrainInfo || {};
+        const stops = tt?.StopTimes || [];
+        const keys = stops[0] ? Object.keys(stops[0]) : [];
+        const dahuStop = stops.find(s =>
+          String(s.StationID) === '4290' || s.StationName?.Zh_tw === '大湖'
+        );
+        const arr = dahuStop?.ArrivalTime;
+        const dep = dahuStop?.DepartureTime;
+        results.push({
+          trainNo,
+          type: info.TrainTypeName?.Zh_tw,
+          totalStops: stops.length,
+          stopTimesKeys: keys,
+          dahuStop,
+          verdict: !dahuStop ? '大湖不在StopTimes'
+            : arr === dep ? `通過 arr=dep=${arr}`
+            : `停靠 arr=${arr} dep=${dep}`
+        });
+        await new Promise(r => setTimeout(r, 1200));
+      } catch(e) {
+        results.push({ trainNo, error: e.message });
+      }
+    }
+    res.json({ results });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
