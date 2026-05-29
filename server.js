@@ -285,26 +285,35 @@ function getTrainType(info) {
 }
 
 // ── 里程插值推算通過時間 ──────────────────────────────
-// stops: StopTimes 陣列
-// targetId: 目標站 StationID
-// 回傳 HH:MM 或 null
+// 依照 StopSequence 順序找目標站前後的停靠站，再用里程插值
 function estimatePassTime(stops, targetId) {
   const targetKm = STATION_KM[String(targetId)];
   if (targetKm === undefined) return null;
 
+  // 依 StopSequence 排序
+  const sorted = [...stops].sort((a, b) => a.StopSequence - b.StopSequence);
+
+  // 判斷行進方向：第一站到最後一站里程是增還是減
+  const firstKm = STATION_KM[String(sorted[0]?.StationID)];
+  const lastKm = STATION_KM[String(sorted[sorted.length-1]?.StationID)];
+  const goingDown = lastKm > firstKm; // true=下行（里程增加），false=上行（里程減少）
+
+  // 找前後相鄰的有里程資料的站
   let prev = null, next = null;
 
-  for (const stop of stops) {
-    const stopId = String(stop.StationID);
-    const km = STATION_KM[stopId];
+  for (const stop of sorted) {
+    const km = STATION_KM[String(stop.StationID)];
     if (km === undefined) continue;
     const t = stop.DepartureTime || stop.ArrivalTime;
     if (!t) continue;
 
-    if (km <= targetKm) {
-      if (!prev || km > STATION_KM[String(prev.StationID)]) prev = stop;
+    if (goingDown) {
+      if (km <= targetKm) prev = stop;
+      else if (km > targetKm && !next) next = stop;
     } else {
-      if (!next || km < STATION_KM[String(next.StationID)]) next = stop;
+      // 上行：里程遞減，「前一站」里程比目標大
+      if (km >= targetKm) prev = stop;
+      else if (km < targetKm && !next) next = stop;
     }
   }
 
@@ -315,10 +324,16 @@ function estimatePassTime(stops, targetId) {
   const prevMins = timeToMins(prev.DepartureTime || prev.ArrivalTime);
   const nextMins = timeToMins(next.ArrivalTime || next.DepartureTime);
 
-  if (nextKm === prevKm || nextMins <= prevMins) return null;
+  if (prevMins < 0 || nextMins < 0) return null;
 
-  const ratio = (targetKm - prevKm) / (nextKm - prevKm);
-  return minsToTime(Math.round(prevMins + ratio * (nextMins - prevMins)));
+  // 里程比例插值
+  const totalKmDiff = Math.abs(nextKm - prevKm);
+  const targetKmDiff = Math.abs(targetKm - prevKm);
+  if (totalKmDiff === 0) return null;
+
+  const ratio = targetKmDiff / totalKmDiff;
+  const timeDiff = nextMins - prevMins;
+  return minsToTime(Math.round(prevMins + ratio * timeDiff));
 }
 
 // ── /api/between：兩站間所有列車（含過路車） ───────────
@@ -445,30 +460,50 @@ app.get('/api/between/:s1/:s2/:date', async (req, res) => {
 // ── DEBUG ─────────────────────────────────────────────
 app.get('/api/debug/dahu', async (req, res) => {
   try {
-    // 只查一班，看里程推算是否正確
-    // 108 自強：有停岡山、臺南，大湖在中間，應推算約 06:30
     const data = await tdxWithRetry(
       `/api/basic/v3/Rail/TRA/GeneralTrainTimetable/TrainNo/108?$format=JSON`
     );
     const tt = (data.TrainTimetables || [])[0];
     const stops = tt?.StopTimes || [];
+    const sorted = [...stops].sort((a, b) => a.StopSequence - b.StopSequence);
     const dahuId = '4290';
-    const dahuStop = stops.find(s => String(s.StationID) === dahuId);
-    const estimated = estimatePassTime(stops, dahuId);
-    // 找前後停靠站
     const dahuKm = STATION_KM[dahuId];
-    const prevStop = stops.filter(s => (STATION_KM[String(s.StationID)]||999) < dahuKm).slice(-1)[0];
-    const nextStop = stops.find(s => (STATION_KM[String(s.StationID)]||0) > dahuKm);
+
+    // 判斷方向
+    const firstKm = STATION_KM[String(sorted[0]?.StationID)];
+    const lastKm = STATION_KM[String(sorted[sorted.length-1]?.StationID)];
+    const goingDown = lastKm > firstKm;
+
+    // 找前後站
+    let prev = null, next = null;
+    for (const stop of sorted) {
+      const km = STATION_KM[String(stop.StationID)];
+      if (km === undefined) continue;
+      const t = stop.DepartureTime || stop.ArrivalTime;
+      if (!t) continue;
+      if (goingDown) {
+        if (km <= dahuKm) prev = stop;
+        else if (km > dahuKm && !next) next = stop;
+      } else {
+        if (km >= dahuKm) prev = stop;
+        else if (km < dahuKm && !next) next = stop;
+      }
+    }
+
+    const estimated = estimatePassTime(stops, dahuId);
+
     res.json({
       trainNo: tt?.TrainInfo?.TrainNo,
       type: tt?.TrainInfo?.TrainTypeName?.Zh_tw,
+      direction: goingDown ? '下行' : '上行',
       totalStops: stops.length,
       dahuKm,
-      dahuInStopTimes: !!dahuStop,
-      prevStop: prevStop ? { id: prevStop.StationID, name: prevStop.StationName?.Zh_tw, dep: prevStop.DepartureTime, km: STATION_KM[String(prevStop.StationID)] } : null,
-      nextStop: nextStop ? { id: nextStop.StationID, name: nextStop.StationName?.Zh_tw, arr: nextStop.ArrivalTime, km: STATION_KM[String(nextStop.StationID)] } : null,
+      dahuInStopTimes: !!stops.find(s => String(s.StationID) === dahuId),
+      prevStop: prev ? { id: prev.StationID, name: prev.StationName?.Zh_tw, time: prev.DepartureTime||prev.ArrivalTime, km: STATION_KM[String(prev.StationID)] } : null,
+      nextStop: next ? { id: next.StationID, name: next.StationName?.Zh_tw, time: next.ArrivalTime||next.DepartureTime, km: STATION_KM[String(next.StationID)] } : null,
       estimatedPassTime: estimated,
       officialWebsite: '(06:31)',
+      accurate: estimated === '06:31' ? '✅ 完全吻合' : `差異：推算=${estimated} 官方=06:31`
     });
   } catch(e) {
     res.status(500).json({ error: e.message });
