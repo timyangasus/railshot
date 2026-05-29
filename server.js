@@ -319,44 +319,40 @@ function estimatePassTime(stops, targetId, targetKm, delay) {
 app.get('/api/debug/dahu', async (req, res) => {
   try {
     const date = new Date().toISOString().split('T')[0];
-    // 大湖站 StationID = 4370（縱貫線）
-    const dahuId = '4370';
 
-    // 查大湖站當天時刻表（前10筆）
+    // Step 1: 從 stationCache 找大湖站 ID
+    await buildStationData();
+    const dahuId = stationCache['大湖'] || stationCache['大湖站'];
+    const allDahu = Object.entries(stationCache).filter(([k]) => k.includes('大湖'));
+
+    if (!dahuId) {
+      return res.json({ error: '大湖站找不到', allDahu, sampleStations: Object.entries(stationCache).slice(0, 20) });
+    }
+
+    // Step 2: 查大湖站時刻表
     const data = await tdxWithRetry(
       `/api/basic/v3/Rail/TRA/DailyTrainTimetable/Station/${dahuId}/${date}?$format=JSON&$top=10`
     );
     const timetables = data.TrainTimetables || [];
 
-    // 整理每班車在大湖站的資料
     const result = timetables.map(tt => {
       const info = tt.TrainInfo || {};
       const stops = tt.StopTimes || [];
       const sampleKeys = stops.length > 0 ? Object.keys(stops[0]) : [];
-
-      // 找大湖站的 stop
       const dahuStop = stops.find(s =>
-        String(s.StationID) === String(dahuId) ||
-        s.StationName?.Zh_tw === '大湖'
+        String(s.StationID) === String(dahuId) || s.StationName?.Zh_tw === '大湖'
       );
-
-      // ArrivalTime === DepartureTime?
-      const isPass = dahuStop
-        ? dahuStop.ArrivalTime === dahuStop.DepartureTime
-        : null;
-
+      const isPass = dahuStop ? dahuStop.ArrivalTime === dahuStop.DepartureTime : null;
       return {
         trainNo: info.TrainNo,
         typeName: info.TrainTypeName?.Zh_tw,
-        direction: info.Direction,
         stopTimesKeys: sampleKeys,
         dahuStop,
-        isArrEqDep: isPass,
-        verdict: isPass === true ? '→ 通過不停靠' : isPass === false ? '→ 停靠' : '→ 大湖站不在StopTimes'
+        verdict: isPass === true ? '通過' : isPass === false ? '停靠' : '大湖不在StopTimes'
       };
     });
 
-    res.json({ date, dahuId, count: result.length, trains: result });
+    res.json({ date, dahuId, allDahu, count: result.length, trains: result });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
