@@ -2013,7 +2013,6 @@ async function searchTT(){
   }
 
   if (API_BASE && fromName && toName) {
-    el.innerHTML=`<div style="text-align:center;padding:2rem 0;color:var(--text3);">
     el.innerHTML = `<div style="text-align:center;padding:2rem 0;color:var(--text3);"><div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
     try {
       await ensureGTT();
