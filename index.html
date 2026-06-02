@@ -1866,31 +1866,36 @@ window.debugStationPass = function(stnName, startTime, endTime) {
 };
 
 function queryBetween(s1Name, s2Name, nowMins, endMins, dirFilter, typeFilter) {
-  if (!gttStationIdx) return [];
-  const alt = n => n.replace(/台/g,'臺').replace(/臺/g,'台');
-  // 用 sectionIndex（gttStationIdx[s1]）快速候選，再用 stopSet O(1) 確認 s2
-  const candidates = gttStationIdx[s1Name] || gttStationIdx[alt(s1Name)] || [];
+  if (!gttData) return [];
   const results = [];
-  for (const train of candidates) {
+  const seen = new Set();
+
+  for (const train of gttData.trains) {
     if (typeFilter !== 'all' && !typeFilter.includes(train.type)) continue;
-    // stopSet O(1) 確認 s2 也有停靠
-    if (!train.stopSet.has(s2Name) && !train.stopSet.has(alt(s2Name))) continue;
-    const i1 = train.stops.findIndex(s => s.stn === s1Name || s.stn === alt(s1Name));
-    const i2 = train.stops.findIndex(s => s.stn === s2Name || s.stn === alt(s2Name));
-    if (i1 < 0 || i2 < 0 || i1 === i2) continue;
-    // 方向判斷：用 TDX Direction 欄位（down=南下=站序遞增，up=北上=站序遞減）
-    // 同時用站序驗證，確保列車行進方向與查詢方向一致
-    const goingDown = i2 > i1; // 列車在此段的實際行進方向
+
+    // 用里程估算取 s1 和 s2 的通過時間（含直接停靠）
+    const r1 = estimatePassTime(train, s1Name);
+    const r2 = estimatePassTime(train, s2Name);
+    if (!r1 || !r2) continue;
+
+    const m1 = toMins(r1.time);
+    const m2 = toMins(r2.time);
+    if (m1 < 0 || m2 < 0 || m1 === m2) continue;
+
+    // 方向判斷：用兩站的估算時間先後決定列車行進方向
+    const goingDown = m2 > m1; // s2 比 s1 晚 → 下行方向
     if (dirFilter === 'down' && !goingDown) continue;
     if (dirFilter === 'up'   &&  goingDown) continue;
-    // dir filter = all 時：兩方向都包含，不過濾
-    const stop1 = train.stops[i1];
-    const stop2 = train.stops[i2];
-    const t1 = stop1.dep || stop1.arr;
-    const t2 = stop2.arr || stop2.dep;
-    const m1 = toMins(t1);
+
+    // 時間篩選：s1 通過時間在範圍內
     if (m1 < nowMins || m1 > endMins) continue;
-    results.push({ train, s1Time: t1, s2Time: t2, s1Mins: m1 });
+    if (seen.has(train.no)) continue;
+    seen.add(train.no);
+
+    results.push({
+      train, s1Time: r1.time, s2Time: r2.time, s1Mins: m1,
+      s1Est: r1.isEst, s2Est: r2.isEst,
+    });
   }
   results.sort((a, b) => a.s1Mins - b.s1Mins);
   return results;
@@ -2024,13 +2029,17 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
     return;
   }
   el.innerHTML = results.map(r => {
-    const { train, s1Time, s2Time } = r;
+    const { train, s1Time, s2Time, s1Est, s2Est } = r;
     const ti = TYPE_INFO[train.type] || { label: '列車', cls: 'b-exp' };
     const delay = liveMap[train.no] || 0;
     const delayStr = delay > 0
       ? `<span style="color:var(--orange);font-size:12px;font-weight:600;">誤點 +${delay}分</span>`
       : `<span style="color:var(--green);font-size:12px;">✓ 準點</span>`;
     const dirIcon = train.dir === 'up' ? '↑' : '↓';
+    const t1Display = s1Est ? `約 ${s1Time}` : s1Time;
+    const t2Display = s2Est ? `約 ${s2Time}` : (s2Time || '--');
+    const t1Color = s1Est ? 'var(--text2)' : 'var(--text)';
+    const t2Color = s2Est ? 'var(--text2)' : 'var(--text)';
     return `<div class="train-card dir-${train.dir}" onclick="openDetailByNo('${train.no}','${s1Name}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:8px;">
@@ -2040,15 +2049,15 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
         </div>
         ${delayStr}
       </div>
-      <div style="display:flex;gap:0;align-items:stretch;">
+      <div style="display:flex;align-items:stretch;">
         <div style="flex:1;text-align:center;">
           <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">${s1Name}</div>
-          <div style="font-size:20px;font-weight:800;color:var(--text);">${s1Time}</div>
+          <div style="font-size:20px;font-weight:800;color:${t1Color};">${t1Display}</div>
         </div>
         <div style="display:flex;align-items:center;padding:0 12px;color:var(--text3);font-size:18px;">→</div>
         <div style="flex:1;text-align:center;">
           <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">${s2Name}</div>
-          <div style="font-size:20px;font-weight:800;color:var(--text);">${s2Time || '--'}</div>
+          <div style="font-size:20px;font-weight:800;color:${t2Color};">${t2Display}</div>
         </div>
       </div>
       <div style="margin-top:8px;font-size:12px;color:var(--text3);">${train.from} → ${train.to}</div>
