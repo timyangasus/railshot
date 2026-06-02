@@ -340,6 +340,9 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .sname{flex:1;font-size:14px;color:var(--text);}
 .sname.mj{font-weight:600;}
 .stime{font-size:13px;color:var(--text2);}
+.stop-item.cur-stop .sname{color:var(--accent);font-weight:700;}
+.stop-item.cur-stop .stime{color:var(--accent);font-weight:700;}
+.stop-item.cur-stop .stop-dot{background:var(--accent);box-shadow:0 0 0 3px rgba(26,111,212,0.2);}
 .slate{font-size:11px;color:var(--orange);margin-left:2px;}
 .act-btns{display:flex;flex-direction:column;gap:8px;margin-top:20px;padding-bottom:20px;}
 .btn-p{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(26,111,212,0.25);}
@@ -1512,245 +1515,367 @@ function applyLocGPS(){
     closeSheet('loc-sheet');
   }
 }
-async function doSearch(){
-  const dv=document.querySelector('#dir-chips .chip.on').dataset.val;
-  const tv=getShootSelectedTypes();
-  const loc=document.getElementById('loc-display').textContent;
-  const locMode=document.getElementById('loc-mode-display').textContent;
-  document.getElementById('res-loc').textContent=loc;
-  document.getElementById('shoot-results').style.display='block';
+// ===== TIMETABLE CACHE (localStorage) =================
+const GTT_KEY = 'railshot_gtt';
+const GTT_TTL = 24 * 60 * 60 * 1000; // 24hr
 
-  const timeRange = parseInt(document.querySelector('#time-chips .chip.on')?.dataset.val||'30');
-  const _nowDate = new Date();
-  const nowMins = _nowDate.getHours()*60 + _nowDate.getMinutes();
-  const endMins = nowMins + timeRange;
-  const nowStr = tStr(_nowDate.getHours(), _nowDate.getMinutes());
-  const today = _nowDate.toISOString().split('T')[0];
+let gttData = null; // { trains, builtAt }
 
-  function toMins(t){ if(!t||t==='??:??') return -1; const[h,m]=t.split(':').map(Number); return h*60+m; }
-
-  const defaultTexts = ['點此設定拍攝點','尚未選擇'];
-  const hasRealLoc = API_BASE && loc && !defaultTexts.some(d => loc.includes(d));
-
-  // ── 兩站之間模式 ─────────────────────────────────────
-  if(hasRealLoc && locMode.includes('兩站之間')){
-    document.getElementById('train-list').innerHTML=
-      `<div style="text-align:center;padding:2rem 0;color:var(--text3);"><div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
-    try {
-      const parts = loc.replace('間','').split('－');
-      const s1Name = parts[0]?.trim().replace('站','') || '';
-      const s2Name = parts[1]?.trim().replace('站','') || '';
-      const url = `${API_BASE}/api/between/${encodeURIComponent(s1Name)}/${encodeURIComponent(s2Name)}/${today}?start=${nowStr}&mins=${timeRange}&dir=${dv==='all'?'all':dv}`;
-      const resp = await fetch(url);
-      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const data = await resp.json();
-      let list = (data.trains || []);
-      if(tv !== 'all') list = list.filter(t => tv.includes(t.trainType));
-      document.getElementById('res-count').textContent = list.length + ' 班';
-      renderBetweenList(list, s1Name, s2Name);
-      return;
-    } catch(e) {
-      document.getElementById('train-list').innerHTML=
-        `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-sm);padding:14px;color:var(--red);font-size:14px;">
-          ⚠️ 查詢失敗：${e.message}
-        </div>`;
-      return;
-    }
-  }
-
-  // ── 單一車站模式 ──────────────────────────────────────
-  if(hasRealLoc) {
-    document.getElementById('train-list').innerHTML=
-      `<div style="text-align:center;padding:2rem 0;color:var(--text3);"><div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
-    try {
-      // 站名去掉「站」字
-      const stnName = loc.replace(/站$/, '').split('－')[0].trim();
-      // 使用 between API 同站查詢，讓 server 處理過路車
-      const url = `${API_BASE}/api/between/${encodeURIComponent(stnName)}/${encodeURIComponent(stnName)}/${today}?start=${nowStr}&mins=${timeRange}&dir=${dv==='all'?'all':dv}`;
-      const resp = await fetch(url);
-      if(!resp.ok) {
-        // fallback: 用 station API
-        const resp2 = await fetch(`${API_BASE}/api/station/${encodeURIComponent(stnName)}/${today}`);
-        if(!resp2.ok) throw new Error(`HTTP ${resp2.status}`);
-        const data = await resp2.json();
-        let liveMap={};
-        try{
-          const lr=await fetch(`${API_BASE}/api/live`);
-          const ld=await lr.json();
-          (ld.TrainLiveBoards||[]).forEach(t=>{liveMap[t.TrainNo]=t.DelayTime||0;});
-        }catch(e){}
-        const list = (data.TrainTimetables||[]).map((tt,idx)=>{
-          const info=tt.TrainInfo||{};
-          const stops=tt.StopTimes||[];
-          const stnStop=stops.find(s=>{
-            const n=(s.StationName||{}).Zh_tw||'';
-            return n===stnName || n===stnName.replace(/台/g,'臺') || n===stnName.replace(/臺/g,'台');
-          });
-          const rawTime = stnStop
-            ? (stnStop.ArrivalTime||stnStop.DepartureTime||'')
-            : (stops[0]?.DepartureTime||'');
-          if(!rawTime) return null;
-          const pm = toMins(rawTime);
-          if(pm < nowMins || pm > endMins) return null;
-          const trainNo = info.TrainNo||'';
-          const delay = liveMap[trainNo]||0;
-          const typeCode = String(info.TrainTypeCode||'3');
-          const typeName=(info.TrainTypeName||{}).Zh_tw||'';
-          let typeKey = tdxTypeToKey(typeCode);
-          if(typeName.includes('普悠瑪')) typeKey='puy';
-          else if(typeName.includes('太魯閣')) typeKey='tze';
-          else if(typeName.includes('EMU3000')||typeName.includes('3000')) typeKey='exp3';
-          else if(typeName.includes('莒光')) typeKey='moc';
-          else if(typeName.includes('區間快')) typeKey='localx';
-          else if(typeName.includes('區間')) typeKey='local';
-          const dir = info.Direction===0?'down':'up';
-          return {
-            id:idx, no:trainNo, type:typeKey, dir,
-            from:(info.StartingStationName||{}).Zh_tw||'',
-            to:(info.EndingStationName||{}).Zh_tw||'',
-            passTime:rawTime, delay,
-            stops:stops.map(s=>({
-              s:(s.StationName||{}).Zh_tw||'',
-              dep:s.DepartureTime||s.ArrivalTime||'',
-              late:delay,mj:MAJOR.has((s.StationName||{}).Zh_tw||'')
-            }))
-          };
-        }).filter(Boolean)
-          .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||Array.isArray(tv)&&tv.includes(t.type)))
-          .sort((a,b)=>toMins(a.passTime)-toMins(b.passTime));
-        document.getElementById('res-count').textContent=list.length+' 班';
-        renderTrainList(list);
-        return;
+async function ensureGTT() {
+  if (gttData) return gttData;
+  // 嘗試從 localStorage 讀
+  try {
+    const raw = localStorage.getItem(GTT_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Date.now() - parsed.builtAt < GTT_TTL) {
+        gttData = parsed;
+        console.log(`GTT loaded from cache: ${gttData.trains.length} trains`);
+        return gttData;
       }
-      // between API 成功 → 用 between 渲染格式（單站顯示）
-      const data = await resp.json();
-      let list = (data.trains || []);
-      if(tv !== 'all') list = list.filter(t => tv.includes(t.trainType));
-      // 轉成 renderTrainList 格式
-      const converted = list.map((t,idx)=>({
-        id:idx, no:t.trainNo, type:t.trainType, dir:t.direction,
-        from:t.fromStation, to:t.toStation,
-        passTime:t.s1Time, delay:t.delayMin, stops:[]
-      }));
-      document.getElementById('res-count').textContent=converted.length+' 班';
-      renderTrainList(converted);
-      return;
-    } catch(e) {
-      document.getElementById('train-list').innerHTML=
-        `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-sm);padding:14px;color:var(--red);font-size:14px;">
-          ⚠️ API 查詢失敗：${e.message}
-        </div>`;
-      return;
     }
+  } catch(e) {}
+
+  if (!API_BASE) return null;
+
+  // 從 server 拉
+  document.getElementById('train-list').innerHTML =
+    `<div style="text-align:center;padding:2rem 0;color:var(--text3);">
+      <div style="font-size:28px;margin-bottom:8px;">⏳</div>
+      載入時刻資料中...（首次需要約 10 秒）
+    </div>`;
+
+  const resp = await fetch(`${API_BASE}/api/timetable`);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  gttData = await resp.json();
+
+  try { localStorage.setItem(GTT_KEY, JSON.stringify(gttData)); } catch(e) {}
+  console.log(`GTT fetched: ${gttData.trains.length} trains`);
+  return gttData;
+}
+
+// ── 前端查詢核心 ──────────────────────────────────────
+function toMins(t) {
+  if (!t || t === '??:??') return -1;
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function queryStation(stnName, nowMins, endMins, dirFilter, typeFilter) {
+  if (!gttData) return [];
+  const alt = stnName.replace(/台/g,'臺').replace(/臺/g,'台');
+  const results = [];
+  for (const train of gttData.trains) {
+    if (dirFilter !== 'all' && train.dir !== dirFilter) continue;
+    if (typeFilter !== 'all' && !typeFilter.includes(train.type)) continue;
+    const stop = train.stops.find(s => s.stn === stnName || s.stn === alt);
+    if (!stop) continue;
+    const t = stop.dep || stop.arr;
+    const m = toMins(t);
+    if (m < nowMins || m > endMins) continue;
+    results.push({ train, passTime: t, passMins: m });
   }
-
-  // ── 假資料模式 ────────────────────────────────────────
-  const list=TRAINS
-    .filter(t=>(dv==='all'||t.dir===dv)&&(tv==='all'||Array.isArray(tv)&&tv.includes(t.type)))
-    .sort((a,b)=>a.passTime.localeCompare(b.passTime));
-  document.getElementById('res-count').textContent=list.length+' 班';
-  renderTrainList(list);
-}
-function filterTrains(){
-  if(document.getElementById('shoot-results').style.display==='none')return;
-  doSearch();
+  results.sort((a, b) => a.passMins - b.passMins);
+  return results;
 }
 
-// ── 兩站之間結果渲染 ─────────────────────────────────
-function renderBetweenList(list, s1Name, s2Name){
-  const el = document.getElementById('train-list');
-  if(!list.length){
-    el.innerHTML=`<div class="empty-state"><div class="empty-text">查無列車</div><div style="font-size:13px;color:var(--text3);margin-top:6px;">此時段無列車通過</div></div>`;
+function queryBetween(s1Name, s2Name, nowMins, endMins, dirFilter, typeFilter) {
+  if (!gttData) return [];
+  const alt = n => n.replace(/台/g,'臺').replace(/臺/g,'台');
+  const results = [];
+  for (const train of gttData.trains) {
+    if (typeFilter !== 'all' && !typeFilter.includes(train.type)) continue;
+    const i1 = train.stops.findIndex(s => s.stn === s1Name || s.stn === alt(s1Name));
+    const i2 = train.stops.findIndex(s => s.stn === s2Name || s.stn === alt(s2Name));
+    if (i1 < 0 || i2 < 0) continue;
+    // 方向判斷
+    if (dirFilter === 'all') {
+      if (i1 === i2) continue; // 同站
+    } else if (dirFilter === 'down') {
+      if (i2 <= i1) continue; // 下行要求 s2 在 s1 之後
+    } else if (dirFilter === 'up') {
+      if (i2 >= i1) continue; // 上行要求 s2 在 s1 之前
+    } else {
+      if (i1 === i2) continue;
+    }
+    const stop1 = train.stops[i1];
+    const stop2 = train.stops[i2];
+    const t1 = stop1.dep || stop1.arr;
+    const t2 = stop2.arr || stop2.dep;
+    const m1 = toMins(t1);
+    if (m1 < nowMins || m1 > endMins) continue;
+    results.push({ train, s1Time: t1, s2Time: t2, s1Mins: m1 });
+  }
+  results.sort((a, b) => a.s1Mins - b.s1Mins);
+  return results;
+}
+
+// ── 主查詢函式 ────────────────────────────────────────
+async function doSearch() {
+  const dv  = document.querySelector('#dir-chips .chip.on').dataset.val;
+  const tv  = getShootSelectedTypes();
+  const loc = document.getElementById('loc-display').textContent.trim();
+  const locMode = document.getElementById('loc-mode-display').textContent;
+
+  document.getElementById('res-loc').textContent = loc;
+  document.getElementById('shoot-results').style.display = 'block';
+
+  const timeRange = parseInt(document.querySelector('#time-chips .chip.on')?.dataset.val || '30');
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const endMins = nowMins + timeRange;
+
+  const isBetween = locMode.includes('兩站之間') || loc.includes('－');
+  const isEmpty = !loc || loc === '點此設定拍攝點';
+
+  if (isEmpty) {
+    document.getElementById('train-list').innerHTML =
+      `<div class="empty-state"><div class="empty-text">請先選擇拍攝點</div></div>`;
     return;
   }
 
-  const TYPE_INFO_LOCAL = TYPE_INFO;
-  const ACTUAL_DOT = `<span style="color:var(--accent);font-weight:700;font-size:13px;">●</span>`;
-  const EST_DOT    = `<span style="color:var(--text3);font-weight:700;font-size:13px;">≈</span>`;
+  // 有 API_BASE → 用真實資料
+  if (API_BASE) {
+    document.getElementById('train-list').innerHTML =
+      `<div style="text-align:center;padding:2rem 0;color:var(--text3);">
+        <div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...
+      </div>`;
+    try {
+      await ensureGTT();
+    } catch(e) {
+      document.getElementById('train-list').innerHTML =
+        `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-sm);padding:14px;color:var(--red);font-size:14px;">
+          ⚠️ 載入失敗：${e.message}
+        </div>`;
+      return;
+    }
 
-  el.innerHTML = list.map(t => {
-    const ti = TYPE_INFO_LOCAL[t.trainType] || {label:'其他', cls:'b-exp'};
-    const isEst = t.isEstimated;
-    const dot = isEst ? EST_DOT : ACTUAL_DOT;
-    const label = isEst ? '預估通過' : '實際時刻';
-    const labelColor = isEst ? 'var(--text3)' : 'var(--accent)';
-    const dirIcon = t.direction === 'up' ? '↑' : '↓';
-    const dirLabel = t.direction === 'up' ? '上行' : '下行';
+    // 取即時誤點
+    let liveMap = {};
+    try {
+      const lr = await fetch(`${API_BASE}/api/live`);
+      const ld = await lr.json();
+      (ld.TrainLiveBoards || []).forEach(t => { liveMap[t.TrainNo] = t.DelayTime || 0; });
+    } catch(e) {}
 
-    // Times with 約 prefix for estimated
-    const t1 = isEst ? `約${t.s1Time}` : t.s1Time;
-    const t2 = isEst ? `約${t.s2Time||'--'}` : (t.s2Time||'--');
-    const delayStr = t.delayMin > 0
-      ? `<span style="color:var(--orange);font-size:12px;font-weight:600;">誤點 +${t.delayMin}分</span>`
-      : `<span style="color:var(--green);font-size:12px;">✓ 準點</span>`;
+    if (isBetween) {
+      const parts = loc.replace(/間$/, '').split('－');
+      const s1 = parts[0]?.trim() || '';
+      const s2 = parts[1]?.trim() || '';
+      const results = queryBetween(s1, s2, nowMins, endMins, dv, tv);
+      document.getElementById('res-count').textContent = results.length + ' 班';
+      renderBetweenResults(results, s1, s2, liveMap);
+    } else {
+      const stn = loc.replace(/站$/, '').trim();
+      const results = queryStation(stn, nowMins, endMins, dv, tv);
+      document.getElementById('res-count').textContent = results.length + ' 班';
+      renderStationResults(results, stn, liveMap);
+    }
+    return;
+  }
 
-    return `<div class="train-card ${t.direction==='up'?'dir-up':'dir-down'}" style="padding:13px 15px;margin-bottom:8px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          ${dot}
-          <span class="badge ${ti.cls}">${ti.label}</span>
-          <span style="font-size:14px;font-weight:700;color:var(--text);">${t.trainNo}</span>
-          <span style="font-size:12px;color:var(--text3);">${dirIcon} ${dirLabel}</span>
-        </div>
-        <span style="font-size:11px;color:${labelColor};font-weight:600;">${label}</span>
-      </div>
-      <div style="display:flex;gap:0;align-items:stretch;">
-        <div style="flex:1;text-align:center;">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">${s1Name}</div>
-          <div style="font-size:20px;font-weight:800;color:var(--text);">${t1}</div>
-        </div>
-        <div style="display:flex;align-items:center;padding:0 8px;color:var(--text3);">→</div>
-        <div style="flex:1;text-align:center;">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">${s2Name}</div>
-          <div style="font-size:20px;font-weight:800;color:${isEst?'var(--text2)':'var(--text)'};">${t2}</div>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-        <div style="font-size:12px;color:var(--text3);">${t.fromStation} → ${t.toStation}</div>
-        ${delayStr}
-      </div>
-    </div>`;
-  }).join('');
+  // 假資料模式
+  const list = TRAINS
+    .filter(t => (dv === 'all' || t.dir === dv) && (tv === 'all' || Array.isArray(tv) && tv.includes(t.type)))
+    .sort((a, b) => a.passTime.localeCompare(b.passTime));
+  document.getElementById('res-count').textContent = list.length + ' 班';
+  renderTrainList(list);
 }
-function renderTrainList(list){
-  const loc=document.getElementById('loc-display').textContent;
-  const el=document.getElementById('train-list');
-  if(!list.length){el.innerHTML='<div class="empty-state"><div class="empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="#8a9db8"/></svg></div><div class="empty-text">無符合條件的列車</div></div>';return;}
-  el.innerHTML=list.map(t=>{
-    const mins=minsFromNow(t.passTime);
-    const ti=TYPE_INFO[t.type];
-    const cdCls=mins<=5&&mins>=0?'tc-cd soon':mins<0?'tc-cd passed':'tc-cd wait';
-    const cdTxt=mins<0?'已通過':mins===0?'即將通過':'還有 '+mins+' 分';
-    return `<div class="train-card dir-${t.dir}" onclick="openDetail(${t.id})">
+
+function filterTrains() {
+  if (document.getElementById('shoot-results').style.display === 'none') return;
+  doSearch();
+}
+
+// ── 渲染：單站結果 ────────────────────────────────────
+function renderStationResults(results, stnName, liveMap) {
+  const el = document.getElementById('train-list');
+  if (!results.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-text">查無列車</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:6px;">此時段無列車停靠</div></div>`;
+    return;
+  }
+  el.innerHTML = results.map((r, idx) => {
+    const { train, passTime } = r;
+    const ti = TYPE_INFO[train.type] || { label: '列車', cls: 'b-exp' };
+    const delay = liveMap[train.no] || 0;
+    const mins = toMins(passTime) - (new Date().getHours() * 60 + new Date().getMinutes());
+    const cdTxt = mins < 0 ? '已通過' : mins === 0 ? '即將通過' : `還有 ${mins} 分`;
+    const cdCls = mins <= 5 && mins >= 0 ? 'tc-cd soon' : mins < 0 ? 'tc-cd passed' : 'tc-cd wait';
+    return `<div class="train-card dir-${train.dir}" onclick="openDetailByNo('${train.no}','${stnName}')">
       <div class="tc-top">
-        <div class="tc-time">${t.passTime}</div>
+        <div class="tc-time">${passTime}</div>
         <div class="${cdCls}">${cdTxt}</div>
       </div>
       <div class="tc-mid">
         <span class="badge ${ti.cls}">${ti.label}</span>
+        <span class="tno">${train.no}</span>
+        <span class="dir-tag ${train.dir}">${train.dir === 'up' ? '↑ 上行' : '↓ 下行'}</span>
+      </div>
+      <div class="tc-route">${train.from} → ${train.to}</div>
+      <div class="tc-bot">
+        <div class="tc-loc">${stnName}站</div>
+        ${delay > 0 ? `<div class="tc-delay">誤點 +${delay}分</div>` : `<div class="tc-ok">✓ 準點</div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── 渲染：兩站之間結果 ────────────────────────────────
+function renderBetweenResults(results, s1Name, s2Name, liveMap) {
+  const el = document.getElementById('train-list');
+  if (!results.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-text">查無列車</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:6px;">此時段無列車通過</div></div>`;
+    return;
+  }
+  el.innerHTML = results.map(r => {
+    const { train, s1Time, s2Time } = r;
+    const ti = TYPE_INFO[train.type] || { label: '列車', cls: 'b-exp' };
+    const delay = liveMap[train.no] || 0;
+    const delayStr = delay > 0
+      ? `<span style="color:var(--orange);font-size:12px;font-weight:600;">誤點 +${delay}分</span>`
+      : `<span style="color:var(--green);font-size:12px;">✓ 準點</span>`;
+    const dirIcon = train.dir === 'up' ? '↑' : '↓';
+    return `<div class="train-card dir-${train.dir}" onclick="openDetailByNo('${train.no}','${s1Name}')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="badge ${ti.cls}">${ti.label}</span>
+          <span style="font-size:14px;font-weight:700;color:var(--text);">${train.no}</span>
+          <span style="font-size:12px;color:var(--text3);">${dirIcon} ${train.dir === 'up' ? '上行' : '下行'}</span>
+        </div>
+        ${delayStr}
+      </div>
+      <div style="display:flex;gap:0;align-items:stretch;">
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">${s1Name}</div>
+          <div style="font-size:20px;font-weight:800;color:var(--text);">${s1Time}</div>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 12px;color:var(--text3);font-size:18px;">→</div>
+        <div style="flex:1;text-align:center;">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">${s2Name}</div>
+          <div style="font-size:20px;font-weight:800;color:var(--text);">${s2Time || '--'}</div>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:12px;color:var(--text3);">${train.from} → ${train.to}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── 假資料渲染（無 API 時）───────────────────────────
+function renderTrainList(list) {
+  const loc = document.getElementById('loc-display').textContent;
+  const el = document.getElementById('train-list');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-text">無符合條件的列車</div></div>';
+    return;
+  }
+  el.innerHTML = list.map(t => {
+    const mins = minsFromNow(t.passTime);
+    const ti = TYPE_INFO[t.type] || { label: '列車', cls: 'b-exp' };
+    const cdCls = mins <= 5 && mins >= 0 ? 'tc-cd soon' : mins < 0 ? 'tc-cd passed' : 'tc-cd wait';
+    const cdTxt = mins < 0 ? '已通過' : mins === 0 ? '即將通過' : `還有 ${mins} 分`;
+    return `<div class="train-card dir-${t.dir}" onclick="openDetail(${t.id})">
+      <div class="tc-top"><div class="tc-time">${t.passTime}</div><div class="${cdCls}">${cdTxt}</div></div>
+      <div class="tc-mid">
+        <span class="badge ${ti.cls}">${ti.label}</span>
         <span class="tno">${t.no}</span>
-        <span class="dir-tag ${t.dir}">${t.dir==='up'?'↑ 上行':'↓ 下行'}</span>
+        <span class="dir-tag ${t.dir}">${t.dir === 'up' ? '↑ 上行' : '↓ 下行'}</span>
       </div>
       <div class="tc-route">${t.from} → ${t.to}</div>
       <div class="tc-bot">
         <div class="tc-loc">${loc}</div>
-        ${t.delay>0?`<div class="tc-delay">誤點 +${t.delay}分</div>`:`<div class="tc-ok">✓ 準點</div>`}
+        ${t.delay > 0 ? `<div class="tc-delay">誤點 +${t.delay}分</div>` : `<div class="tc-ok">✓ 準點</div>`}
       </div>
     </div>`;
   }).join('');
 }
 
 // ===== DETAIL =====
-function openDetail(id){
-  const t=TRAINS.find(x=>x.id===id);if(!t)return;
-  const ti=TYPE_INFO[t.type];
-  const loc=document.getElementById('loc-display').textContent;
-  document.getElementById('det-hdr-title').textContent=ti.label+' '+t.no;
-  document.getElementById('det-body').innerHTML=`
+async function openDetailByNo(trainNo, atStation) {
+  const detPage = document.getElementById('detail-page');
+  document.getElementById('det-hdr-title').textContent = '載入中...';
+  document.getElementById('det-body').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);">⏳</div>`;
+  detPage.classList.add('open');
+
+  try {
+    // 從 gttData 直接取
+    let train = gttData?.trains.find(t => t.no === trainNo);
+    let delay = 0;
+
+    if (!train && API_BASE) {
+      const resp = await fetch(`${API_BASE}/api/train/${trainNo}`);
+      const data = await resp.json();
+      train = data; delay = data.delay || 0;
+    } else if (API_BASE) {
+      try {
+        const lr = await fetch(`${API_BASE}/api/live`);
+        const ld = await lr.json();
+        const found = (ld.TrainLiveBoards || []).find(t => t.TrainNo === trainNo);
+        delay = found?.DelayTime || 0;
+      } catch(e) {}
+    }
+
+    if (!train) throw new Error('找不到列車資料');
+
+    const ti = TYPE_INFO[train.type] || { label: '列車', cls: 'b-exp' };
+    const atStop = train.stops.find(s => s.stn === atStation);
+    const passTime = atStop ? (atStop.dep || atStop.arr) : '';
+
+    document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
+    document.getElementById('det-body').innerHTML = `
+      <div style="margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span class="badge ${ti.cls}" style="font-size:12px;padding:4px 11px;">${ti.label}</span>
+          <span class="dir-tag ${train.dir}" style="font-size:12px;">${train.dir === 'up' ? '↑ 上行' : '↓ 下行'}</span>
+        </div>
+        <div class="det-no">${trainNo}</div>
+        <div class="det-route">${train.from} → ${train.to}</div>
+      </div>
+      ${passTime ? `<div class="det-time">${passTime}</div><div class="det-lbl">通過 ${atStation}站</div>` : ''}
+      <div class="card" style="margin-bottom:16px;">
+        <div class="info-row"><span class="ik">誤點</span><span class="iv" style="color:${delay > 0 ? 'var(--orange)' : 'var(--green)'}">${delay > 0 ? '+' + delay + ' 分' : '準點'}</span></div>
+        <div class="info-row"><span class="ik">方向</span><span class="iv">${train.dir === 'up' ? '上行（往北）' : '下行（往南）'}</span></div>
+        <div class="info-row"><span class="ik">起終站</span><span class="iv">${train.from} → ${train.to}</span></div>
+      </div>
+      <div class="sec">停靠站時刻</div>
+      <div class="stop-list">
+        ${train.stops.map(s => {
+          const isCur = s.stn === atStation;
+          const isMj = MAJOR.has(s.stn);
+          return `<div class="stop-item${isCur ? ' cur-stop' : ''}">
+            <div class="stop-dot${isMj ? ' mj' : ''}${isCur ? ' cur' : ''}"></div>
+            <span class="sname${isMj ? ' mj' : ''}">${s.stn}</span>
+            <span class="stime">${s.dep || s.arr}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="act-btns">
+        <button class="btn-p" onclick="setReminderByTrain('${trainNo}','${atStation}','${passTime}')">
+          <span style="display:flex;align-items:center;justify-content:center;gap:6px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="white"/></svg>
+            通過前 5 分鐘提醒
+          </span>
+        </button>
+      </div>`;
+  } catch(e) {
+    document.getElementById('det-body').innerHTML =
+      `<div style="padding:16px;color:var(--red);">⚠️ 載入失敗：${e.message}</div>`;
+  }
+}
+
+function openDetail(id) {
+  // 假資料模式
+  const t = TRAINS.find(x => x.id === id);
+  if (!t) return;
+  const ti = TYPE_INFO[t.type] || { label: '列車', cls: 'b-exp' };
+  const loc = document.getElementById('loc-display').textContent;
+  document.getElementById('det-hdr-title').textContent = ti.label + ' ' + t.no;
+  document.getElementById('det-body').innerHTML = `
     <div style="margin-bottom:8px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <span class="badge ${ti.cls}" style="font-size:12px;padding:4px 11px;">${ti.label}</span>
-        <span class="dir-tag ${t.dir}" style="font-size:12px;">${t.dir==='up'?'↑ 上行':'↓ 下行'}</span>
+        <span class="badge ${ti.cls}">${ti.label}</span>
+        <span class="dir-tag ${t.dir}">${t.dir === 'up' ? '↑ 上行' : '↓ 下行'}</span>
       </div>
       <div class="det-no">${t.no}</div>
       <div class="det-route">${t.from} → ${t.to}</div>
@@ -1758,16 +1883,16 @@ function openDetail(id){
     <div class="det-time">${t.passTime}</div>
     <div class="det-lbl">預估通過 ${loc}</div>
     <div class="card" style="margin-bottom:16px;">
-      <div class="info-row"><span class="ik">誤點</span><span class="iv" style="color:${t.delay>0?'var(--orange)':'var(--green)'}">${t.delay>0?'+'+t.delay+' 分':'準點'}</span></div>
-      <div class="info-row"><span class="ik">方向</span><span class="iv">${t.dir==='up'?'上行（往北）':'下行（往南）'}</span></div>
+      <div class="info-row"><span class="ik">誤點</span><span class="iv">${t.delay > 0 ? '+' + t.delay + ' 分' : '準點'}</span></div>
+      <div class="info-row"><span class="ik">方向</span><span class="iv">${t.dir === 'up' ? '上行（往北）' : '下行（往南）'}</span></div>
       <div class="info-row"><span class="ik">起終站</span><span class="iv">${t.from} → ${t.to}</span></div>
     </div>
     <div class="sec">停靠站時刻</div>
     <div class="stop-list">
-      ${t.stops.map(s=>`<div class="stop-item">
-        <div class="stop-dot${s.mj?' mj':''}"></div>
-        <span class="sname${s.mj?' mj':''}">${s.s}</span>
-        <span class="stime">${s.dep}${s.late>0?`<span class="slate"> +${s.late}</span>`:''}</span>
+      ${t.stops.map(s => `<div class="stop-item">
+        <div class="stop-dot${s.mj ? ' mj' : ''}"></div>
+        <span class="sname${s.mj ? ' mj' : ''}">${s.s}</span>
+        <span class="stime">${s.dep}</span>
       </div>`).join('')}
     </div>
     <div class="act-btns">
@@ -1777,12 +1902,25 @@ function openDetail(id){
           通過前 5 分鐘提醒
         </span>
       </button>
-      <button class="btn-s">加入追蹤</button>
-      <button class="btn-s">收藏此拍攝點</button>
     </div>`;
   document.getElementById('detail-page').classList.add('open');
 }
-function closeDetail(){document.getElementById('detail-page').classList.remove('open');}
+function closeDetail() { document.getElementById('detail-page').classList.remove('open'); }
+
+// ── 提醒（by trainNo + station + time）───────────────
+function setReminderByTrain(trainNo, station, passTime) {
+  const id = `${trainNo}-${passTime.replace(':','')}`;
+  const train = gttData?.trains.find(t => t.no === trainNo);
+  if (!train) return;
+  const ti = TYPE_INFO[train.type] || { label: '列車', cls: 'b-exp' };
+  const reminder = {
+    id, trainNo, station, passTime,
+    type: train.type, label: ti.label,
+    dir: train.dir,
+    addedAt: Date.now(),
+  };
+  addReminder(reminder);
+}
 
 // ===== TIMETABLE =====
 let ttNowMode = true;  // 預設開啟現在時刻
@@ -1840,114 +1978,69 @@ async function searchTT(){
   const _now = new Date();
   const nowStr = tStr(_now.getHours(), _now.getMinutes());
   const dateVal = document.getElementById('tt-date').value;
+  const isToday = dateVal === _now.toISOString().split('T')[0];
 
   const fromLbl = document.getElementById('tt-from-lbl');
-  const toLbl = document.getElementById('tt-to-lbl');
+  const toLbl   = document.getElementById('tt-to-lbl');
   const fromName = fromLbl.classList.contains('placeholder') ? '' : fromLbl.textContent;
-  const toName = toLbl.classList.contains('placeholder') ? '' : toLbl.textContent;
+  const toName   = toLbl.classList.contains('placeholder')   ? '' : toLbl.textContent;
 
-  // ── 未選車站提示 ───────────────────────────────────
-  if(API_BASE && (!fromName || !toName)){
-    el.innerHTML=`<div style="background:var(--accent-lt);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:14px 16px;text-align:center;">
+  if (!fromName || !toName) {
+    el.innerHTML = `<div style="background:var(--accent-lt);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:14px 16px;text-align:center;">
       <div style="font-size:15px;font-weight:600;color:var(--accent);margin-bottom:4px;">請先選擇車站</div>
       <div style="font-size:13px;color:var(--text2);">點上方「出發站」和「到達站」選擇查詢區間</div>
     </div>`;
     return;
   }
 
-  // ── 真實 API 模式 ──────────────────────────────────
-  if(API_BASE && fromName && toName) {
+  if (API_BASE && fromName && toName) {
     el.innerHTML=`<div style="text-align:center;padding:2rem 0;color:var(--text3);">
-      <div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
+    el.innerHTML = `<div style="text-align:center;padding:2rem 0;color:var(--text3);"><div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
     try {
-      const fromId = getTDXId(fromName);
-      const toId = getTDXId(toName);
-      const apiUrl = `${API_BASE}/api/od/${fromId}/${toId}/${dateVal}`;
-      const resp = await fetch(apiUrl);
-      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const data = await resp.json();
-      const timetables = data.TrainTimetables || [];
-
-      // debug: 顯示原始筆數
-      if(timetables.length === 0){
-        el.innerHTML=`<div style="background:var(--bg3);border-radius:var(--radius-sm);padding:14px;font-size:13px;color:var(--text2);">
-          <div style="font-weight:600;margin-bottom:6px;">TDX 回傳 0 筆資料</div>
-          <div style="color:var(--text3);word-break:break-all;">查詢：${fromName}(${fromId}) → ${toName}(${toId})</div>
-          <div style="color:var(--text3);margin-top:4px;">日期：${dateVal}</div>
-          <div style="color:var(--text3);margin-top:4px;font-size:11px;">可能原因：Station ID 不正確，或該日無班次</div>
-        </div>`;
-        return;
-      }
-
-      // 取得即時誤點
+      await ensureGTT();
       let liveMap = {};
       try {
-        const liveResp = await fetch(`${API_BASE}/api/live`);
-        const liveData = await liveResp.json();
-        (liveData.TrainLiveBoards||[]).forEach(t => {
-          liveMap[t.TrainNo] = t.DelayTime || 0;
-        });
+        const lr = await fetch(`${API_BASE}/api/live`);
+        const ld = await lr.json();
+        (ld.TrainLiveBoards || []).forEach(t => { liveMap[t.TrainNo] = t.DelayTime || 0; });
       } catch(e) {}
 
-      let list = timetables.map(tt => {
-        const info = tt.TrainInfo || {};
-        const stops = tt.StopTimes || [];
-        const dep = stops[0];
-        const arr = stops[stops.length-1];
-        if(!dep||!arr) return null;
-        const depTime = dep.DepartureTime || dep.ArrivalTime || '??:??';
-        const arrTime = arr.ArrivalTime || arr.DepartureTime || '??:??';
-        const typeCode = String(info.TrainTypeCode||'3');
-        const trainNo = info.TrainNo || '';
-        let typeKey = tdxTypeToKey(typeCode);
-        const typeName = (info.TrainTypeName||{}).Zh_tw || '';
-        // 用 typeName 做更精確判斷
-        if(typeName.includes('普悠瑪')) typeKey='puy';
-        else if(typeName.includes('太魯閣')) typeKey='tze';
-        else if(typeName.includes('EMU3000') || typeName.includes('3000')) typeKey='exp3';
-        else if(typeName.includes('莒光')) typeKey='moc';
-        else if(typeName.includes('區間快')) typeKey='localx';
-        else if(typeName.includes('區間')) typeKey='local';
-        return {
-          no: trainNo, type: typeKey,
-          dep: depTime, arr: arrTime,
-          dur: calcDurStr(depTime, arrTime),
-          delay: liveMap[trainNo] || 0,
-          from: (info.StartingStationName||{}).Zh_tw || fromName,
-          to: (info.EndingStationName||{}).Zh_tw || toName,
-          stops: stops.map(s=>({
-            s:(s.StationName||{}).Zh_tw||'',
-            dep:s.DepartureTime||s.ArrivalTime||'',
-            late:liveMap[trainNo]||0,
-            mj:MAJOR.has((s.StationName||{}).Zh_tw||'')
-          }))
-        };
-      }).filter(Boolean);
-
-      // 車種篩選
-      if(selectedTypes !== 'all') list=list.filter(t=>selectedTypes.includes(t.type));
-      // 排序
-      list.sort((a,b)=>a.dep.localeCompare(b.dep));
-      // 現在時刻篩選 — 嚴格過濾已過班次
-      if(ttNowMode) list=list.filter(t=>t.dep>=nowStr);
-
+      const alt = n => n.replace(/台/g,'臺').replace(/臺/g,'台');
+      let list = [];
+      for (const train of gttData.trains) {
+        if (selectedTypes !== 'all' && !selectedTypes.includes(train.type)) continue;
+        const i1 = train.stops.findIndex(s => s.stn === fromName || s.stn === alt(fromName));
+        const i2 = train.stops.findIndex(s => s.stn === toName   || s.stn === alt(toName));
+        if (i1 < 0 || i2 < 0 || i2 <= i1) continue;
+        const depStop = train.stops[i1];
+        const arrStop = train.stops[i2];
+        const dep = depStop.dep || depStop.arr;
+        const arr = arrStop.arr || arrStop.dep;
+        if (ttNowMode && isToday && dep < nowStr) continue;
+        list.push({
+          no: train.no, type: train.type,
+          dep, arr, dur: calcDurStr(dep, arr),
+          delay: liveMap[train.no] || 0,
+          from: train.from, to: train.to,
+          stops: train.stops.map(s => ({
+            s: s.stn, dep: s.dep || s.arr,
+            late: liveMap[train.no] || 0,
+            mj: MAJOR.has(s.stn),
+          })),
+        });
+      }
+      list.sort((a, b) => a.dep.localeCompare(b.dep));
       renderTTList(list, false);
       return;
     } catch(e) {
-      el.innerHTML=`<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-sm);padding:14px;color:var(--red);font-size:14px;margin-bottom:12px;">
-        ⚠️ API 查詢失敗：${e.message}<br>
-        <span style="font-size:12px;opacity:0.8;">請確認 Render Server 是否正常運作</span>
-      </div>`;
+      el.innerHTML = `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-sm);padding:14px;color:var(--red);font-size:14px;">⚠️ 查詢失敗：${e.message}</div>`;
       return;
     }
   }
 
-  // ── 假資料模式（API_BASE 未設定）──────────────────
-  let list=TT_TRAINS.filter(t=>selectedTypes==='all'||selectedTypes.includes(t.type)).sort((a,b)=>a.dep.localeCompare(b.dep));
-  if(ttNowMode){
-    const fut=list.filter(t=>t.dep>=nowStr);
-    if(fut.length) list=fut;
-  }
+  // 假資料
+  let list = TT_TRAINS.filter(t => selectedTypes === 'all' || selectedTypes.includes(t.type));
+  if (ttNowMode) { const fut = list.filter(t => t.dep >= nowStr); if(fut.length) list = fut; }
   renderTTList(list, true);
 }
 
