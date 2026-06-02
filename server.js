@@ -70,9 +70,9 @@ function getTrainType(info) {
 }
 
 // ── GeneralTrainTimetable cache & index ───────────────
-let gttCache = null;       // 原始壓縮後的前端 payload
+let gttCache = null;       // 前端 payload
 let trainIndex = null;     // trainNo -> trainData
-let stationIndex = null;   // stationName -> [trainData]
+let stationIndex = null;   // stationName -> [{no,type,dir,from,to,time}]
 let cacheBuiltAt = 0;
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24hr
 
@@ -93,6 +93,7 @@ async function buildIndex() {
 
     const trainNo = String(info.TrainNo || '');
     const type = getTrainType(info);
+    // TDX Direction: 0=下行(南下), 1=上行(北上)
     const dir = info.Direction === 0 ? 'down' : 'up';
     const from = info.StartingStationName?.Zh_tw || '';
     const to   = info.EndingStationName?.Zh_tw   || '';
@@ -107,10 +108,10 @@ async function buildIndex() {
       }));
 
     const trainData = { no: trainNo, type, dir, from, to, stops };
-
     trainIndex[trainNo] = trainData;
+    trains.push(trainData);
 
-    // stationIndex: 每個停靠站都建索引
+    // ── stationIndex ───────────────────────────────────
     for (const stop of stops) {
       if (!stop.stn) continue;
       if (!stationIndex[stop.stn]) stationIndex[stop.stn] = [];
@@ -120,10 +121,26 @@ async function buildIndex() {
       });
     }
 
-    trains.push(trainData);
+    // stopSet：O(1) 判斷列車是否停靠某站（兩站之間查詢用）
+    trainData.stopSet = new Set(stops.map(s => s.stn).filter(Boolean));
   }
 
-  // 前端 payload：完整列車資料（前端自己做索引）
+  // 驗證方向：用大湖→路竹（下行）& 路竹→大湖（上行）測試
+  const downSample = (stationIndex['大湖'] || []).find(t => {
+    const train = trainIndex[t.no];
+    const i1 = train.stops.findIndex(s => s.stn === '大湖');
+    const i2 = train.stops.findIndex(s => s.stn === '路竹');
+    return i2 > i1;
+  });
+  const upSample = (stationIndex['路竹'] || []).find(t => {
+    const train = trainIndex[t.no];
+    const i1 = train.stops.findIndex(s => s.stn === '路竹');
+    const i2 = train.stops.findIndex(s => s.stn === '大湖');
+    return i2 > i1;
+  });
+  console.log(`Direction check 大湖→路竹(down): ${downSample ? downSample.no + ' dir=' + downSample.dir : 'none'}`);
+  console.log(`Direction check 路竹→大湖(up):   ${upSample  ? upSample.no  + ' dir=' + upSample.dir  : 'none'}`);
+
   gttCache = { trains, builtAt: Date.now() };
   cacheBuiltAt = Date.now();
   console.log(`Index built: ${trains.length} trains, ${Object.keys(stationIndex).length} stations`);

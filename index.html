@@ -1517,19 +1517,33 @@ function applyLocGPS(){
 }
 // ===== TIMETABLE CACHE (localStorage) =================
 const GTT_KEY = 'railshot_gtt';
-const GTT_TTL = 24 * 60 * 60 * 1000; // 24hr
+const GTT_TTL = 24 * 60 * 60 * 1000;
 
-let gttData = null; // { trains, builtAt }
+let gttData = null;        // { trains, builtAt }
+let gttStationIdx = null;  // stationName -> [trainData]  (前端 sectionIndex)
+
+function buildFrontendIndex(trains) {
+  gttStationIdx = {};
+  for (const train of trains) {
+    // 重建 stopSet（JSON 序列化後 Set 變成 {}）
+    train.stopSet = new Set(train.stops.map(s => s.stn).filter(Boolean));
+    for (const stop of train.stops) {
+      if (!stop.stn) continue;
+      if (!gttStationIdx[stop.stn]) gttStationIdx[stop.stn] = [];
+      gttStationIdx[stop.stn].push(train);
+    }
+  }
+}
 
 async function ensureGTT() {
-  if (gttData) return gttData;
-  // 嘗試從 localStorage 讀
+  if (gttData && gttStationIdx) return gttData;
   try {
     const raw = localStorage.getItem(GTT_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Date.now() - parsed.builtAt < GTT_TTL) {
         gttData = parsed;
+        buildFrontendIndex(gttData.trains);
         console.log(`GTT loaded from cache: ${gttData.trains.length} trains`);
         return gttData;
       }
@@ -1538,7 +1552,6 @@ async function ensureGTT() {
 
   if (!API_BASE) return null;
 
-  // 從 server 拉
   document.getElementById('train-list').innerHTML =
     `<div style="text-align:center;padding:2rem 0;color:var(--text3);">
       <div style="font-size:28px;margin-bottom:8px;">⏳</div>
@@ -1548,7 +1561,7 @@ async function ensureGTT() {
   const resp = await fetch(`${API_BASE}/api/timetable`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   gttData = await resp.json();
-
+  buildFrontendIndex(gttData.trains);
   try { localStorage.setItem(GTT_KEY, JSON.stringify(gttData)); } catch(e) {}
   console.log(`GTT fetched: ${gttData.trains.length} trains`);
   return gttData;
@@ -1562,10 +1575,11 @@ function toMins(t) {
 }
 
 function queryStation(stnName, nowMins, endMins, dirFilter, typeFilter) {
-  if (!gttData) return [];
+  if (!gttStationIdx) return [];
   const alt = stnName.replace(/台/g,'臺').replace(/臺/g,'台');
+  const candidates = gttStationIdx[stnName] || gttStationIdx[alt] || [];
   const results = [];
-  for (const train of gttData.trains) {
+  for (const train of candidates) {
     if (dirFilter !== 'all' && train.dir !== dirFilter) continue;
     if (typeFilter !== 'all' && !typeFilter.includes(train.type)) continue;
     const stop = train.stops.find(s => s.stn === stnName || s.stn === alt);
@@ -1580,24 +1594,24 @@ function queryStation(stnName, nowMins, endMins, dirFilter, typeFilter) {
 }
 
 function queryBetween(s1Name, s2Name, nowMins, endMins, dirFilter, typeFilter) {
-  if (!gttData) return [];
+  if (!gttStationIdx) return [];
   const alt = n => n.replace(/台/g,'臺').replace(/臺/g,'台');
+  // 用 sectionIndex（gttStationIdx[s1]）快速候選，再用 stopSet O(1) 確認 s2
+  const candidates = gttStationIdx[s1Name] || gttStationIdx[alt(s1Name)] || [];
   const results = [];
-  for (const train of gttData.trains) {
+  for (const train of candidates) {
     if (typeFilter !== 'all' && !typeFilter.includes(train.type)) continue;
+    // stopSet O(1) 確認 s2 也有停靠
+    if (!train.stopSet.has(s2Name) && !train.stopSet.has(alt(s2Name))) continue;
     const i1 = train.stops.findIndex(s => s.stn === s1Name || s.stn === alt(s1Name));
     const i2 = train.stops.findIndex(s => s.stn === s2Name || s.stn === alt(s2Name));
-    if (i1 < 0 || i2 < 0) continue;
-    // 方向判斷
-    if (dirFilter === 'all') {
-      if (i1 === i2) continue; // 同站
-    } else if (dirFilter === 'down') {
-      if (i2 <= i1) continue; // 下行要求 s2 在 s1 之後
-    } else if (dirFilter === 'up') {
-      if (i2 >= i1) continue; // 上行要求 s2 在 s1 之前
-    } else {
-      if (i1 === i2) continue;
-    }
+    if (i1 < 0 || i2 < 0 || i1 === i2) continue;
+    // 方向判斷：用 TDX Direction 欄位（down=南下=站序遞增，up=北上=站序遞減）
+    // 同時用站序驗證，確保列車行進方向與查詢方向一致
+    const goingDown = i2 > i1; // 列車在此段的實際行進方向
+    if (dirFilter === 'down' && !goingDown) continue;
+    if (dirFilter === 'up'   &&  goingDown) continue;
+    // dir filter = all 時：兩方向都包含，不過濾
     const stop1 = train.stops[i1];
     const stop2 = train.stops[i2];
     const t1 = stop1.dep || stop1.arr;
@@ -1909,7 +1923,12 @@ function closeDetail() { document.getElementById('detail-page').classList.remove
 
 // ── 提醒（by trainNo + station + time）───────────────
 function setReminderByTrain(trainNo, station, passTime) {
-  const id = `${trainNo}-${passTime.replace(':','')}`;
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0].replace(/-/g, '');
+  const loc = document.getElementById('loc-display').textContent.replace(/[^\w\u4e00-\u9fff]/g, '');
+  const timeStr = passTime.replace(':', '');
+  // ID 格式：date-trainNo-location-passTime，避免同車次不同拍攝點/日期互相覆蓋
+  const id = `${dateStr}-${trainNo}-${loc}-${timeStr}`;
   const train = gttData?.trains.find(t => t.no === trainNo);
   if (!train) return;
   const ti = TYPE_INFO[train.type] || { label: '列車', cls: 'b-exp' };
