@@ -69,19 +69,39 @@ function getTrainType(info) {
   return map[code] || 'exp';
 }
 
-// ── GeneralTrainTimetable cache & index ───────────────
-let gttCache = null;       // 前端 payload
-let trainIndex = null;     // trainNo -> trainData
-let stationIndex = null;   // stationName -> [{no,type,dir,from,to,time}]
+// ── Timetable cache & index ──────────────────────────
+let gttCache = null;
+let trainIndex = null;
+let stationIndex = null;
 let cacheBuiltAt = 0;
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24hr
+let cacheDate = '';
+const CACHE_TTL = 20 * 60 * 60 * 1000; // 20hr
+
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
 
 async function buildIndex() {
-  if (gttCache && Date.now() - cacheBuiltAt < CACHE_TTL) return;
-  console.log('Building GeneralTrainTimetable index...');
+  const today = todayStr();
+  if (gttCache && cacheDate === today && Date.now() - cacheBuiltAt < CACHE_TTL) return;
+  console.log(`Building timetable index for ${today}...`);
 
-  const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON');
-  const timetables = data.TrainTimetables || data || [];
+  let timetables = [];
+  let source = '';
+  try {
+    const data = await tdxFetch(
+      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainDate/${today}?$format=JSON`
+    );
+    timetables = data.TrainTimetables || data || [];
+    source = 'DailyTrainTimetable';
+    console.log(`DailyTrainTimetable: ${timetables.length} trains`);
+  } catch(e) {
+    console.warn(`DailyTrainTimetable failed (${e.message}), fallback to GeneralTrainTimetable`);
+    const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON');
+    timetables = data.TrainTimetables || data || [];
+    source = 'GeneralTrainTimetable(fallback)';
+    console.log(`GeneralTrainTimetable fallback: ${timetables.length} trains`);
+  }
 
   trainIndex = {};
   stationIndex = {};
@@ -141,9 +161,10 @@ async function buildIndex() {
   console.log(`Direction check 大湖→路竹(down): ${downSample ? downSample.no + ' dir=' + downSample.dir : 'none'}`);
   console.log(`Direction check 路竹→大湖(up):   ${upSample  ? upSample.no  + ' dir=' + upSample.dir  : 'none'}`);
 
-  gttCache = { trains, builtAt: Date.now() };
+  gttCache = { trains, builtAt: Date.now(), date: today, source };
   cacheBuiltAt = Date.now();
-  console.log(`Index built: ${trains.length} trains, ${Object.keys(stationIndex).length} stations`);
+  cacheDate = today;
+  console.log(`Index built [${source}]: ${trains.length} trains, ${Object.keys(stationIndex).length} stations`);
 }
 
 // ── Live cache (60s) ──────────────────────────────────
@@ -172,6 +193,8 @@ app.get('/api/health', (req, res) => {
   res.json({
     ok: true,
     indexed: !!gttCache,
+    source: gttCache?.source || null,
+    date: gttCache?.date || null,
     trains: gttCache ? gttCache.trains.length : 0,
     stations: stationIndex ? Object.keys(stationIndex).length : 0,
     builtAt: cacheBuiltAt ? new Date(cacheBuiltAt).toISOString() : null,
@@ -272,6 +295,87 @@ app.get('/api/stations', async (req, res) => {
 });
 
 // ── Start ─────────────────────────────────────────────
+app.get('/api/debug/train/:no', async (req, res) => {
+  try {
+    await buildIndex();
+    const no = req.params.no;
+    const train = trainIndex[no];
+    if (!train) return res.json({ found: false, no, source: gttCache?.source });
+    res.json({ found: true, source: gttCache?.source, date: gttCache?.date, train });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Debug: 竹北通過列車清單（含估算細節）─────────────
+app.get('/api/debug/zhubei', async (req, res) => {
+  try {
+    await buildIndex();
+    const TARGET = '竹北';
+    const TARGET_KM = 77.6;
+    const STATION_KM_SERVER = {
+      '基隆':0,'三坑':3.4,'八堵':6.0,'七堵':7.6,'百福':9.2,'五堵':11.0,
+      '汐止':13.0,'汐科':14.5,'南港':19.0,'松山':21.4,'臺北':27.7,'萬華':29.5,
+      '板橋':33.2,'浮洲':34.9,'樹林':37.0,'南樹林':38.4,'山佳':39.8,'鶯歌':42.4,
+      '鳳鳴':44.0,'桃園':47.4,'內壢':50.0,'中壢':52.6,'埔心':55.4,'楊梅':59.2,
+      '富岡':62.8,'新富':65.0,'北湖':68.0,'湖口':70.3,'新豐':74.0,'竹北':77.6,
+      '新竹':80.8,'三姓橋':83.7,'香山':86.0,
+    };
+
+    const results = [];
+    for (const train of gttCache.trains) {
+      // 找前後站
+      let prev = null, next = null;
+      for (const stop of train.stops) {
+        const km = STATION_KM_SERVER[stop.stn];
+        if (km === undefined) continue;
+        const t = stop.dep || stop.arr;
+        if (!t) continue;
+        if (km <= TARGET_KM) prev = { stn: stop.stn, km, t };
+        else if (km > TARGET_KM && !next) next = { stn: stop.stn, km, t };
+      }
+      if (!prev || !next) continue;
+
+      // 計算估算時間
+      const prevMins = parseInt(prev.t.split(':')[0]) * 60 + parseInt(prev.t.split(':')[1]);
+      const nextMins = parseInt(next.t.split(':')[0]) * 60 + parseInt(next.t.split(':')[1]);
+      const ratio = (TARGET_KM - prev.km) / (next.km - prev.km);
+      const estMins = Math.round(prevMins + ratio * (nextMins - prevMins));
+      const h = Math.floor(estMins / 60) % 24;
+      const m = estMins % 60;
+      const estTime = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+
+      // 只要 16:30～17:00 的
+      if (estMins < 16*60+30 || estMins > 17*60+0) continue;
+
+      // 確認是否直接停靠竹北
+      const directStop = train.stops.find(s => s.stn === TARGET);
+
+      results.push({
+        trainNo: train.no,
+        trainType: train.type,
+        dir: train.dir,
+        from: train.from,
+        to: train.to,
+        isDirectStop: !!directStop,
+        directStopTime: directStop ? (directStop.dep || directStop.arr) : null,
+        estimatedPassTime: estTime,
+        prevStation: prev.stn,
+        prevTime: prev.t,
+        prevKm: prev.km,
+        nextStation: next.stn,
+        nextTime: next.t,
+        nextKm: next.km,
+        ratio: Math.round(ratio * 100) / 100,
+      });
+    }
+
+    results.sort((a, b) => a.estimatedPassTime.localeCompare(b.estimatedPassTime));
+    res.json({ source: gttCache?.source, date: gttCache?.date, target: TARGET, count: results.length, results });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Railshot server on port ${PORT}`);
   // 啟動時預先建立索引
