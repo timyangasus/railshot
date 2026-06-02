@@ -1567,6 +1567,103 @@ async function ensureGTT() {
   return gttData;
 }
 
+// ── 台鐵里程表（km，從基隆起算，key = 站名）──────────
+const STATION_KM = {
+  '基隆':0,'三坑':3.4,'八堵':6.0,'七堵':7.6,'百福':9.2,'五堵':11.0,
+  '汐止':13.0,'汐科':14.5,'南港':19.0,'松山':21.4,'臺北':27.7,'萬華':29.5,
+  '板橋':33.2,'浮洲':34.9,'樹林':37.0,'南樹林':38.4,'山佳':39.8,'鶯歌':42.4,
+  '鳳鳴':44.0,'桃園':47.4,'內壢':50.0,'中壢':52.6,'埔心':55.4,'楊梅':59.2,
+  '富岡':62.8,'新富':65.0,'北湖':68.0,'湖口':70.3,'新豐':74.0,'竹北':77.6,
+  '新竹':80.8,'三姓橋':83.7,'香山':86.0,'崎頂':89.5,'竹南':93.0,
+  '北新竹':78.5,'千甲':79.2,'新莊':79.8,'竹中':81.5,'六家':82.0,
+  '上員':83.0,'榮華':84.5,'竹東':87.0,'橫山':90.0,'九讚頭':93.5,
+  '合興':95.0,'富貴':96.5,'內灣':99.0,
+  '談文':98.5,'大山':101.3,'後龍':104.5,'龍港':108.0,'白沙屯':111.0,
+  '新埔':114.0,'通霄':117.6,'苑裡':122.0,'日南':126.0,'大甲':129.5,
+  '臺中港':132.0,'清水':135.4,'沙鹿':138.8,'龍井':141.2,'大肚':144.3,'追分':147.3,
+  '造橋':96.0,'豐富':99.8,'苗栗':103.4,'南勢':106.0,'銅鑼':109.3,'三義':113.1,
+  '泰安':120.4,'后里':124.4,'豐原':128.4,'栗林':130.9,'潭子':133.4,
+  '頭家厝':135.5,'松竹':137.6,'太原':139.4,'精武':141.5,'臺中':143.8,
+  '五權':145.6,'大慶':147.6,'烏日':149.8,'新烏日':150.9,'成功':152.7,
+  '彰化':156.5,'花壇':159.8,'大村':163.2,'員林':165.8,'永靖':168.9,
+  '社頭':171.1,'田中':173.4,'二水':176.8,
+  '源泉':177.5,'濁水':179.0,'龍泉':182.0,'集集':185.5,'水里':190.0,'車埕':194.0,
+  '林內':183.7,'石榴':186.0,'斗六':188.3,'斗南':191.6,'石龜':193.6,
+  '大林':196.2,'民雄':199.0,'嘉北':201.5,'嘉義':202.6,
+  '水上':205.9,'南靖':208.8,'後壁':211.2,'新營':214.1,'柳營':216.9,
+  '林鳳營':219.5,'隆田':222.2,'拔林':224.7,'善化':227.2,'南科':229.4,
+  '新市':231.7,'永康':234.5,'大橋':237.3,'臺南':240.2,
+  '保安':243.4,'仁德':245.6,'中洲':247.8,'長榮大學':248.5,'沙崙':249.2,
+  '大湖':252.0,'路竹':254.3,'岡山':257.1,'橋頭':260.1,'楠梓':263.1,
+  '新左營':267.0,'左營':268.5,'內惟':270.0,'美術館':271.8,'鼓山':273.6,
+  '三塊厝':274.8,'高雄':276.3,'民族':278.0,'科工館':279.6,'正義':280.8,
+  '鳳山':282.0,'後庄':283.8,'九曲堂':286.3,
+  '六塊厝':289.3,'屏東':292.3,'歸來':296.0,'麟洛':298.8,'西勢':302.3,
+  '竹田':304.8,'潮州':307.8,'崁頂':311.3,'南州':314.6,'鎮安':318.3,
+  '林邊':320.8,'佳冬':323.3,'東海':325.8,'枋寮':328.3,'加祿':332.0,
+  '內獅':335.5,'枋山':339.0,
+  '大武':356.0,'瀧溪':362.0,'金崙':367.0,'太麻里':373.0,
+  '知本':384.0,'康樂':388.0,'臺東':392.0,
+  '山里':395.0,'鹿野':402.0,'瑞源':408.0,'瑞和':411.0,'關山':416.0,
+  '海端':422.0,'池上':428.0,'富里':438.0,'東竹':443.0,'東里':447.0,
+  '玉里':453.0,'三民':460.0,'瑞穗':466.0,'富源':472.0,'大富':477.0,
+  '光復':481.0,'萬榮':485.0,'鳳林':490.0,'南平':495.0,'林榮新光':498.0,
+  '豐田':502.0,'壽豐':508.0,'平和':512.0,'志學':515.0,'吉安':517.0,'花蓮':521.0,
+  '北埔':524.0,'景美':527.0,'新城':531.0,'崇德':534.0,'和仁':538.0,
+  '和平':543.0,'漢本':549.0,'武塔':553.0,'南澳':557.0,'東澳':562.0,
+  '永樂':566.0,'蘇澳':569.0,'蘇澳新':571.0,
+  '新馬':574.0,'冬山':577.0,'羅東':581.0,'中里':584.6,'二結':587.3,
+  '宜蘭':589.8,'四城':593.5,'礁溪':596.0,'頂埔':600.5,'頭城':603.0,
+  '外澳':607.0,'龜山':609.2,'大溪':611.4,'大里':614.4,'石城':617.4,
+  '福隆':621.0,'貢寮':624.0,'雙溪':627.0,'牡丹':631.0,'三貂嶺':635.0,
+  '猴硐':641.0,'瑞芳':645.0,'四腳亭':651.0,'暖暖':653.5,
+  '大華':636.0,'十分':638.5,'望古':640.0,'嶺腳':641.5,'平溪':643.0,'菁桐':646.0,
+  '海科館':646.5,'八斗子':648.5,
+};
+
+// 台/臺互換
+function stnKm(name) {
+  if (STATION_KM[name] !== undefined) return STATION_KM[name];
+  const alt = name.replace(/台/g,'臺').replace(/臺/g,'台');
+  return STATION_KM[alt];
+}
+
+// ── 里程插值估算列車通過目標站的時間 ─────────────────
+// 回傳 { time: "HH:MM", isEst: true } 或 null
+function estimatePassTime(train, targetName) {
+  const targetKm = stnKm(targetName);
+  if (targetKm === undefined) return null;
+
+  const stops = train.stops;
+  // 先看是否直接停靠
+  const direct = stops.find(s => s.stn === targetName || s.stn === targetName.replace(/台/g,'臺').replace(/臺/g,'台'));
+  if (direct) {
+    return { time: direct.dep || direct.arr, isEst: false };
+  }
+
+  // 找前後有里程資料的相鄰停靠站
+  let prev = null, next = null;
+  for (const stop of stops) {
+    const km = stnKm(stop.stn);
+    if (km === undefined) continue;
+    const t = stop.dep || stop.arr;
+    if (!t) continue;
+    if (km <= targetKm) prev = { km, t };
+    else if (km > targetKm && !next) next = { km, t };
+  }
+  if (!prev || !next) return null;
+
+  const prevMins = toMins(prev.t);
+  const nextMins = toMins(next.t);
+  if (prevMins < 0 || nextMins < 0) return null;
+
+  const ratio = (targetKm - prev.km) / (next.km - prev.km);
+  const estMins = Math.round(prevMins + ratio * (nextMins - prevMins));
+  const h = Math.floor(estMins / 60) % 24;
+  const m = estMins % 60;
+  return { time: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`, isEst: true };
+}
+
 // ── 前端查詢核心 ──────────────────────────────────────
 function toMins(t) {
   if (!t || t === '??:??') return -1;
@@ -1574,20 +1671,35 @@ function toMins(t) {
   return h * 60 + m;
 }
 
+// 單站查詢：含停靠 + 里程估算通過列車
 function queryStation(stnName, nowMins, endMins, dirFilter, typeFilter) {
-  if (!gttStationIdx) return [];
-  const alt = stnName.replace(/台/g,'臺').replace(/臺/g,'台');
-  const candidates = gttStationIdx[stnName] || gttStationIdx[alt] || [];
+  if (!gttData) return [];
   const results = [];
-  for (const train of candidates) {
+  const seen = new Set();
+
+  for (const train of gttData.trains) {
     if (dirFilter !== 'all' && train.dir !== dirFilter) continue;
     if (typeFilter !== 'all' && !typeFilter.includes(train.type)) continue;
-    const stop = train.stops.find(s => s.stn === stnName || s.stn === alt);
-    if (!stop) continue;
-    const t = stop.dep || stop.arr;
-    const m = toMins(t);
+
+    // 列車里程範圍必須覆蓋目標站
+    const targetKm = stnKm(stnName);
+    if (targetKm !== undefined) {
+      // 找列車停靠站的最小/最大里程，確認此列車會經過目標站
+      let minKm = Infinity, maxKm = -Infinity;
+      for (const stop of train.stops) {
+        const km = stnKm(stop.stn);
+        if (km !== undefined) { minKm = Math.min(minKm, km); maxKm = Math.max(maxKm, km); }
+      }
+      if (minKm > targetKm || maxKm < targetKm) continue; // 不經過
+    }
+
+    const result = estimatePassTime(train, stnName);
+    if (!result) continue;
+    const m = toMins(result.time);
     if (m < nowMins || m > endMins) continue;
-    results.push({ train, passTime: t, passMins: m });
+    if (seen.has(train.no)) continue;
+    seen.add(train.no);
+    results.push({ train, passTime: result.time, passMins: m, isEst: result.isEst });
   }
   results.sort((a, b) => a.passMins - b.passMins);
   return results;
@@ -1706,20 +1818,28 @@ function renderStationResults(results, stnName, liveMap) {
   const el = document.getElementById('train-list');
   if (!results.length) {
     el.innerHTML = `<div class="empty-state"><div class="empty-text">查無列車</div>
-      <div style="font-size:13px;color:var(--text3);margin-top:6px;">此時段無列車停靠</div></div>`;
+      <div style="font-size:13px;color:var(--text3);margin-top:6px;">此時段無列車經過</div></div>`;
     return;
   }
-  el.innerHTML = results.map((r, idx) => {
-    const { train, passTime } = r;
+  el.innerHTML = results.map(r => {
+    const { train, passTime, isEst } = r;
     const ti = TYPE_INFO[train.type] || { label: '列車', cls: 'b-exp' };
     const delay = liveMap[train.no] || 0;
-    const mins = toMins(passTime) - (new Date().getHours() * 60 + new Date().getMinutes());
+    const nowMins2 = new Date().getHours() * 60 + new Date().getMinutes();
+    const mins = toMins(passTime) - nowMins2;
     const cdTxt = mins < 0 ? '已通過' : mins === 0 ? '即將通過' : `還有 ${mins} 分`;
     const cdCls = mins <= 5 && mins >= 0 ? 'tc-cd soon' : mins < 0 ? 'tc-cd passed' : 'tc-cd wait';
+    const stopDot = isEst
+      ? `<span style="color:var(--text3);font-size:11px;font-weight:600;">○ 通過</span>`
+      : `<span style="color:var(--accent);font-size:11px;font-weight:600;">● 停靠</span>`;
+    const timeDisplay = isEst ? `<span style="color:var(--text2);">約 ${passTime}</span>` : passTime;
     return `<div class="train-card dir-${train.dir}" onclick="openDetailByNo('${train.no}','${stnName}')">
       <div class="tc-top">
-        <div class="tc-time">${passTime}</div>
-        <div class="${cdCls}">${cdTxt}</div>
+        <div class="tc-time">${timeDisplay}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          ${stopDot}
+          <div class="${cdCls}">${cdTxt}</div>
+        </div>
       </div>
       <div class="tc-mid">
         <span class="badge ${ti.cls}">${ti.label}</span>
