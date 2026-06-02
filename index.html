@@ -1516,16 +1516,18 @@ function applyLocGPS(){
   }
 }
 // ===== TIMETABLE CACHE (localStorage) =================
-const GTT_KEY = 'railshot_gtt';
-const GTT_TTL = 24 * 60 * 60 * 1000;
+const GTT_TTL = 20 * 60 * 60 * 1000; // 20hr
 
-let gttData = null;        // { trains, builtAt }
-let gttStationIdx = null;  // stationName -> [trainData]  (前端 sectionIndex)
+let gttData = null;
+let gttStationIdx = null;
+
+function gttCacheKey() {
+  return `railshot_gtt_${new Date().toISOString().split('T')[0]}`;
+}
 
 function buildFrontendIndex(trains) {
   gttStationIdx = {};
   for (const train of trains) {
-    // 重建 stopSet（JSON 序列化後 Set 變成 {}）
     train.stopSet = new Set(train.stops.map(s => s.stn).filter(Boolean));
     for (const stop of train.stops) {
       if (!stop.stn) continue;
@@ -1537,14 +1539,20 @@ function buildFrontendIndex(trains) {
 
 async function ensureGTT() {
   if (gttData && gttStationIdx) return gttData;
+  const key = gttCacheKey();
   try {
-    const raw = localStorage.getItem(GTT_KEY);
+    for (const k of Object.keys(localStorage)) {
+      if (k.startsWith('railshot_gtt_') && k !== key) localStorage.removeItem(k);
+    }
+  } catch(e) {}
+  try {
+    const raw = localStorage.getItem(key);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Date.now() - parsed.builtAt < GTT_TTL) {
         gttData = parsed;
         buildFrontendIndex(gttData.trains);
-        console.log(`GTT loaded from cache: ${gttData.trains.length} trains`);
+        console.log(`GTT loaded from cache [${parsed.source}]: ${gttData.trains.length} trains`);
         return gttData;
       }
     }
@@ -1555,17 +1563,18 @@ async function ensureGTT() {
   document.getElementById('train-list').innerHTML =
     `<div style="text-align:center;padding:2rem 0;color:var(--text3);">
       <div style="font-size:28px;margin-bottom:8px;">⏳</div>
-      載入時刻資料中...（首次需要約 10 秒）
+      載入當日時刻資料中...（首次需要約 10 秒）
     </div>`;
 
   const resp = await fetch(`${API_BASE}/api/timetable`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   gttData = await resp.json();
   buildFrontendIndex(gttData.trains);
-  try { localStorage.setItem(GTT_KEY, JSON.stringify(gttData)); } catch(e) {}
-  console.log(`GTT fetched: ${gttData.trains.length} trains`);
+  try { localStorage.setItem(key, JSON.stringify(gttData)); } catch(e) {}
+  console.log(`GTT fetched [${gttData.source}]: ${gttData.trains.length} trains`);
   return gttData;
 }
+
 
 // ── 台鐵里程表（km，從基隆起算，key = 站名）──────────
 const STATION_KM = {
@@ -1629,39 +1638,52 @@ function stnKm(name) {
 }
 
 // ── 里程插值估算列車通過目標站的時間 ─────────────────
-// 回傳 { time: "HH:MM", isEst: true } 或 null
 function estimatePassTime(train, targetName) {
   const targetKm = stnKm(targetName);
   if (targetKm === undefined) return null;
 
   const stops = train.stops;
+
   // 先看是否直接停靠
-  const direct = stops.find(s => s.stn === targetName || s.stn === targetName.replace(/台/g,'臺').replace(/臺/g,'台'));
+  const directAlt = targetName.replace(/台/g,'臺').replace(/臺/g,'台');
+  const direct = stops.find(s => s.stn === targetName || s.stn === directAlt);
   if (direct) {
     return { time: direct.dep || direct.arr, isEst: false };
   }
 
-  // 找前後有里程資料的相鄰停靠站
-  let prev = null, next = null;
-  for (const stop of stops) {
-    const km = stnKm(stop.stn);
-    if (km === undefined) continue;
-    const t = stop.dep || stop.arr;
-    if (!t) continue;
-    if (km <= targetKm) prev = { km, t };
-    else if (km > targetKm && !next) next = { km, t };
+  // 依停靠站序（StopSequence 已排序）找連續的 prev/next
+  // 條件：prev 和 next 的里程必須夾住 targetKm
+  // 且 prev 和 next 必須是相鄰的有里程資料的站（中間不能跨過 targetKm 再回來）
+  let prev = null;
+  for (let i = 0; i < stops.length - 1; i++) {
+    const aKm = stnKm(stops[i].stn);
+    const bKm = stnKm(stops[i + 1].stn);
+    if (aKm === undefined || bKm === undefined) continue;
+    const tA = stops[i].dep || stops[i].arr;
+    const tB = stops[i + 1].arr || stops[i + 1].dep;
+    if (!tA || !tB) continue;
+
+    // 判斷 targetKm 是否落在 aKm 和 bKm 之間（不論方向）
+    const lo = Math.min(aKm, bKm);
+    const hi = Math.max(aKm, bKm);
+    if (targetKm > lo && targetKm < hi) {
+      // 找到！用時間插值
+      const mA = toMins(tA);
+      const mB = toMins(tB);
+      if (mA < 0 || mB < 0) continue;
+      // 里程比例（依行進方向）
+      const ratio = Math.abs(targetKm - aKm) / Math.abs(bKm - aKm);
+      const estMins = Math.round(mA + ratio * (mB - mA));
+      const h = Math.floor(estMins / 60) % 24;
+      const m = estMins % 60;
+      return {
+        time: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`,
+        isEst: true,
+        debug: { prev: stops[i].stn, prevKm: aKm, prevTime: tA, next: stops[i+1].stn, nextKm: bKm, nextTime: tB, ratio: Math.round(ratio*100)/100 }
+      };
+    }
   }
-  if (!prev || !next) return null;
-
-  const prevMins = toMins(prev.t);
-  const nextMins = toMins(next.t);
-  if (prevMins < 0 || nextMins < 0) return null;
-
-  const ratio = (targetKm - prev.km) / (next.km - prev.km);
-  const estMins = Math.round(prevMins + ratio * (nextMins - prevMins));
-  const h = Math.floor(estMins / 60) % 24;
-  const m = estMins % 60;
-  return { time: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`, isEst: true };
+  return null;
 }
 
 // ── 前端查詢核心 ──────────────────────────────────────
@@ -1674,6 +1696,7 @@ function toMins(t) {
 // 單站查詢：含停靠 + 里程估算通過列車
 function queryStation(stnName, nowMins, endMins, dirFilter, typeFilter) {
   if (!gttData) return [];
+  const targetKm = stnKm(stnName);
   const results = [];
   const seen = new Set();
 
@@ -1681,20 +1704,9 @@ function queryStation(stnName, nowMins, endMins, dirFilter, typeFilter) {
     if (dirFilter !== 'all' && train.dir !== dirFilter) continue;
     if (typeFilter !== 'all' && !typeFilter.includes(train.type)) continue;
 
-    // 列車里程範圍必須覆蓋目標站
-    const targetKm = stnKm(stnName);
-    if (targetKm !== undefined) {
-      // 找列車停靠站的最小/最大里程，確認此列車會經過目標站
-      let minKm = Infinity, maxKm = -Infinity;
-      for (const stop of train.stops) {
-        const km = stnKm(stop.stn);
-        if (km !== undefined) { minKm = Math.min(minKm, km); maxKm = Math.max(maxKm, km); }
-      }
-      if (minKm > targetKm || maxKm < targetKm) continue; // 不經過
-    }
-
     const result = estimatePassTime(train, stnName);
-    if (!result) continue;
+    if (!result) continue;  // 估算失敗 = 此列車不經過目標站（相鄰站對夾不住）
+
     const m = toMins(result.time);
     if (m < nowMins || m > endMins) continue;
     if (seen.has(train.no)) continue;
