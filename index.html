@@ -1637,24 +1637,29 @@ function stnKm(name) {
   return STATION_KM[alt];
 }
 
+// ── 可通過估算的車種（區間/區間快不在此列）───────────
+const PASS_THRU_TYPES = new Set(['exp','exp3','puy','tze','moc']);
+
 // ── 里程插值估算列車通過目標站的時間 ─────────────────
+// 回傳 { time, isEst, debug } 或 null
+// isEst=false → 實際停靠；isEst=true → 里程估算
 function estimatePassTime(train, targetName) {
   const targetKm = stnKm(targetName);
   if (targetKm === undefined) return null;
 
   const stops = train.stops;
+  const altName = targetName.replace(/台/g,'臺').replace(/臺/g,'台');
 
   // 先看是否直接停靠
-  const directAlt = targetName.replace(/台/g,'臺').replace(/臺/g,'台');
-  const direct = stops.find(s => s.stn === targetName || s.stn === directAlt);
+  const direct = stops.find(s => s.stn === targetName || s.stn === altName);
   if (direct) {
     return { time: direct.dep || direct.arr, isEst: false };
   }
 
-  // 依停靠站序（StopSequence 已排序）找連續的 prev/next
-  // 條件：prev 和 next 的里程必須夾住 targetKm
-  // 且 prev 和 next 必須是相鄰的有里程資料的站（中間不能跨過 targetKm 再回來）
-  let prev = null;
+  // 非停靠 → 只有允許通過估算的車種才繼續
+  if (!PASS_THRU_TYPES.has(train.type)) return null;
+
+  // 依停靠站序找相鄰站對，確認 targetKm 落在其里程之間
   for (let i = 0; i < stops.length - 1; i++) {
     const aKm = stnKm(stops[i].stn);
     const bKm = stnKm(stops[i + 1].stn);
@@ -1663,23 +1668,24 @@ function estimatePassTime(train, targetName) {
     const tB = stops[i + 1].arr || stops[i + 1].dep;
     if (!tA || !tB) continue;
 
-    // 判斷 targetKm 是否落在 aKm 和 bKm 之間（不論方向）
     const lo = Math.min(aKm, bKm);
     const hi = Math.max(aKm, bKm);
     if (targetKm > lo && targetKm < hi) {
-      // 找到！用時間插值
       const mA = toMins(tA);
       const mB = toMins(tB);
       if (mA < 0 || mB < 0) continue;
-      // 里程比例（依行進方向）
       const ratio = Math.abs(targetKm - aKm) / Math.abs(bKm - aKm);
       const estMins = Math.round(mA + ratio * (mB - mA));
       const h = Math.floor(estMins / 60) % 24;
       const m = estMins % 60;
+      const estTime = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
       return {
-        time: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`,
-        isEst: true,
-        debug: { prev: stops[i].stn, prevKm: aKm, prevTime: tA, next: stops[i+1].stn, nextKm: bKm, nextTime: tB, ratio: Math.round(ratio*100)/100 }
+        time: estTime, isEst: true,
+        debug: {
+          prev: stops[i].stn, prevKm: aKm, prevTime: tA,
+          next: stops[i+1].stn, nextKm: bKm, nextTime: tB,
+          ratio: Math.round(ratio * 100) / 100,
+        }
       };
     }
   }
@@ -1693,10 +1699,9 @@ function toMins(t) {
   return h * 60 + m;
 }
 
-// 單站查詢：含停靠 + 里程估算通過列車
+// 單站查詢：停靠 + 通過估算（區間/區間快無停靠直接排除）
 function queryStation(stnName, nowMins, endMins, dirFilter, typeFilter) {
   if (!gttData) return [];
-  const targetKm = stnKm(stnName);
   const results = [];
   const seen = new Set();
 
@@ -1705,7 +1710,17 @@ function queryStation(stnName, nowMins, endMins, dirFilter, typeFilter) {
     if (typeFilter !== 'all' && !typeFilter.includes(train.type)) continue;
 
     const result = estimatePassTime(train, stnName);
-    if (!result) continue;  // 估算失敗 = 此列車不經過目標站（相鄰站對夾不住）
+    if (!result) continue;
+
+    // console log for pass-through estimates
+    if (result.isEst && result.debug) {
+      const d = result.debug;
+      console.log(
+        `○ 通過估算 TrainNo:${train.no} Type:${train.type} Source:${gttData.source}\n` +
+        `  Target:${stnName} Est:${result.time}\n` +
+        `  Prev:${d.prev}(${d.prevKm}km) ${d.prevTime} → Next:${d.next}(${d.nextKm}km) ${d.nextTime} ratio:${d.ratio}`
+      );
+    }
 
     const m = toMins(result.time);
     if (m < nowMins || m > endMins) continue;
@@ -1716,6 +1731,78 @@ function queryStation(stnName, nowMins, endMins, dirFilter, typeFilter) {
   results.sort((a, b) => a.passMins - b.passMins);
   return results;
 }
+
+// ── Debug 工具：比對台鐵官方資料用 ───────────────────
+window.debugStationPass = function(stnName, startTime, endTime) {
+  if (!gttData) { console.log('gttData not loaded'); return; }
+  const startMins = toMins(startTime);
+  const endMins   = toMins(endTime);
+  const stopped = [], passed = [], excluded = [];
+
+  for (const train of gttData.trains) {
+    const altName = stnName.replace(/台/g,'臺').replace(/臺/g,'台');
+    const direct = train.stops.find(s => s.stn === stnName || s.stn === altName);
+
+    if (direct) {
+      const t = direct.dep || direct.arr;
+      const m = toMins(t);
+      if (m >= startMins && m <= endMins)
+        stopped.push({ no: train.no, type: train.type, time: t, from: train.from, to: train.to });
+      continue;
+    }
+
+    // 非停靠 → 嘗試通過估算
+    if (!PASS_THRU_TYPES.has(train.type)) {
+      // 確認是否本來有機會通過（前後站夾住）但被排除
+      const targetKm = stnKm(stnName);
+      if (targetKm !== undefined) {
+        for (let i = 0; i < train.stops.length - 1; i++) {
+          const aKm = stnKm(train.stops[i].stn);
+          const bKm = stnKm(train.stops[i+1].stn);
+          if (aKm === undefined || bKm === undefined) continue;
+          const lo = Math.min(aKm, bKm), hi = Math.max(aKm, bKm);
+          if (targetKm > lo && targetKm < hi) {
+            excluded.push({ no: train.no, type: train.type, reason: `${train.type} 不允許通過估算`, from: train.from, to: train.to });
+            break;
+          }
+        }
+      }
+      continue;
+    }
+
+    const result = estimatePassTime(train, stnName);
+    if (!result) {
+      excluded.push({ no: train.no, type: train.type, reason: '無法找到前後站或里程不足', from: train.from, to: train.to });
+      continue;
+    }
+    const m = toMins(result.time);
+    if (m < startMins || m > endMins) {
+      excluded.push({ no: train.no, type: train.type, reason: `時間 ${result.time} 不在範圍內`, from: train.from, to: train.to });
+      continue;
+    }
+    const d = result.debug || {};
+    passed.push({
+      no: train.no, type: train.type, estTime: result.time,
+      prev: d.prev, prevTime: d.prevTime, prevKm: d.prevKm,
+      next: d.next, nextTime: d.nextTime, nextKm: d.nextKm,
+      ratio: d.ratio, from: train.from, to: train.to,
+    });
+  }
+
+  stopped.sort((a,b) => a.time.localeCompare(b.time));
+  passed.sort((a,b) => a.estTime.localeCompare(b.estTime));
+
+  console.log(`=== debugStationPass("${stnName}", "${startTime}", "${endTime}") ===`);
+  console.log(`資料來源: ${gttData.source}  日期: ${gttData.date}`);
+  console.log(`\n● 停靠 (${stopped.length}班)`);
+  stopped.forEach(t => console.log(`  ${t.time} ${t.type} ${t.no}  ${t.from}→${t.to}`));
+  console.log(`\n○ 通過估算 (${passed.length}班)`);
+  passed.forEach(t => console.log(`  ${t.estTime} ${t.type} ${t.no}  ${t.from}→${t.to}\n    Prev:${t.prev}(${t.prevKm}km)${t.prevTime} → Next:${t.next}(${t.nextKm}km)${t.nextTime} ratio:${t.ratio}`));
+  console.log(`\n✗ 排除 (${excluded.length}班)`);
+  excluded.forEach(t => console.log(`  ${t.type} ${t.no}  ${t.from}→${t.to}  原因:${t.reason}`));
+  console.log(`\n=== 合計 停靠${stopped.length} 通過${passed.length} 排除${excluded.length} ===`);
+  return { stopped, passed, excluded, source: gttData.source, date: gttData.date };
+};
 
 function queryBetween(s1Name, s2Name, nowMins, endMins, dirFilter, typeFilter) {
   if (!gttStationIdx) return [];
