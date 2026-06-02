@@ -134,7 +134,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .dir-up::before{display:none;}
 .dir-down::before{display:none;}
 .tc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
-.tc-time{font-size:32px;font-weight:900;letter-spacing:-2px;line-height:1;color:var(--text);}
+.tc-time{font-size:32px;font-weight:500;letter-spacing:-1px;line-height:1;color:var(--text);}
 .tc-cd{border-radius:20px;padding:4px 11px;font-size:12px;font-weight:600;}
 .tc-cd.wait{background:var(--accent-lt);color:var(--accent);}
 .tc-cd.soon{background:var(--red-lt);color:var(--red);}
@@ -321,12 +321,12 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 /* ── DETAIL PAGE ── */
 .detail-page{position:absolute;inset:0;background:var(--bg);z-index:150;display:none;flex-direction:column;overflow:hidden;}
 .detail-page.open{display:flex;}
-.det-hdr{padding:calc(var(--safe-top) + 8px) 18px 13px;background:white;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0;box-shadow:var(--shadow);}
+.det-hdr{padding:calc(var(--safe-top) + 8px) 18px 13px;background:transparent;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0;}
 .back-btn{display:flex;align-items:center;gap:4px;color:var(--accent);font-size:15px;font-weight:500;cursor:pointer;}
 .det-body{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding:18px 14px;}
-.det-time{font-size:48px;font-weight:900;letter-spacing:-3px;color:var(--accent);line-height:1;}
+.det-time{font-size:48px;font-weight:500;letter-spacing:-2px;color:var(--accent);line-height:1;}
 .det-lbl{font-size:12px;color:var(--text3);margin-bottom:18px;margin-top:2px;}
-.det-no{font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:2px;}
+.det-no{font-size:28px;font-weight:700;letter-spacing:-0.5px;margin-bottom:2px;}
 .det-route{font-size:15px;color:var(--text2);margin-bottom:12px;}
 .info-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);}
 .info-row:last-child{border-bottom:none;}
@@ -438,6 +438,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .sheet-ov.open .sheet{animation:slideUp .3s cubic-bezier(.32,.72,0,1)}
 .detail-page.open{animation:fadeIn .2s ease}
 .alert-ov.open .alert-box{animation:scaleIn .22s cubic-bezier(.32,.72,0,1)}
@@ -823,7 +824,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="#1a6fd4"/></svg>
       返回
     </div>
-    <div style="font-size:14px;color:var(--text3);" id="det-hdr-title"></div>
+    <div id="det-hdr-title" style="display:none;"></div>
   </div>
   <div class="det-body" id="det-body"></div>
 </div>
@@ -1562,8 +1563,11 @@ async function ensureGTT() {
 
   document.getElementById('train-list').innerHTML =
     `<div style="text-align:center;padding:2rem 0;color:var(--text3);">
-      <div style="font-size:28px;margin-bottom:8px;">⏳</div>
-      載入當日時刻資料中...（首次需要約 10 秒）
+      <svg width="40" height="40" viewBox="0 0 40 40" style="animation:spin 1s linear infinite;margin-bottom:8px;" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="16" fill="none" stroke="#e0e0e0" stroke-width="4"/>
+        <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="60 44" stroke-linecap="round"/>
+      </svg>
+      <div style="font-size:14px;">載入當日時刻資料中...<br><span style="font-size:12px;color:var(--text3);">首次需要約 10 秒</span></div>
     </div>`;
 
   const resp = await fetch(`${API_BASE}/api/timetable`);
@@ -1929,7 +1933,7 @@ async function doSearch() {
   if (API_BASE) {
     document.getElementById('train-list').innerHTML =
       `<div style="text-align:center;padding:2rem 0;color:var(--text3);">
-        <div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...
+        <svg width="36" height="36" viewBox="0 0 40 40" style="animation:spin 1s linear infinite;margin-bottom:8px;" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="16" fill="none" stroke="#e0e0e0" stroke-width="4"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="60 44" stroke-linecap="round"/></svg>查詢中...
       </div>`;
     try {
       await ensureGTT();
@@ -2098,7 +2102,7 @@ function renderTrainList(list) {
 async function openDetailByNo(trainNo, atStation) {
   const detPage = document.getElementById('detail-page');
   document.getElementById('det-hdr-title').textContent = '載入中...';
-  document.getElementById('det-body').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);">⏳</div>`;
+  document.getElementById('det-body').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);"><svg width="36" height="36" viewBox="0 0 40 40" style="animation:spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="16" fill="none" stroke="#e0e0e0" stroke-width="4"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="60 44" stroke-linecap="round"/></svg></div>`;
   detPage.classList.add('open');
 
   try {
@@ -2135,12 +2139,12 @@ async function openDetailByNo(trainNo, atStation) {
         <div class="det-no">${trainNo}</div>
         <div class="det-route">${train.from} → ${train.to}</div>
       </div>
-      ${passTime ? `<div class="det-time">${passTime}</div><div class="det-lbl">通過 ${atStation}站</div>` : ''}
-      <div class="card" style="margin-bottom:16px;">
-        <div class="info-row"><span class="ik">誤點</span><span class="iv" style="color:${delay > 0 ? 'var(--orange)' : 'var(--green)'}">${delay > 0 ? '+' + delay + ' 分' : '準點'}</span></div>
-        <div class="info-row"><span class="ik">方向</span><span class="iv">${train.dir === 'up' ? '上行（往北）' : '下行（往南）'}</span></div>
-        <div class="info-row"><span class="ik">起終站</span><span class="iv">${train.from} → ${train.to}</span></div>
-      </div>
+      ${passTime ? `
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:2px;">
+          <div class="det-time">${passTime}</div>
+          ${delay > 0 ? `<span style="font-size:14px;font-weight:600;color:var(--orange);">+${delay}分</span>` : `<span style="font-size:13px;color:var(--green);">準點</span>`}
+        </div>
+        <div class="det-lbl">通過 ${atStation}站</div>` : ''}
       <div class="sec">停靠站時刻</div>
       <div class="stop-list">
         ${train.stops.map(s => {
@@ -2302,7 +2306,13 @@ async function searchTT(){
   }
 
   if (API_BASE && fromName && toName) {
-    el.innerHTML = `<div style="text-align:center;padding:2rem 0;color:var(--text3);"><div style="font-size:28px;margin-bottom:8px;">🚂</div>查詢中...</div>`;
+    el.innerHTML = `<div style="text-align:center;padding:2rem 0;color:var(--text3);">
+      <svg width="40" height="40" viewBox="0 0 40 40" style="animation:spin 1s linear infinite;margin-bottom:8px;" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="16" fill="none" stroke="#e0e0e0" stroke-width="4"/>
+        <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="60 44" stroke-linecap="round"/>
+      </svg>
+      <div style="font-size:14px;">查詢中...</div>
+    </div>`;
     try {
       await ensureGTT();
       let liveMap = {};
@@ -2404,11 +2414,11 @@ async function openTTDetailObj(t){
         <div class="det-no">${t.no}</div>
         <div class="det-route">${t.from} → ${t.to}</div>
       </div>
-      <div class="det-time">${t.dep}</div>
-      <div class="det-lbl">出發 · 抵達 ${t.arr}（${t.dur}）</div>
-      <div class="card" style="margin-bottom:16px;">
-        <div class="info-row"><span class="ik">誤點</span><span class="iv" style="color:${t.delay>0?'var(--orange)':'var(--green)'}">${t.delay>0?'+'+t.delay+' 分':'準點'}</span></div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:2px;">
+        <div class="det-time">${t.dep}</div>
+        ${t.delay > 0 ? `<span style="font-size:14px;font-weight:600;color:var(--orange);">+${t.delay}分</span>` : `<span style="font-size:13px;color:var(--green);">準點</span>`}
       </div>
+      <div class="det-lbl">出發 · 抵達 ${t.arr}（${t.dur}）</div>
       ${stops.length?`<div class="sec">停靠站時刻</div><div class="stop-list">${stopsHtml}</div>`:''}
       <div class="act-btns"><button class="btn-s" onclick="closeDetail()">← 返回</button></div>`;
   };
