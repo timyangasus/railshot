@@ -24,9 +24,9 @@
   --text:#1a2540;
   --text2:#4a6080;
   --text3:#8a9db8;
-  --accent:#1a6fd4;
-  --accent-lt:#e8f1fd;
-  --accent-lter:#f0f6ff;
+  --accent:#0099CC;
+  --accent-lt:#E0F5FB;
+  --accent-lter:#E8F7FC;
   --green:#1a9e5c;
   --green-lt:#e8f8ef;
   --red:#d43030;
@@ -104,7 +104,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .chips-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
 .chips-row::-webkit-scrollbar{display:none;}
 .chip{padding:9px 15px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--border2);background:white;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;box-shadow:var(--shadow);}
-.chip.on{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 2px 8px rgba(26,111,212,0.25);}
+.chip.on{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 2px 8px rgba(0,153,204,0.25);}
 
 /* ── CARDS ── */
 .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);}
@@ -178,7 +178,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .loc-mode-tab svg{flex-shrink:0;}
 .loc-mode-tab.active{
   background:var(--accent);color:white;border-color:var(--accent);
-  font-weight:600;box-shadow:0 2px 6px rgba(26,111,212,0.25);
+  font-weight:600;box-shadow:0 2px 6px rgba(0,153,204,0.25);
 }
 
 /* Large station selector button */
@@ -314,7 +314,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 }
 .slider-wrap{padding:4px 0 12px;}
 .slider-wrap input[type=range]{width:100%;-webkit-appearance:none;height:5px;border-radius:3px;background:var(--border2);outline:none;}
-.slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);border:3px solid white;box-shadow:0 1px 4px rgba(26,111,212,0.3);}
+.slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);border:3px solid white;box-shadow:0 1px 4px rgba(0,153,204,0.3);}
 .slider-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:6px;}
 .fld-lbl{font-size:12px;font-weight:600;color:var(--text3);letter-spacing:0.3px;text-transform:uppercase;margin-bottom:7px;}
 
@@ -342,10 +342,10 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .stime{font-size:15px;font-weight:500;color:var(--text2);}
 .stop-item.cur-stop .sname{color:var(--accent);font-weight:700;}
 .stop-item.cur-stop .stime{color:var(--accent);font-weight:700;}
-.stop-item.cur-stop .stop-dot{background:var(--accent);box-shadow:0 0 0 3px rgba(26,111,212,0.2);}
+.stop-item.cur-stop .stop-dot{background:var(--accent);box-shadow:0 0 0 3px rgba(0,153,204,0.2);}
 .slate{font-size:11px;color:var(--orange);margin-left:2px;}
 .act-btns{display:flex;flex-direction:column;gap:8px;margin-top:20px;padding-bottom:20px;}
-.btn-p{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(26,111,212,0.25);}
+.btn-p{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(0,153,204,0.25);}
 .btn-s{background:white;color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:500;cursor:pointer;font-family:inherit;width:100%;}
 
 /* ── TIMETABLE FORM ── */
@@ -358,7 +358,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .tt-date{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:15px 10px;color:var(--text);font-family:inherit;font-size:18px;font-weight:700;width:100%;outline:none;overflow:hidden;-webkit-appearance:none;min-width:0;}
 .tt-now-btn{display:flex;align-items:center;gap:5px;padding:0 14px;background:var(--accent-lt);border:1.5px solid var(--accent);border-radius:var(--radius-sm);color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .tt-now-btn.active{background:var(--accent);color:white;}
-.srch-btn{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:4px;box-shadow:0 2px 8px rgba(26,111,212,0.2);}
+.srch-btn{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:4px;box-shadow:0 2px 8px rgba(0,153,204,0.2);}
 
 /* ── TT CARD ── */
 .tt-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:13px 15px;margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow);transition:box-shadow .15s;}
@@ -471,7 +471,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
         </button>
       </div>
       <div class="swap-btn" onclick="swapTT()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" fill="#1a6fd4"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" fill="#0099CC"/></svg>
       </div>
       <div class="tt-f">
         <div class="fld-lbl">到達站</div>
@@ -594,7 +594,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 <div class="sc">
   <div class="sec">關於</div>
   <div class="sg">
-    <div class="si"><div class="si-left"><div class="si-icon" style="background:#e8f1fd;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" fill="#1a6fd4" fill-opacity="0.15"/><circle cx="8" cy="15" r="1.5" fill="#1a6fd4"/><circle cx="16" cy="15" r="1.5" fill="#1a6fd4"/><rect x="5" y="6" width="14" height="5" rx="1" fill="#1a6fd4"/></svg></div><span class="sk">Railshot</span></div><span class="sv">v1.0.0</span></div>
+    <div class="si"><div class="si-left"><div class="si-icon" style="background:#E0F5FB;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" fill="#0099CC" fill-opacity="0.15"/><circle cx="8" cy="15" r="1.5" fill="#0099CC"/><circle cx="16" cy="15" r="1.5" fill="#0099CC"/><rect x="5" y="6" width="14" height="5" rx="1" fill="#0099CC"/></svg></div><span class="sk">Railshot</span></div><span class="sv">v1.0.0</span></div>
     <div class="si"><div class="si-left"><div class="si-icon" style="background:#e8f8ef;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1a9e5c" stroke-width="2"/><path d="M8 12l3 3 5-5" stroke="#1a9e5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="sk">資料來源</span></div><span class="sv">TDX 交通部</span></div>
   </div>
 </div>
@@ -777,7 +777,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 <div class="detail-page" id="detail-page">
   <div class="det-hdr">
     <div class="back-btn" onclick="closeDetail()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="#1a6fd4"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="#0099CC"/></svg>
       返回
     </div>
     <div id="det-hdr-title" style="display:none;"></div>
@@ -789,7 +789,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 <div class="alert-ov" id="alert-ov">
   <div class="alert-box">
     <div class="al-icon">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" fill="#1a6fd4" fill-opacity="0.2"/><circle cx="8" cy="15" r="2" fill="#1a6fd4"/><circle cx="16" cy="15" r="2" fill="#1a6fd4"/><rect x="5" y="6" width="14" height="6" rx="1.5" fill="#1a6fd4"/></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" fill="#0099CC" fill-opacity="0.2"/><circle cx="8" cy="15" r="2" fill="#0099CC"/><circle cx="16" cy="15" r="2" fill="#0099CC"/><rect x="5" y="6" width="14" height="6" rx="1.5" fill="#0099CC"/></svg>
     </div>
     <div class="al-title" id="al-title"></div>
     <div class="al-sub" id="al-sub"></div>
@@ -1587,8 +1587,19 @@ function gttCacheKey() {
 
 function buildFrontendIndex(trains) {
   gttStationIdx = {};
+  // 預先按首站發車時間排序，讓查詢時能更快掃描
+  trains.sort((a, b) => {
+    const ta = a.stops[0]?.dep || a.stops[0]?.arr || '99:99';
+    const tb = b.stops[0]?.dep || b.stops[0]?.arr || '99:99';
+    return ta.localeCompare(tb);
+  });
   for (const train of trains) {
     train.stopSet = new Set(train.stops.map(s => s.stn).filter(Boolean));
+    // 預先計算首末停靠站的分鐘數，供查詢快速剔除
+    const firstStop = train.stops[0];
+    const lastStop  = train.stops[train.stops.length - 1];
+    train._startMins = toMins(firstStop?.dep || firstStop?.arr || '');
+    train._endMins   = toMins(lastStop?.arr  || lastStop?.dep  || '');
     for (const stop of train.stops) {
       if (!stop.stn) continue;
       if (!gttStationIdx[stop.stn]) gttStationIdx[stop.stn] = [];
@@ -1609,11 +1620,15 @@ async function ensureGTT() {
     const raw = localStorage.getItem(key);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Date.now() - parsed.builtAt < GTT_TTL) {
+      const today = new Date().toISOString().split('T')[0];
+      // 日期一致 且 TTL 未過期 才使用 cache
+      if (parsed.date === today && Date.now() - parsed.builtAt < GTT_TTL) {
         gttData = parsed;
         buildFrontendIndex(gttData.trains);
         console.log(`GTT loaded from cache [${parsed.source}]: ${gttData.trains.length} trains`);
         return gttData;
+      } else {
+        localStorage.removeItem(key); // 日期不符或過期，主動清除
       }
     }
   } catch(e) {}
@@ -1923,6 +1938,10 @@ function queryStation(stnName, nowMins, endMins, dirFilter, typeFilter) {
     if (dirFilter !== 'all' && train.dir !== dirFilter) continue;
     if (typeFilter !== 'all' && !typeFilter.includes(train.type)) continue;
 
+    // 快速過濾：列車行駛時間完全不涵蓋查詢窗口
+    if (train._endMins >= 0 && train._endMins < nowMins) continue;
+    if (train._startMins >= 0 && train._startMins > endMins + 60) continue;
+
     const result = estimatePassTime(train, stnName);
     if (!result) continue;
 
@@ -2025,6 +2044,10 @@ function queryBetween(s1Name, s2Name, nowMins, endMins, dirFilter, typeFilter) {
 
   for (const train of gttData.trains) {
     if (typeFilter !== 'all' && !typeFilter.includes(train.type)) continue;
+
+    // 快速過濾：列車行駛時間完全不涵蓋查詢窗口
+    if (train._endMins >= 0 && train._endMins < nowMins) continue;
+    if (train._startMins >= 0 && train._startMins > endMins + 60) continue;
 
     // 用里程估算取 s1 和 s2 的通過時間（含直接停靠）
     const r1 = estimatePassTime(train, s1Name);
