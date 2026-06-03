@@ -1392,11 +1392,19 @@ function setLocMode(m){
     if(btn) btn.classList.toggle('active',x===m);
   });
 }
+function clearShootResults(){
+  document.getElementById('shoot-results').style.display = 'none';
+  document.getElementById('train-list').innerHTML = '';
+  document.getElementById('res-count').textContent = '';
+  document.getElementById('res-loc').textContent = '';
+}
+
 function applyLocSingle(){
   const s=locState.s1;
   if(!s){alert('請先選擇車站');return;}
   document.getElementById('loc-display').textContent=s+'站';
   document.getElementById('loc-mode-display').textContent='單一車站';
+  clearShootResults();
   closeSheet('loc-sheet');
 }
 function swapLocBetween(){
@@ -1413,12 +1421,14 @@ function applyLocBetween(){
   if(!s1||!s2){alert('請選擇兩個車站');return;}
   document.getElementById('loc-display').textContent=s1+'－'+s2+'間';
   document.getElementById('loc-mode-display').textContent='兩站之間';
+  clearShootResults();
   closeSheet('loc-sheet');
 }
 function applyLocFav(id){
   const f=FAVS.find(x=>x.id===id);
   document.getElementById('loc-display').textContent=f.loc;
   document.getElementById('loc-mode-display').textContent=f.type==='between'?'兩站之間':'單一車站';
+  clearShootResults();
   closeSheet('loc-sheet');
 }
 // ===== STATION COORDINATES (台鐵主要車站 GPS 座標) =====
@@ -2368,6 +2378,7 @@ function swapTT(){
   const apc=a.classList.contains('placeholder'),bpc=b.classList.contains('placeholder');
   if(apc)b.classList.add('placeholder');else b.classList.remove('placeholder');
   if(bpc)a.classList.add('placeholder');else a.classList.remove('placeholder');
+  document.getElementById('tt-results').innerHTML = '';
 }
 // TT Favourites stored in memory
 let ttFavs = JSON.parse(localStorage.getItem('rs_ttfavs') || '[]');
