@@ -749,13 +749,13 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
         </button>
         <div id="lc-between-options" style="display:none;">
           <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">選擇查詢區間</div>
-          <div id="lc-section-prev" onclick="applyLocSection('prev')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;margin-bottom:8px;">
-            <span id="lc-section-prev-label" style="font-size:16px;font-weight:600;color:var(--text);"></span>
-            <span style="font-size:12px;color:var(--text3);">點選查詢</span>
+          <div id="lc-section-prev" onclick="applyLocSection('prev')" style="display:flex;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;margin-bottom:10px;min-height:100px;">
+            <span id="lc-section-prev-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
           </div>
-          <div id="lc-section-next" onclick="applyLocSection('next')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;">
-            <span id="lc-section-next-label" style="font-size:16px;font-weight:600;color:var(--text);"></span>
-            <span style="font-size:12px;color:var(--text3);">點選查詢</span>
+          <div id="lc-section-next" onclick="applyLocSection('next')" style="display:flex;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;min-height:100px;">
+            <span id="lc-section-next-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
           </div>
         </div>
         <div id="lc-between-no-adj" style="display:none;padding:12px;font-size:13px;color:var(--text3);text-align:center;">此站無相鄰站資訊</div>
@@ -1089,18 +1089,18 @@ function openStnPage(caller, initialFrom, initialTo, activeSlot, cb){
   spState.callerCb = cb || null;
 
   // 單框 vs 雙框模式
-  const isSingle = caller === 'loc-single' || caller === 'loc-b2';
-  const isBetween = caller === 'loc-b1';
+  // loc-b1（兩站之間選第一站）用單框，只選一站，選完後自動顯示相鄰區間
+  const isSingle = caller === 'loc-single' || caller === 'loc-b2' || caller === 'loc-b1';
+  const isBetween = false; // loc-b1 現在用單框
   document.getElementById('sp-single-mode').style.display = isSingle ? 'block' : 'none';
   document.getElementById('sp-double-mode').style.display = isSingle ? 'none' : 'flex';
 
-  // 標籤：兩站之間用「第一站」「第二站」，時刻表用「出發」「抵達」
+  // 標籤
   const fromLabel = document.getElementById('sp-from-label');
   const toLabel = document.getElementById('sp-to-label');
   const swapWrap = document.getElementById('sp-swap-wrap');
-  if(fromLabel) fromLabel.textContent = isBetween ? '第一站' : '出發';
-  if(toLabel) toLabel.textContent = isBetween ? '第二站' : '抵達';
-  // 兩站之間不需要對調按鈕
+  if(fromLabel) fromLabel.textContent = '出發';
+  if(toLabel) toLabel.textContent = '抵達';
   if(swapWrap) swapWrap.style.display = 'flex';
 
   // 帶入當下選取站的縣市
