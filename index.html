@@ -2156,8 +2156,11 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
       ? `<span style="color:var(--orange);font-size:13px;font-weight:600;">誤點 +${delay}分</span>`
       : `<span style="color:var(--green);font-size:13px;font-weight:500;">準點</span>`;
     // 方向大箭頭：上行綠色→，下行藍色←
-    const isUp = calculateDisplayDir(train) === 'up';
-    const arrowColor = isUp ? '#3992FF' : '#CE5900';
+    // 箭頭顏色：依查詢的兩站相對位置決定（s1在北s2在南=下行橙，s1在南s2在北=上行藍）
+    const s1Idx = STATION_ORDER[s1Name] ?? STATION_ORDER[s1Name.replace(/台/g,'臺').replace(/臺/g,'台')];
+    const s2Idx = STATION_ORDER[s2Name] ?? STATION_ORDER[s2Name.replace(/台/g,'臺').replace(/臺/g,'台')];
+    const sectionGoingDown = (s1Idx !== undefined && s2Idx !== undefined) ? s1Idx < s2Idx : (calculateDisplayDir(train) === 'down');
+    const arrowColor = sectionGoingDown ? '#CE5900' : '#3992FF';
     // 箭頭方向：依 s1→s2 時間先後，s1 早 = 向右(→)，s1 晚 = 向左(←)
     const s1Earlier = toMins(s1Time) <= toMins(s2Time);
     const arrowSvg = s1Earlier
