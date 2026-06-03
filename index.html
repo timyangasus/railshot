@@ -1725,7 +1725,79 @@ function stnKm(name) {
   return STATION_KM[alt];
 }
 
-// ── 可通過估算的車種（區間/區間快不在此列）───────────
+// ── 主線站序（由北往南，index 越大越南）──────────────
+const STATION_ORDER = {};
+[
+  '基隆','三坑','八堵','七堵','百福','五堵','汐止','汐科','南港','松山',
+  '臺北','萬華','板橋','浮洲','樹林','南樹林','山佳','鶯歌','鳳鳴',
+  '桃園','內壢','中壢','埔心','楊梅','富岡','新富','北湖','湖口','新豐','竹北',
+  '新竹','三姓橋','香山','崎頂','竹南',
+  '談文','大山','後龍','龍港','白沙屯','新埔','通霄','苑裡',
+  '日南','大甲','臺中港','清水','沙鹿','龍井','大肚','追分',
+  '造橋','豐富','苗栗','南勢','銅鑼','三義','泰安','后里',
+  '豐原','栗林','潭子','頭家厝','松竹','太原','精武','臺中',
+  '五權','大慶','烏日','新烏日','成功',
+  '彰化','花壇','大村','員林','永靖','社頭','田中','二水',
+  '林內','石榴','斗六','斗南','石龜',
+  '大林','民雄','嘉北','嘉義','水上','南靖','後壁','新營',
+  '柳營','林鳳營','隆田','拔林','善化','南科','新市','永康','大橋','臺南',
+  '保安','仁德','中洲','長榮大學','沙崙',
+  '大湖','路竹','岡山','橋頭','楠梓','新左營','左營','內惟',
+  '美術館','鼓山','三塊厝','高雄','民族','科工館','正義',
+  '鳳山','後庄','九曲堂','六塊厝','屏東','歸來','麟洛','西勢',
+  '竹田','潮州','崁頂','南州','鎮安','林邊','佳冬','東海',
+  '枋寮','加祿','內獅','枋山',
+  '大武','瀧溪','金崙','太麻里','知本','康樂','臺東',
+  '山里','鹿野','瑞源','瑞和','關山','海端','池上',
+  '富里','東竹','東里','玉里','三民','瑞穗','富源','大富',
+  '光復','萬榮','鳳林','南平','林榮新光','豐田','壽豐','平和',
+  '志學','吉安','花蓮',
+  '北埔','景美','新城','崇德','和仁','和平','漢本','武塔',
+  '南澳','東澳','永樂','蘇澳','蘇澳新',
+  '新馬','冬山','羅東','中里','二結','宜蘭','四城','礁溪',
+  '頂埔','頭城','外澳','龜山','大溪','大里','石城',
+  '福隆','貢寮','雙溪','牡丹','三貂嶺','猴硐','瑞芳','四腳亭','暖暖',
+].forEach((s, i) => {
+  STATION_ORDER[s] = i;
+  // 台/臺互換都收錄
+  const alt = s.replace(/臺/g,'台').replace(/台/g,'臺');
+  if (alt !== s) STATION_ORDER[alt] = i;
+});
+
+// 計算顯示用上下行（不依賴 TDX Direction）
+function calculateDisplayDir(train) {
+  const from = train.from || '';
+  const to   = train.to   || '';
+  const fi = STATION_ORDER[from];
+  const ti = STATION_ORDER[to];
+  if (fi !== undefined && ti !== undefined) {
+    return fi < ti ? 'down' : 'up'; // index 小=北，大=南；fi<ti = 北→南 = 下行
+  }
+  // fallback: 用 stops 第一站和最後一站
+  const stops = train.stops || [];
+  if (stops.length >= 2) {
+    const si = STATION_ORDER[stops[0].stn];
+    const ei = STATION_ORDER[stops[stops.length-1].stn];
+    if (si !== undefined && ei !== undefined) return si < ei ? 'down' : 'up';
+  }
+  return train.dir; // 最終 fallback 才用 TDX
+}
+
+// Debug 工具
+window.debugDirection = function(trainNo) {
+  if (!gttData) { console.log('gttData not loaded'); return; }
+  const train = gttData.trains.find(t => t.no === String(trainNo));
+  if (!train) { console.log('Train not found:', trainNo); return; }
+  const fi = STATION_ORDER[train.from];
+  const ti = STATION_ORDER[train.to];
+  const displayDir = calculateDisplayDir(train);
+  console.log(`=== debugDirection(${trainNo}) ===`);
+  console.log(`TDX Direction raw: ${train.dir}`);
+  console.log(`StartStation: ${train.from}  index: ${fi ?? 'N/A'}`);
+  console.log(`EndStation:   ${train.to}  index: ${ti ?? 'N/A'}`);
+  console.log(`displayDirection: ${displayDir === 'up' ? '↑ 上行' : '↓ 下行'}`);
+  return { trainNo, tdxDir: train.dir, from: train.from, fi, to: train.to, ti, displayDir };
+};
 const PASS_THRU_TYPES = new Set(['exp','exp3','puy','tze','moc']);
 
 // ── 里程插值估算列車通過目標站的時間 ─────────────────
@@ -1952,7 +2024,7 @@ async function doSearch() {
   const nowMins = now.getHours() * 60 + now.getMinutes();
   const endMins = nowMins + timeRange;
 
-  const isBetween = locMode.includes('兩站之間') || loc.includes('－');
+  const isBetween = locMode === '兩站之間' || loc.includes('－') || loc.includes('間');
   const isEmpty = !loc || loc === '點此設定拍攝點';
 
   if (isEmpty) {
@@ -2045,7 +2117,7 @@ function renderStationResults(results, stnName, liveMap) {
       <div class="tc-mid">
         <span class="badge ${ti.cls}">${ti.label}</span>
         <span class="tno">${train.no}</span>
-        <span class="dir-tag ${train.dir}">${train.dir === 'up' ? '↑ 上行' : '↓ 下行'}</span>
+        <span class="dir-tag ${calculateDisplayDir(train)}">${calculateDisplayDir(train) === 'up' ? '↑ 上行' : '↓ 下行'}</span>
       </div>
       <div class="tc-route">${train.from} → ${train.to}</div>
       <div class="tc-bot">
@@ -2072,7 +2144,7 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
       ? `<span style="color:var(--orange);font-size:13px;font-weight:600;">誤點 +${delay}分</span>`
       : `<span style="color:var(--green);font-size:13px;font-weight:500;">準點</span>`;
     // 方向大箭頭：上行綠色→，下行藍色←
-    const isUp = train.dir === 'up';
+    const isUp = calculateDisplayDir(train) === 'up';
     const arrowColor = isUp ? '#27a060' : '#1a6fd4';
     const arrowSvg = isUp
       ? `<svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
@@ -2178,7 +2250,7 @@ async function openDetailByNo(trainNo, atStation) {
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <div style="font-size:18px;font-weight:500;color:var(--text);">${atStation}站</div>
-          <span class="dir-tag ${train.dir}">${train.dir === 'up' ? '↑ 上行' : '↓ 下行'}</span>
+          <span class="dir-tag ${calculateDisplayDir(train)}">${calculateDisplayDir(train) === 'up' ? '↑ 上行' : '↓ 下行'}</span>
         </div>
         <div style="display:flex;align-items:baseline;justify-content:space-between;">
           <div style="font-size:40px;font-weight:500;color:var(--accent);letter-spacing:-2px;line-height:1;">${passTime || '--'}</div>
