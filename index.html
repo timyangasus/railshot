@@ -337,9 +337,9 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .stop-item:not(:last-child)::after{content:'';position:absolute;left:7px;top:18px;width:2px;height:calc(100%);background:var(--border2);}
 .stop-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border2);background:var(--bg);flex-shrink:0;z-index:1;margin-top:1px;}
 .stop-dot.mj{border-color:var(--accent);background:var(--accent-lt);}
-.sname{flex:1;font-size:14px;color:var(--text);}
-.sname.mj{font-weight:600;}
-.stime{font-size:13px;color:var(--text2);}
+.sname{flex:1;font-size:16px;color:var(--text);}
+.sname.mj{font-weight:700;}
+.stime{font-size:15px;font-weight:500;color:var(--text2);}
 .stop-item.cur-stop .sname{color:var(--accent);font-weight:700;}
 .stop-item.cur-stop .stime{color:var(--accent);font-weight:700;}
 .stop-item.cur-stop .stop-dot{background:var(--accent);box-shadow:0 0 0 3px rgba(26,111,212,0.2);}
@@ -737,32 +737,28 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 
       <!-- Between mode -->
       <div id="lc-between" style="display:none;">
-        <button class="loc-stn-big-btn" onclick="openLocStnPage('b1')">
+        <button class="loc-stn-big-btn" onclick="openLocStnPage('b1')" style="margin-bottom:12px;">
           <div class="loc-stn-big-icon" style="background:var(--accent-lt);color:var(--accent);">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="3" fill="currentColor"/><path d="M12 8v13" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
           </div>
           <div>
-            <div class="loc-stn-big-label">第一站</div>
+            <div class="loc-stn-big-label">選擇車站</div>
             <div class="loc-stn-big-name" id="lc-b1-lbl">尚未選擇</div>
           </div>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
         </button>
-        <div style="display:flex;justify-content:center;margin:4px 0;">
-          <button onclick="swapLocBetween()" style="background:var(--bg);border:1px solid var(--border);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
+        <div id="lc-between-options" style="display:none;">
+          <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">選擇查詢區間</div>
+          <div id="lc-section-prev" onclick="applyLocSection('prev')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;margin-bottom:8px;">
+            <span id="lc-section-prev-label" style="font-size:16px;font-weight:600;color:var(--text);"></span>
+            <span style="font-size:12px;color:var(--text3);">點選查詢</span>
+          </div>
+          <div id="lc-section-next" onclick="applyLocSection('next')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;">
+            <span id="lc-section-next-label" style="font-size:16px;font-weight:600;color:var(--text);"></span>
+            <span style="font-size:12px;color:var(--text3);">點選查詢</span>
+          </div>
         </div>
-        <button class="loc-stn-big-btn" onclick="openLocStnPage('b2')">
-          <div class="loc-stn-big-icon" style="background:var(--puy-lt);color:var(--puy);">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3v13" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2"/><circle cx="12" cy="19" r="3" fill="currentColor"/></svg>
-          </div>
-          <div>
-            <div class="loc-stn-big-label">第二站</div>
-            <div class="loc-stn-big-name" id="lc-b2-lbl">尚未選擇</div>
-          </div>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
-        </button>
-        <button class="btn-p" onclick="applyLocBetween()" style="margin-top:12px;">套用</button>
+        <div id="lc-between-no-adj" style="display:none;padding:12px;font-size:13px;color:var(--text3);text-align:center;">此站無相鄰站資訊</div>
       </div>
 
     </div>
@@ -1361,8 +1357,7 @@ function openLocStnPage(slot){
     });
   } else if(slot==='b1'){
     openStnPage('loc-b1', locState.s1, locState.s2, 'from', (f, t)=>{
-      if(f){ locState.s1=f; setStnLbl('lc-b1-lbl', f); updPosLabels(); }
-      if(t){ locState.s2=t; setStnLbl('lc-b2-lbl', t); updPosLabels(); }
+      if(f){ locState.s1=f; setStnLbl('lc-b1-lbl', f); updPosLabels(); lcBetweenShowOptions(f); }
     });
   } else if(slot==='b2'){
     openStnPage('loc-b2', locState.s1, locState.s2, 'to', (f, t)=>{
@@ -1416,6 +1411,84 @@ function swapLocBetween(){
   document.getElementById('lc-b1-lbl').className = 'loc-stn-big-name' + (locState.s1 ? '' : ' placeholder-name');
   document.getElementById('lc-b2-lbl').className = 'loc-stn-big-name' + (locState.s2 ? '' : ' placeholder-name');
 }
+// 找相鄰站（主線用 STATION_ORDER，支線用各自路線）
+function getAdjacentStations(stnName) {
+  // 各路線的站序陣列
+  const routes = [
+    // 縱貫線北段
+    ['基隆','三坑','八堵','七堵','百福','五堵','汐止','汐科','南港','松山','臺北','萬華','板橋','浮洲','樹林','南樹林','山佳','鶯歌','鳳鳴','桃園','內壢','中壢','埔心','楊梅','富岡','新富','北湖','湖口','新豐','竹北','新竹','三姓橋','香山','崎頂','竹南','談文','大山','後龍','龍港','白沙屯','新埔','通霄','苑裡','日南','大甲','臺中港','清水','沙鹿','龍井','大肚','追分'],
+    // 山線
+    ['造橋','豐富','苗栗','南勢','銅鑼','三義','泰安','后里','豐原','栗林','潭子','頭家厝','松竹','太原','精武','臺中','五權','大慶','烏日','新烏日','成功'],
+    // 縱貫線南段
+    ['彰化','花壇','大村','員林','永靖','社頭','田中','二水','林內','石榴','斗六','斗南','石龜','大林','民雄','嘉北','嘉義','水上','南靖','後壁','新營','柳營','林鳳營','隆田','拔林','善化','南科','新市','永康','大橋','臺南','保安','仁德','中洲','長榮大學','沙崙','大湖','路竹','岡山','橋頭','楠梓','新左營','左營','內惟','美術館','鼓山','三塊厝','高雄','民族','科工館','正義','鳳山','後庄','九曲堂','六塊厝','屏東','歸來','麟洛','西勢','竹田','潮州','崁頂','南州','鎮安','林邊','佳冬','東海','枋寮','加祿','內獅','枋山'],
+    // 南迴+花東+北迴+宜蘭
+    ['大武','瀧溪','金崙','太麻里','知本','康樂','臺東','山里','鹿野','瑞源','瑞和','關山','海端','池上','富里','東竹','東里','玉里','三民','瑞穗','富源','大富','光復','萬榮','鳳林','南平','林榮新光','豐田','壽豐','平和','志學','吉安','花蓮','北埔','景美','新城','崇德','和仁','和平','漢本','武塔','南澳','東澳','永樂','蘇澳','蘇澳新','新馬','冬山','羅東','中里','二結','宜蘭','四城','礁溪','頂埔','頭城','外澳','龜山','大溪','大里','石城','福隆','貢寮','雙溪','牡丹','三貂嶺','猴硐','瑞芳','四腳亭','暖暖'],
+    // 支線
+    ['北新竹','千甲','新莊','竹中','上員','榮華','竹東','橫山','九讚頭','合興','富貴','內灣'],
+    ['竹中','六家'],
+    ['二水','源泉','濁水','龍泉','集集','水里','車埕'],
+    ['三貂嶺','大華','十分','望古','嶺腳','平溪','菁桐'],
+    ['瑞芳','海科館','八斗子'],
+    ['中洲','長榮大學','沙崙'],
+  ];
+  for (const route of routes) {
+    const idx = route.indexOf(stnName);
+    if (idx < 0) {
+      const alt = stnName.replace(/台/g,'臺').replace(/臺/g,'台');
+      const idx2 = route.indexOf(alt);
+      if (idx2 < 0) continue;
+      return { prev: idx2 > 0 ? route[idx2-1] : null, next: idx2 < route.length-1 ? route[idx2+1] : null };
+    }
+    return { prev: idx > 0 ? route[idx-1] : null, next: idx < route.length-1 ? route[idx+1] : null };
+  }
+  return { prev: null, next: null };
+}
+
+// 選完 b1 後顯示相鄰區間選項
+function lcBetweenShowOptions(stnName) {
+  const { prev, next } = getAdjacentStations(stnName);
+  const optEl = document.getElementById('lc-between-options');
+  const noAdj = document.getElementById('lc-between-no-adj');
+  const prevEl = document.getElementById('lc-section-prev');
+  const nextEl = document.getElementById('lc-section-next');
+
+  if (!prev && !next) {
+    optEl.style.display = 'none';
+    noAdj.style.display = 'block';
+    return;
+  }
+  noAdj.style.display = 'none';
+  optEl.style.display = 'block';
+
+  if (prev) {
+    document.getElementById('lc-section-prev-label').textContent = `${prev} ↔ ${stnName}`;
+    prevEl.style.display = 'flex';
+    prevEl.dataset.s1 = prev; prevEl.dataset.s2 = stnName;
+  } else {
+    prevEl.style.display = 'none';
+  }
+  if (next) {
+    document.getElementById('lc-section-next-label').textContent = `${stnName} ↔ ${next}`;
+    nextEl.style.display = 'flex';
+    nextEl.dataset.s1 = stnName; nextEl.dataset.s2 = next;
+  } else {
+    nextEl.style.display = 'none';
+  }
+}
+
+function applyLocSection(which) {
+  const el = document.getElementById(which === 'prev' ? 'lc-section-prev' : 'lc-section-next');
+  const s1 = el.dataset.s1;
+  const s2 = el.dataset.s2;
+  if (!s1 || !s2) return;
+  locState.s1 = s1; locState.s2 = s2;
+  document.getElementById('loc-display').textContent = s1 + '－' + s2 + '間';
+  document.getElementById('loc-mode-display').textContent = '兩站之間';
+  clearShootResults();
+  closeSheet('loc-sheet');
+  doSearch();
+}
+
 function applyLocBetween(){
   const s1=locState.s1, s2=locState.s2;
   if(!s1||!s2){alert('請選擇兩個車站');return;}
@@ -2291,14 +2364,7 @@ async function openDetailByNo(trainNo, atStation) {
           </div>`;
         }).join('')}
       </div>
-      <div class="act-btns">
-        <button class="btn-p" onclick="setReminderByTrain('${trainNo}','${atStation}','${passTime}')">
-          <span style="display:flex;align-items:center;justify-content:center;gap:6px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="white"/></svg>
-            通過前 5 分鐘提醒
-          </span>
-        </button>
-      </div>`;
+`;
   } catch(e) {
     document.getElementById('det-body').innerHTML =
       `<div style="padding:16px;color:var(--red);">⚠️ 載入失敗：${e.message}</div>`;
@@ -2335,14 +2401,6 @@ function openDetail(id) {
         <span class="sname${s.mj ? ' mj' : ''}">${s.s}</span>
         <span class="stime">${s.dep}</span>
       </div>`).join('')}
-    </div>
-    <div class="act-btns">
-      <button class="btn-p" onclick="setReminder(${t.id})">
-        <span style="display:flex;align-items:center;justify-content:center;gap:6px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="white"/></svg>
-          通過前 5 分鐘提醒
-        </span>
-      </button>
     </div>`;
   document.getElementById('detail-page').classList.add('open');
 }
