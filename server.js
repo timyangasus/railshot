@@ -113,8 +113,8 @@ async function buildIndex() {
 
     const trainNo = String(info.TrainNo || '');
     const type = getTrainType(info);
-    // TDX Direction: 0=下行(南下/往屏東方向), 1=上行(北上/往基隆方向)
-    const dir = info.Direction === 0 ? 'down' : 'up';
+    // TDX Direction: 0=上行(北上/往基隆), 1=下行(南下/往屏東)
+    const dir = info.Direction === 0 ? 'up' : 'down';
     const from = info.StartingStationName?.Zh_tw || '';
     const to   = info.EndingStationName?.Zh_tw   || '';
 
