@@ -1273,16 +1273,10 @@ function spSelectStation(s){
         if(spState.callerCb) spState.callerCb(spState.from, spState.to);
         closeStnPage();
       }, 200);
-    } else if(spState.caller === 'loc-b1' && wasFrom){
-      // 兩站之間：選完第一站 → 切換到第二站
-      spState.active = 'to';
-      spState.county = '';
+    } else if(spState.caller === 'loc-b1'){
+      // 兩站之間第一站：選完停留，更新顯示，等按確定
       spRenderHeader();
-      spRenderCountyCol();
-      spRenderStnCol();
-      const col = document.getElementById('sp-county-col');
-      if(col) col.scrollTop = 0;
-      if(spState.callerCb) spState.callerCb(spState.from, spState.to);
+      spRenderStnCol(); // 更新右側勾選狀態
     } else {
       // 兩站之間：選完第二站 → 更新畫面，等按確定
       spRenderHeader();
