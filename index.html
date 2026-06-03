@@ -737,18 +737,19 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 
       <!-- Between mode -->
       <div id="lc-between" style="display:none;">
-        <button class="loc-stn-big-btn" onclick="openLocStnPage('b1')" style="margin-bottom:12px;">
-          <div class="loc-stn-big-icon" style="background:var(--accent-lt);color:var(--accent);">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
-          </div>
-          <div>
-            <div class="loc-stn-big-label">選擇車站</div>
-            <div class="loc-stn-big-name" id="lc-b1-lbl">尚未選擇</div>
-          </div>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
-        </button>
+        <div id="lc-between-step1">
+          <button class="loc-stn-big-btn" onclick="openLocStnPage('b1')" style="margin-bottom:12px;">
+            <div class="loc-stn-big-icon" style="background:var(--accent-lt);color:var(--accent);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
+            </div>
+            <div>
+              <div class="loc-stn-big-label">選擇車站</div>
+              <div class="loc-stn-big-name" id="lc-b1-lbl">尚未選擇</div>
+            </div>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
+          </button>
+        </div>
         <div id="lc-between-options" style="display:none;">
-          <div style="font-size:12px;color:var(--text3);margin-bottom:8px;">選擇查詢區間</div>
           <div id="lc-section-prev" onclick="applyLocSection('prev')" style="display:flex;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;margin-bottom:10px;min-height:100px;">
             <span id="lc-section-prev-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
@@ -1386,6 +1387,16 @@ function setLocMode(m){
     const btn=document.getElementById('mb-'+x);
     if(btn) btn.classList.toggle('active',x===m);
   });
+  // 切到兩站之間時重置：顯示選站按鈕，隱藏區間選項
+  if(m==='between'){
+    const step1=document.getElementById('lc-between-step1');
+    const opts=document.getElementById('lc-between-options');
+    const noAdj=document.getElementById('lc-between-no-adj');
+    if(step1) step1.style.display='block';
+    if(opts) opts.style.display='none';
+    if(noAdj) noAdj.style.display='none';
+    setStnLbl('lc-b1-lbl','');
+  }
 }
 function clearShootResults(){
   document.getElementById('shoot-results').style.display = 'none';
@@ -1444,13 +1455,16 @@ function getAdjacentStations(stnName) {
   return { prev: null, next: null };
 }
 
-// 選完 b1 後顯示相鄰區間選項
 function lcBetweenShowOptions(stnName) {
   const { prev, next } = getAdjacentStations(stnName);
   const optEl = document.getElementById('lc-between-options');
   const noAdj = document.getElementById('lc-between-no-adj');
+  const step1 = document.getElementById('lc-between-step1');
   const prevEl = document.getElementById('lc-section-prev');
   const nextEl = document.getElementById('lc-section-next');
+
+  // 隱藏選站按鈕，只顯示區間選項
+  if(step1) step1.style.display = 'none';
 
   if (!prev && !next) {
     optEl.style.display = 'none';
