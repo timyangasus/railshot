@@ -2157,19 +2157,19 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
       : `<span style="color:var(--green);font-size:13px;font-weight:500;">準點</span>`;
     // 方向大箭頭：上行綠色→，下行藍色←
     const isUp = calculateDisplayDir(train) === 'up';
-    const arrowColor = isUp ? '#27a060' : '#1a6fd4';
+    const arrowColor = isUp ? '#3992FF' : '#CE5900';
     // 箭頭方向：依 s1→s2 時間先後，s1 早 = 向右(→)，s1 晚 = 向左(←)
     const s1Earlier = toMins(s1Time) <= toMins(s2Time);
     const arrowSvg = s1Earlier
       ? `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
       : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6L5 12l6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-    const t1Color = s1Est ? '#1a6fd4' : 'var(--text)';
-    const t2Color = s2Est ? '#1a6fd4' : 'var(--text)';
+    const t1Color = s1Est ? '#446183' : 'var(--text)';
+    const t2Color = s2Est ? '#446183' : 'var(--text)';
     const t1Html = s1Est
-      ? `<span style="font-size:18px;font-weight:400;color:#1a6fd4;">約</span> ${s1Time}`
+      ? `<span style="font-size:18px;font-weight:400;color:#446183;">約</span> ${s1Time}`
       : s1Time;
     const t2Html = s2Est
-      ? `<span style="font-size:18px;font-weight:400;color:#1a6fd4;">約</span> ${s2Time || '--'}`
+      ? `<span style="font-size:18px;font-weight:400;color:#446183;">約</span> ${s2Time || '--'}`
       : (s2Time || '--');
     return `<div class="train-card" onclick="openDetailByNo('${train.no}','${s1Name}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
