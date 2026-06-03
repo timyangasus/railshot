@@ -78,8 +78,8 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
   height:calc(var(--tab-h) + var(--safe-bot));
   padding-bottom:var(--safe-bot);
   padding-top:8px;
-  background:white;
-  border-top:1px solid var(--border);
+  background:#f4f6fb;
+  border-top:1px solid #d0d6e8;
   display:flex;
   align-items:flex-start;
   z-index:100;
@@ -170,7 +170,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 }
 .loc-mode-tab{
   flex:1;display:flex;align-items:center;justify-content:center;gap:5px;
-  padding:8px 4px;border-radius:8px;font-size:12px;font-weight:500;
+  padding:14px 4px;border-radius:8px;font-size:13px;font-weight:500;
   font-family:inherit;cursor:pointer;
   border:1.5px solid var(--border2);background:white;color:var(--text2);
   transition:all .15s;
@@ -194,8 +194,8 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
   border-color:var(--accent);
 }
 .loc-stn-big-icon{
-  width:40px;height:40px;border-radius:10px;
-  background:var(--accent-lt);color:var(--accent);
+  width:28px;height:28px;border-radius:6px;
+  background:transparent;color:var(--accent);
   display:flex;align-items:center;justify-content:center;flex-shrink:0;
 }
 .loc-stn-big-label{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:3px;letter-spacing:0.3px;}
@@ -418,7 +418,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .tt-card-nearest{border-color:var(--accent);border-width:1.5px;}
 .tt-nearest-tag{display:inline-flex;align-items:center;gap:4px;background:var(--accent);color:white;font-size:11px;font-weight:600;padding:3px 9px;border-radius:5px;margin-bottom:8px;}
 /* ── FAV SUB-TABS ── */
-.fav-subtabs{display:flex;gap:0;background:var(--bg3);border-radius:10px;padding:3px;margin-bottom:14px;}
+.fav-subtabs{display:flex;gap:0;background:#d4daea;border-radius:10px;padding:3px;margin-bottom:14px;}
 .fav-subtab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border-radius:8px;font-size:13px;font-weight:500;font-family:inherit;border:none;background:transparent;color:var(--text3);cursor:pointer;transition:all .15s;}
 .fav-subtab.active{background:white;color:var(--accent);font-weight:600;box-shadow:var(--shadow);}
 
@@ -648,9 +648,6 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
     <div class="sh-handle"></div>
     <div class="sh-hdr">
       <div class="sh-title">選擇拍攝點</div>
-      <div class="sh-close" onclick="closeSheet('loc-sheet')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
-      </div>
     </div>
     <div class="sh-body">
       <!-- Mode selector -->
@@ -678,7 +675,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
             </div>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
           </button>
-          <button onclick="doGPSLocate()" id="lc-gps-quick-btn" style="width:56px;flex-shrink:0;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--green);">
+          <button onclick="doGPSLocate()" id="lc-gps-quick-btn" style="width:56px;flex-shrink:0;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="currentColor"/></svg>
           </button>
         </div>
@@ -690,7 +687,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
       <div id="lc-between" style="display:none;">
         <div id="lc-between-step1">
           <button class="loc-stn-big-btn" onclick="openLocStnPage('b1')" style="margin-bottom:12px;">
-            <div class="loc-stn-big-icon" style="background:var(--accent-lt);color:var(--accent);">
+            <div class="loc-stn-big-icon" style="color:var(--accent);">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
             </div>
             <div>
