@@ -2131,20 +2131,21 @@ async function openDetailByNo(trainNo, atStation) {
 
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
     document.getElementById('det-body').innerHTML = `
-      <div style="margin-bottom:8px;">
+      <div style="margin-bottom:20px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span class="badge ${ti.cls}" style="font-size:12px;padding:4px 11px;">${ti.label}</span>
-          <span class="dir-tag ${train.dir}" style="font-size:12px;">${train.dir === 'up' ? '↑ 上行' : '↓ 下行'}</span>
+          <span style="font-size:26px;font-weight:700;color:var(--text);letter-spacing:-0.5px;">${trainNo}</span>
+          <span class="badge ${ti.cls}" style="font-size:11px;padding:3px 9px;">${ti.label}</span>
         </div>
-        <div class="det-no">${trainNo}</div>
-        <div class="det-route">${train.from} → ${train.to}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:18px;font-weight:500;color:var(--text);">${atStation}站</div>
+          <span class="dir-tag ${train.dir}">${train.dir === 'up' ? '↑ 上行' : '↓ 下行'}</span>
+        </div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;">
+          <div style="font-size:40px;font-weight:500;color:var(--accent);letter-spacing:-2px;line-height:1;">${passTime || '--'}</div>
+          ${delay > 0 ? `<span style="font-size:13px;font-weight:600;color:var(--orange);">+${delay}分</span>` : `<span style="font-size:13px;color:var(--green);font-weight:500;">準點</span>`}
+        </div>
+        <div style="border-bottom:0.5px solid var(--border);margin-top:14px;"></div>
       </div>
-      ${passTime ? `
-        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:2px;">
-          <div class="det-time">${passTime}</div>
-          ${delay > 0 ? `<span style="font-size:14px;font-weight:600;color:var(--orange);">+${delay}分</span>` : `<span style="font-size:13px;color:var(--green);">準點</span>`}
-        </div>
-        <div class="det-lbl">通過 ${atStation}站</div>` : ''}
       <div class="sec">停靠站時刻</div>
       <div class="stop-list">
         ${train.stops.map(s => {
@@ -2397,10 +2398,8 @@ function renderTTList(list, isMock) {
 async function openTTDetailObj(t){
   if(typeof t==='string') t=JSON.parse(t);
   const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
-  document.getElementById('det-hdr-title').textContent=ti.label+' '+t.no;
   document.getElementById('detail-page').classList.add('open');
 
-  // 先顯示已知資訊
   const renderDetail = (stops) => {
     const stopsHtml = stops.map(s=>`
       <div class="stop-item">
@@ -2408,25 +2407,29 @@ async function openTTDetailObj(t){
         <span class="sname${s.mj?' mj':''}">${s.s}</span>
         <span class="stime">${s.dep}${s.late>0?`<span class="slate"> +${s.late}</span>`:''}</span>
       </div>`).join('');
+
+    const delayStr = t.delay > 0
+      ? `<span style="font-size:13px;font-weight:600;color:var(--orange);">+${t.delay}分</span>`
+      : `<span style="font-size:13px;color:var(--green);font-weight:500;">準點</span>`;
+
     document.getElementById('det-body').innerHTML=`
-      <div style="margin-bottom:8px;">
-        <span class="badge ${ti.cls}" style="font-size:12px;padding:4px 11px;margin-bottom:10px;display:inline-block;">${ti.label}</span>
-        <div class="det-no">${t.no}</div>
-        <div class="det-route">${t.from} → ${t.to}</div>
+      <div style="margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span style="font-size:26px;font-weight:700;color:var(--text);letter-spacing:-0.5px;">${t.no}</span>
+          <span class="badge ${ti.cls}" style="font-size:11px;padding:3px 9px;">${ti.label}</span>
+        </div>
+        <div style="font-size:18px;font-weight:500;color:var(--text);margin-bottom:10px;">${t.from} → ${t.to}</div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;">
+          <div style="font-size:26px;font-weight:500;color:var(--accent);letter-spacing:-1px;">${t.dep} → ${t.arr}</div>
+          ${delayStr}
+        </div>
+        <div style="border-bottom:0.5px solid var(--border);margin-top:14px;"></div>
       </div>
-      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:2px;">
-        <div class="det-time">${t.dep}</div>
-        ${t.delay > 0 ? `<span style="font-size:14px;font-weight:600;color:var(--orange);">+${t.delay}分</span>` : `<span style="font-size:13px;color:var(--green);">準點</span>`}
-      </div>
-      <div class="det-lbl">出發 · 抵達 ${t.arr}（${t.dur}）</div>
-      ${stops.length?`<div class="sec">停靠站時刻</div><div class="stop-list">${stopsHtml}</div>`:''}
-      <div class="act-btns"><button class="btn-s" onclick="closeDetail()">← 返回</button></div>`;
+      ${stops.length?`<div class="sec">停靠站時刻</div><div class="stop-list">${stopsHtml}</div>`:''}`;
   };
 
-  // 先用已有的 stops 渲染
   renderDetail(t.stops || []);
 
-  // 若有 API，嘗試抓完整停靠站
   if(API_BASE && t.no) {
     try {
       const dateVal = document.getElementById('tt-date')?.value || new Date().toISOString().split('T')[0];
@@ -2444,7 +2447,7 @@ async function openTTDetailObj(t){
           renderDetail(stops);
         }
       }
-    } catch(e) { /* 失敗就用原本的 stops */ }
+    } catch(e) {}
   }
 }
 
