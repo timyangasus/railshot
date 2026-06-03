@@ -2,7 +2,7 @@
   "name": "Railshot",
   "short_name": "Railshot",
   "description": "鐵道攝影助手",
-  "start_url": ".",
+  "start_url": "/railshot/",
   "display": "standalone",
   "background_color": "#f0f4fa",
   "theme_color": "#0099CC",
