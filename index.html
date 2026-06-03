@@ -2156,13 +2156,10 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
       ? `<span style="color:var(--orange);font-size:13px;font-weight:600;">誤點 +${delay}分</span>`
       : `<span style="color:var(--green);font-size:13px;font-weight:500;">準點</span>`;
     // 方向大箭頭：上行綠色→，下行藍色←
-    // 箭頭顏色：依查詢的兩站相對位置決定（s1在北s2在南=下行橙，s1在南s2在北=上行藍）
-    const s1Idx = STATION_ORDER[s1Name] ?? STATION_ORDER[s1Name.replace(/台/g,'臺').replace(/臺/g,'台')];
-    const s2Idx = STATION_ORDER[s2Name] ?? STATION_ORDER[s2Name.replace(/台/g,'臺').replace(/臺/g,'台')];
-    const sectionGoingDown = (s1Idx !== undefined && s2Idx !== undefined) ? s1Idx < s2Idx : (calculateDisplayDir(train) === 'down');
-    const arrowColor = sectionGoingDown ? '#CE5900' : '#3992FF';
-    // 箭頭方向：依 s1→s2 時間先後，s1 早 = 向右(→)，s1 晚 = 向左(←)
+    const isUp = calculateDisplayDir(train) === 'up';
+    // 區間箭頭：方向依 s1→s2 時間先後，顏色固定（不跟列車方向走）
     const s1Earlier = toMins(s1Time) <= toMins(s2Time);
+    const arrowColor = '#3992FF'; // 固定藍色，單純表示移動方向
     const arrowSvg = s1Earlier
       ? `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
       : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6L5 12l6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -2179,6 +2176,7 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="badge ${ti.cls}">${ti.label}</span>
           <span style="font-size:15px;font-weight:700;color:var(--text);">${train.no}</span>
+          <span class="dir-tag ${isUp ? 'up' : 'down'}" style="font-size:11px;">${isUp ? '↑ 上行' : '↓ 下行'}</span>
         </div>
         ${delayStr}
       </div>
