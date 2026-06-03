@@ -2156,13 +2156,19 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
       ? `<span style="color:var(--orange);font-size:13px;font-weight:600;">誤點 +${delay}分</span>`
       : `<span style="color:var(--green);font-size:13px;font-weight:500;">準點</span>`;
     // 方向大箭頭：上行綠色→，下行藍色←
-    const isUp = calculateDisplayDir(train) === 'up';
-    // 區間箭頭：方向依 s1→s2 時間先後，顏色固定（不跟列車方向走）
-    const s1Earlier = toMins(s1Time) <= toMins(s2Time);
-    const arrowColor = '#3992FF'; // 固定藍色，單純表示移動方向
-    const arrowSvg = s1Earlier
-      ? `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-      : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6L5 12l6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const m1 = toMins(s1Time);
+    const m2 = toMins(s2Time || '');
+    let arrowColor, arrowSvg;
+    if (m1 < m2) {
+      arrowColor = '#3992FF';
+      arrowSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    } else if (m1 > m2) {
+      arrowColor = '#CE5900';
+      arrowSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6L5 12l6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    } else {
+      arrowColor = '#8A9AB2';
+      arrowSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M5 12h19" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+    }
     const t1Color = s1Est ? '#446183' : 'var(--text)';
     const t2Color = s2Est ? '#446183' : 'var(--text)';
     const t1Html = s1Est
@@ -2176,7 +2182,6 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="badge ${ti.cls}">${ti.label}</span>
           <span style="font-size:15px;font-weight:700;color:var(--text);">${train.no}</span>
-          <span class="dir-tag ${isUp ? 'up' : 'down'}" style="font-size:11px;">${isUp ? '↑ 上行' : '↓ 下行'}</span>
         </div>
         ${delayStr}
       </div>
