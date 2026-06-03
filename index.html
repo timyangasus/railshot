@@ -367,7 +367,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .tt-times{font-size:26px;font-weight:800;letter-spacing:-0.5px;color:var(--text);}
 .tt-dur{font-size:12px;color:var(--text3);}
 .tt-mid{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
-.tt-route{font-size:13px;color:var(--text2);}
+.tt-route{font-size:13px;color:var(--text2);font-weight:600;}
 
 /* ── FAVS ── */
 .fav-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:15px;margin-bottom:10px;box-shadow:var(--shadow);}
@@ -592,51 +592,6 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 <!-- TAB 4: 設定 -->
 <div class="screen" id="tab-settings">
 <div class="sc">
-  <div class="sec">權限與狀態</div>
-  <div class="sg">
-    <div class="si">
-      <div class="si-left">
-        <div class="si-icon" style="background:#e8f1fd;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#1a6fd4"/></svg>
-        </div>
-        <span class="sk">定位權限</span>
-      </div>
-      <span class="sv ok">已授權</span>
-    </div>
-    <div class="si">
-      <div class="si-left">
-        <div class="si-icon" style="background:#e8f1fd;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="#1a6fd4"/></svg>
-        </div>
-        <span class="sk">通知權限</span>
-      </div>
-      <span class="sv ok">已授權</span>
-    </div>
-    <div class="si">
-      <div class="si-left">
-        <div class="si-icon" style="background:#e8f8ef;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1a9e5c" stroke-width="2"/><path d="M8 12l3 3 5-5" stroke="#1a9e5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>
-        <span class="sk">API 狀態</span>
-      </div>
-      <span class="sv ok">TDX 已連線</span>
-    </div>
-    <div class="si">
-      <div class="si-left">
-        <div class="si-icon" style="background:#f0f4fa;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="#8a9db8"/></svg>
-        </div>
-        <span class="sk">資料更新</span>
-      </div>
-      <span class="sv">剛剛</span>
-    </div>
-  </div>
-  <div class="sec">預設值</div>
-  <div class="sg">
-    <div class="si"><div class="si-left"><div class="si-icon" style="background:#f0f4fa;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="#8a9db8"/></svg></div><span class="sk">預設時間範圍</span></div><span class="sv">1 小時 〉</span></div>
-    <div class="si"><div class="si-left"><div class="si-icon" style="background:#fff3e0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6V11c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="#c06010"/></svg></div><span class="sk">預設提醒時間</span></div><span class="sv">通過前 5 分鐘 〉</span></div>
-    <div class="si"><div class="si-left"><div class="si-icon" style="background:#e8f1fd;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" stroke="#1a6fd4" stroke-width="2"/><path d="M3 9h18" stroke="#1a6fd4" stroke-width="2"/></svg></div><span class="sk">預設車種篩選</span></div><span class="sv">全部 〉</span></div>
-  </div>
   <div class="sec">關於</div>
   <div class="sg">
     <div class="si"><div class="si-left"><div class="si-icon" style="background:#e8f1fd;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" fill="#1a6fd4" fill-opacity="0.15"/><circle cx="8" cy="15" r="1.5" fill="#1a6fd4"/><circle cx="16" cy="15" r="1.5" fill="#1a6fd4"/><rect x="5" y="6" width="14" height="5" rx="1" fill="#1a6fd4"/></svg></div><span class="sk">Railshot</span></div><span class="sv">v1.0.0</span></div>
