@@ -1680,10 +1680,28 @@ const ROUTE_EAST = new Set([
 ]);
 
 // 取得站所屬路線群組（傳回 Set reference）
+// 內灣/六家線
+const ROUTE_NEIWAN = new Set([
+  '北新竹','千甲','新莊','竹中','六家','上員','榮華','竹東','橫山','九讚頭','合興','富貴','內灣',
+]);
+// 集集線
+const ROUTE_JIJI = new Set(['二水','源泉','濁水','龍泉','集集','水里','車埕']);
+// 平溪線
+const ROUTE_PINGXI = new Set(['三貂嶺','大華','十分','望古','嶺腳','平溪','菁桐']);
+// 深澳線
+const ROUTE_SHENAO = new Set(['瑞芳','海科館','八斗子','深澳']);
+// 沙崙線
+const ROUTE_SHALUN = new Set(['中洲','長榮大學','沙崙']);
+
 function stationRoute(name) {
   if (ROUTE_JUNGUAN.has(name)) return ROUTE_JUNGUAN;
   if (ROUTE_EAST.has(name)) return ROUTE_EAST;
-  return null; // 支線等
+  if (ROUTE_NEIWAN.has(name)) return ROUTE_NEIWAN;
+  if (ROUTE_JIJI.has(name)) return ROUTE_JIJI;
+  if (ROUTE_PINGXI.has(name)) return ROUTE_PINGXI;
+  if (ROUTE_SHENAO.has(name)) return ROUTE_SHENAO;
+  if (ROUTE_SHALUN.has(name)) return ROUTE_SHALUN;
+  return null;
 }
 
 // 台/臺互換
