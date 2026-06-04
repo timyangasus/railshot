@@ -1514,9 +1514,7 @@ function findNearestStations(lat, lng, n=3){
 }
 
 let gpsNearest = null;
-function openAppSettings(){
-  window.location.href = 'app-settings:';
-}
+function openAppSettings(){ /* removed */ }
 function doGPSLocate(){
   const btn = document.getElementById('lc-gps-quick-btn');
   const result = document.getElementById('lc-gps-inline-result');
@@ -1548,12 +1546,12 @@ function doGPSLocate(){
     },
     err=>{
       if(btn) btn.style.opacity='1';
-      const msgs = {1:'定位權限已拒絕，請至設定開啟',2:'定位逾時，請再試一次',3:'無法取得位置'};
-      const msg = msgs[err.code] || '定位失敗';
-      if(result) result.innerHTML=`<div style="font-size:12px;color:var(--red);padding:6px 0;">
-        ${msg}
-        ${err.code===1 ? `<br><a href="#" onclick="openAppSettings();return false;" style="color:var(--accent);text-decoration:underline;font-size:12px;">前往設定</a>` : ''}
-      </div>`;
+      const msgs = {
+        1:'定位權限未開啟，請到 iPhone 設定 > Safari > 位置 開啟權限',
+        2:'定位逾時，請再試一次',
+        3:'無法取得位置'
+      };
+      if(result) result.innerHTML=`<div style="font-size:12px;color:var(--red);padding:6px 0;line-height:1.5;">${msgs[err.code]||'定位失敗'}</div>`;
     },
     {timeout:10000, enableHighAccuracy:true}
   );
