@@ -1288,9 +1288,14 @@ function openStnPicker(target){
 function confirmStnPick(){ confirmStnPage(); }
 
 // ===== LOCATION PICKER =====
-let locState={mode:'single',s1:'',s2:'',pos:50};
+// ===== LOCATION STATE =====
+// s1/s2: 暫存選擇（sheet 內）  applied: 已套用的真實值
+let locState={mode:'single', s1:'', s2:'', applied:{s1:'', s2:''}, pos:50};
 function initLocSheet(){
-  // 只同步當前 mode 的 label，不污染其他 mode
+  // 從已套用狀態恢復 sheet 的暫存選擇
+  locState.s1 = locState.applied.s1;
+  locState.s2 = locState.applied.s2;
+
   const setLbl = (id, val) => {
     const el = document.getElementById(id); if(!el) return;
     if(val){ el.textContent=val; el.classList.remove('placeholder-name'); }
@@ -1300,6 +1305,8 @@ function initLocSheet(){
     setLbl('lc-single-stn-lbl', locState.s1);
   } else {
     setLbl('lc-b1-lbl', locState.s1);
+    // 若 s1 有值且相鄰站選項尚未顯示，自動展開
+    if(locState.s1) lcBetweenShowOptions(locState.s1);
   }
   updPosLabels();
 }
@@ -1339,9 +1346,11 @@ function updSlider(){
   if(pct) pct.textContent=locState.pos+'%';
 }
 function resetSearchState() {
-  // 清空 state
+  // 清空 state（含已套用）
   locState.s1 = '';
   locState.s2 = '';
+  locState.applied.s1 = '';
+  locState.applied.s2 = '';
 
   // 直接操作 DOM — 單站選站按鈕
   const singleLbl = document.getElementById('lc-single-stn-lbl');
@@ -1403,10 +1412,12 @@ function clearShootResults(){
 }
 
 function applyLocSingle(){
-  const s=locState.s1;
-  if(!s){alert('請先選擇車站');return;}
-  document.getElementById('loc-display').textContent=s+'站';
-  document.getElementById('loc-mode-display').textContent='單一車站';
+  const s = locState.s1;
+  if(!s){ alert('請先選擇車站'); return; }
+  locState.applied.s1 = s;
+  locState.applied.s2 = '';
+  document.getElementById('loc-display').textContent = s + '站';
+  document.getElementById('loc-mode-display').textContent = '單一車站';
   clearShootResults();
   closeSheet('loc-sheet');
 }
@@ -1493,6 +1504,7 @@ function applyLocSection(which) {
   const s2 = el.dataset.s2;
   if (!s1 || !s2) return;
   locState.s1 = s1; locState.s2 = s2;
+  locState.applied.s1 = s1; locState.applied.s2 = s2;
   document.getElementById('loc-display').textContent = s1 + '－' + s2 + '間';
   document.getElementById('loc-mode-display').textContent = '兩站之間';
   clearShootResults();
@@ -1612,12 +1624,11 @@ function doGPSLocate(){
   );
 }
 function applyGPSStation(name){
-  // GPS 只在使用者尚未手動選站時才套用
-  if(locState.s1) return; // 已有手動選站，GPS 不覆蓋
+  // GPS 只更新 sheet 內的暫存選擇，不覆蓋已套用的真實選站
+  if(locState.applied.s1) return; // 使用者已手動套用過，GPS 不干涉
   locState.s1 = name;
   const lbl = document.getElementById('lc-single-stn-lbl');
   if(lbl){ lbl.textContent = name; lbl.classList.remove('placeholder-name'); }
-  // 清除 inline result
   const res = document.getElementById('lc-gps-inline-result');
   if(res) res.innerHTML = '';
 }
@@ -2402,12 +2413,12 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
     const timeSection = isBetween && s2Station && s2TimeOverride
       ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <div>
-            <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.15);margin-bottom:2px;">${atStation}</div>
+            <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.8);margin-bottom:2px;">${atStation}</div>
             <span style="font-size:34px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-1.5px;line-height:1;">${passTime || '--'}</span>
           </div>
           <span style="font-size:24px;color:rgba(255,255,255,0.4);margin:0 4px;padding-top:18px;">→</span>
           <div>
-            <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.15);margin-bottom:2px;">${s2Station}</div>
+            <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.8);margin-bottom:2px;">${s2Station}</div>
             <span style="font-size:34px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-1.5px;line-height:1;">${s2TimeOverride}</span>
           </div>
           ${delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;padding-top:18px;">+${delay}分</span>` : ''}
@@ -2416,7 +2427,7 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
           <span style="font-size:40px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-2px;line-height:1;">${passTime || '--'}</span>
           ${delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;">+${delay}分</span>` : ''}
         </div>
-        <div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.15);margin-top:6px;">${atStation}站</div>`;
+        <div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:6px;">${atStation}站</div>`;
 
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
     document.getElementById('det-body').innerHTML = `
