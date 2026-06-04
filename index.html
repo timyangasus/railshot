@@ -1514,6 +1514,9 @@ function findNearestStations(lat, lng, n=3){
 }
 
 let gpsNearest = null;
+function openAppSettings(){
+  window.location.href = 'app-settings:';
+}
 function doGPSLocate(){
   const btn = document.getElementById('lc-gps-quick-btn');
   const result = document.getElementById('lc-gps-inline-result');
@@ -1545,8 +1548,12 @@ function doGPSLocate(){
     },
     err=>{
       if(btn) btn.style.opacity='1';
-      const msgs = {1:'請允許定位權限',2:'定位逾時',3:'無法取得位置'};
-      if(result) result.innerHTML=`<div style="font-size:12px;color:var(--red);padding:6px 0;">${msgs[err.code]||'定位失敗'}</div>`;
+      const msgs = {1:'定位權限已拒絕，請至設定開啟',2:'定位逾時，請再試一次',3:'無法取得位置'};
+      const msg = msgs[err.code] || '定位失敗';
+      if(result) result.innerHTML=`<div style="font-size:12px;color:var(--red);padding:6px 0;">
+        ${msg}
+        ${err.code===1 ? `<br><a href="#" onclick="openAppSettings();return false;" style="color:var(--accent);text-decoration:underline;font-size:12px;">前往設定</a>` : ''}
+      </div>`;
     },
     {timeout:10000, enableHighAccuracy:true}
   );
@@ -2601,6 +2608,7 @@ async function openTTDetailObj(t){
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:20px;font-weight:700;color:white;">${t.no}</span>
             <span style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;">${ti.label}</span>
+            <span style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;">${t.dir === 'up' ? '↑ 上行' : '↓ 下行'}</span>
           </div>
           ${delayBadge}
         </div>
