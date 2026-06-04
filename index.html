@@ -1023,7 +1023,7 @@ function switchFavSubTab(sub, btn){
   document.getElementById('fav-shoot-panel').style.display = sub==='shoot'?'block':'none';
 }
 function setChip(el,gid){
-  document.querySelectorAll('#'+gid+' .chip').forEach(c=>c.classList.remove('on'));
+  document.querySelectorAll('#'+gid+' .chip, #'+gid+' .chip-round').forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
 }
 
