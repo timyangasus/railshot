@@ -2179,7 +2179,9 @@ function queryBetween(s1Name, s2Name, nowMins, endMins, dirFilter, typeFilter) {
 
 // ── 主查詢函式 ────────────────────────────────────────
 async function doSearch() {
-  const dv  = document.querySelector('#dir-chips .chip.on').dataset.val;
+  const dirEl  = document.querySelector('#dir-chips .chip.on, #dir-chips .chip-round.on');
+  const timeEl = document.querySelector('#time-chips .chip.on, #time-chips .chip-round.on');
+  const dv  = dirEl?.dataset.val || 'all';
   const tv  = getShootSelectedTypes();
   const loc = document.getElementById('loc-display').textContent.trim();
   const locMode = document.getElementById('loc-mode-display').textContent;
@@ -2187,7 +2189,7 @@ async function doSearch() {
   document.getElementById('res-loc').textContent = loc;
   document.getElementById('shoot-results').style.display = 'block';
 
-  const timeRange = parseInt(document.querySelector('#time-chips .chip.on')?.dataset.val || '30');
+  const timeRange = parseInt(timeEl?.dataset.val || '60');
   const now = new Date();
   const nowMins = now.getHours() * 60 + now.getMinutes();
   const endMins = nowMins + timeRange;
