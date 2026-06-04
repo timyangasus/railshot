@@ -1416,6 +1416,10 @@ function applyLocSingle(){
   if(!s){ alert('請先選擇車站'); return; }
   locState.applied.s1 = s;
   locState.applied.s2 = '';
+  // 手動套用成功 → 清除 GPS 狀態
+  gpsNearest = null;
+  const gpsResult = document.getElementById('lc-gps-inline-result');
+  if(gpsResult) gpsResult.innerHTML = '';
   document.getElementById('loc-display').textContent = s + '站';
   document.getElementById('loc-mode-display').textContent = '單一車站';
   clearShootResults();
