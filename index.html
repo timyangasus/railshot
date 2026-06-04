@@ -102,6 +102,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 
 /* ── CHIPS ── */
 .chips-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.chip-round{width:56px;height:56px;border-radius:50%;border:1.5px solid var(--border2);background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:17px;font-weight:700;color:var(--text2);flex-shrink:0;transition:all .15s;line-height:1.2;}
+.chip-round.on{background:var(--accent);border-color:var(--accent);color:white;}
+.chip-round>div:last-child{font-size:12px;font-weight:500;opacity:0.8;}
 .chips-row::-webkit-scrollbar{display:none;}
 .chip{padding:9px 15px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--border2);background:white;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;box-shadow:var(--shadow);}
 .chip.on{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 2px 8px rgba(26,37,64,0.25);}
@@ -521,21 +524,27 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
   </div>
 
-  <div class="sec">時間範圍</div>
-  <div class="chips-row" id="time-chips">
-    <div class="chip on" data-val="60" onclick="setChip(this,'time-chips');filterTrains()">1 小時</div>
-    <div class="chip" data-val="120" onclick="setChip(this,'time-chips');filterTrains()">2 小時</div>
-    <div class="chip" data-val="180" onclick="setChip(this,'time-chips');filterTrains()">3 小時</div>
+  <div style="display:flex;align-items:flex-start;margin-bottom:12px;">
+    <div>
+      <div class="sec" style="margin:0 0 8px;">時間範圍</div>
+      <div id="time-chips" style="display:flex;gap:8px;">
+        <div class="chip-round on" data-val="60" onclick="setChip(this,'time-chips');filterTrains()"><div>1</div><div>hr</div></div>
+        <div class="chip-round" data-val="120" onclick="setChip(this,'time-chips');filterTrains()"><div>2</div><div>hr</div></div>
+        <div class="chip-round" data-val="180" onclick="setChip(this,'time-chips');filterTrains()"><div>3</div><div>hr</div></div>
+      </div>
+    </div>
+    <div style="width:1px;height:80px;background:var(--border);margin:0 16px;flex-shrink:0;align-self:flex-end;"></div>
+    <div>
+      <div class="sec" style="margin:0 0 8px;">方向</div>
+      <div id="dir-chips" style="display:flex;gap:8px;">
+        <div class="chip-round on" data-val="all" onclick="setChip(this,'dir-chips');filterTrains()"><div>全部</div></div>
+        <div class="chip-round" data-val="up" onclick="setChip(this,'dir-chips');filterTrains()"><div>上行</div></div>
+        <div class="chip-round" data-val="down" onclick="setChip(this,'dir-chips');filterTrains()"><div>下行</div></div>
+      </div>
+    </div>
   </div>
 
-  <div class="sec" style="margin-top:12px;">方向</div>
-  <div class="chips-row" id="dir-chips">
-    <div class="chip on" data-val="all" onclick="setChip(this,'dir-chips');filterTrains()">全部</div>
-    <div class="chip" data-val="up" onclick="setChip(this,'dir-chips');filterTrains()">↑ 上行</div>
-    <div class="chip" data-val="down" onclick="setChip(this,'dir-chips');filterTrains()">↓ 下行</div>
-  </div>
-
-  <div class="sec" style="margin-top:12px;">車種</div>
+  <div class="sec" style="margin-top:4px;">車種</div>
   <div class="chips-row" id="type-chips">
     <div class="chip on" data-val="all" onclick="shootChipToggle(this,'all')">全部</div>
     <div class="chip" data-val="exp3" onclick="shootChipToggle(this,'exp3')">自強3000</div>
@@ -1372,7 +1381,7 @@ function resetSearchState() {
   const resetChips = (id, def) => {
     const el = document.getElementById(id);
     if(!el) return;
-    el.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+    el.querySelectorAll('.chip, .chip-round').forEach(c => c.classList.remove('on'));
     const d = el.querySelector(`[data-val="${def}"]`);
     if(d) d.classList.add('on');
   };
