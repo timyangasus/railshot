@@ -1225,8 +1225,12 @@ function spSelectStation(s){
 
   // 拍攝點模式
   if(spState.caller && spState.caller.startsWith('loc-')){
-    if(spState.caller === 'loc-single' || spState.caller === 'loc-b2'){
-      // 單框：選完直接關閉
+    if(spState.caller === 'loc-single'){
+      // 單站：選完停留在選站頁，更新 header 顯示，等按確定
+      spRenderHeader();
+      spRenderStnCol(); // 更新勾選狀態
+    } else if(spState.caller === 'loc-b2'){
+      // 單框（b2）：選完直接關閉
       spRenderHeader();
       setTimeout(() => {
         if(spState.callerCb) spState.callerCb(spState.from, spState.to);
@@ -1608,6 +1612,8 @@ function doGPSLocate(){
   );
 }
 function applyGPSStation(name){
+  // GPS 只在使用者尚未手動選站時才套用
+  if(locState.s1) return; // 已有手動選站，GPS 不覆蓋
   locState.s1 = name;
   const lbl = document.getElementById('lc-single-stn-lbl');
   if(lbl){ lbl.textContent = name; lbl.classList.remove('placeholder-name'); }
@@ -2396,12 +2402,12 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
     const timeSection = isBetween && s2Station && s2TimeOverride
       ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
           <div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:2px;">${atStation}</div>
+            <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.15);margin-bottom:2px;">${atStation}</div>
             <span style="font-size:34px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-1.5px;line-height:1;">${passTime || '--'}</span>
           </div>
           <span style="font-size:24px;color:rgba(255,255,255,0.4);margin:0 4px;padding-top:18px;">→</span>
           <div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:2px;">${s2Station}</div>
+            <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.15);margin-bottom:2px;">${s2Station}</div>
             <span style="font-size:34px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-1.5px;line-height:1;">${s2TimeOverride}</span>
           </div>
           ${delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;padding-top:18px;">+${delay}分</span>` : ''}
