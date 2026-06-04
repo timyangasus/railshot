@@ -1286,15 +1286,17 @@ function confirmStnPick(){ confirmStnPage(); }
 // ===== LOCATION PICKER =====
 let locState={mode:'single',s1:'',s2:'',pos:50};
 function initLocSheet(){
-  const setStnLbl = (id, val) => {
-    const el = document.getElementById(id);
-    if(!el) return;
+  // 只同步當前 mode 的 label，不污染其他 mode
+  const setLbl = (id, val) => {
+    const el = document.getElementById(id); if(!el) return;
     if(val){ el.textContent=val; el.classList.remove('placeholder-name'); }
     else{ el.textContent='尚未選擇'; el.classList.add('placeholder-name'); }
   };
-  setStnLbl('lc-single-stn-lbl', locState.s1);
-  setStnLbl('lc-b1-lbl', locState.s1);
-  setStnLbl('lc-b2-lbl', locState.s2);
+  if(locState.mode === 'single'){
+    setLbl('lc-single-stn-lbl', locState.s1);
+  } else {
+    setLbl('lc-b1-lbl', locState.s1);
+  }
   updPosLabels();
 }
 function openLocStnPage(slot){
@@ -1333,39 +1335,42 @@ function updSlider(){
   if(pct) pct.textContent=locState.pos+'%';
 }
 function resetSearchState() {
-  // 清空站名
-  locState.s1 = ''; locState.s2 = '';
-  setStnLbl('lc-single-stn-lbl', '');
-  setStnLbl('lc-b1-lbl', '');
-  // 重置兩站之間 UI
+  // 清空 state
+  locState.s1 = '';
+  locState.s2 = '';
+
+  // 直接操作 DOM — 單站選站按鈕
+  const singleLbl = document.getElementById('lc-single-stn-lbl');
+  if(singleLbl){ singleLbl.textContent = '尚未選擇'; singleLbl.className = 'loc-stn-big-name placeholder-name'; }
+
+  // 兩站之間 — 第一站
+  const b1Lbl = document.getElementById('lc-b1-lbl');
+  if(b1Lbl){ b1Lbl.textContent = '尚未選擇'; b1Lbl.className = 'loc-stn-big-name placeholder-name'; }
+
+  // 兩站之間 — 重置為初始狀態（顯示選站按鈕，隱藏區間選項）
   const step1 = document.getElementById('lc-between-step1');
   const opts  = document.getElementById('lc-between-options');
   const noAdj = document.getElementById('lc-between-no-adj');
   if(step1) step1.style.display = 'block';
   if(opts)  opts.style.display  = 'none';
   if(noAdj) noAdj.style.display = 'none';
-  // 重置 chips 為預設
-  const timeChips = document.getElementById('time-chips');
-  if(timeChips) {
-    timeChips.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
-    const c60 = timeChips.querySelector('[data-val="60"]');
-    if(c60) c60.classList.add('on');
-  }
-  const dirChips = document.getElementById('dir-chips');
-  if(dirChips) {
-    dirChips.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
-    const fall = dirChips.querySelector('[data-val="all"]');
-    if(fall) fall.classList.add('on');
-  }
-  const typeChips = document.getElementById('type-chips');
-  if(typeChips) {
-    typeChips.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
-    const fall = typeChips.querySelector('[data-val="all"]');
-    if(fall) fall.classList.add('on');
-  }
+
+  // 重置 chips
+  const resetChips = (id, def) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+    const d = el.querySelector(`[data-val="${def}"]`);
+    if(d) d.classList.add('on');
+  };
+  resetChips('time-chips', '60');
+  resetChips('dir-chips',  'all');
+  resetChips('type-chips', 'all');
+
   // 清空結果
   clearShootResults();
-  // 更新拍攝點顯示
+
+  // 清空拍攝點顯示
   document.getElementById('loc-display').textContent = '點此設定拍攝點';
   document.getElementById('loc-mode-display').textContent = '';
 }
@@ -2405,7 +2410,7 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
           <span style="font-size:40px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-2px;line-height:1;">${passTime || '--'}</span>
           ${delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;">+${delay}分</span>` : ''}
         </div>
-        <div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.2);margin-top:6px;">${atStation}站</div>`;
+        <div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.15);margin-top:6px;">${atStation}站</div>`;
 
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
     document.getElementById('det-body').innerHTML = `
