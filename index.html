@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="apple-mobile-web-app-title" content="Railshot"/>
-<meta name="theme-color" content="#e9edf7"/>
+<meta name="theme-color" content="#1a2540"/>
 <title>Railshot</title>
 <link rel="apple-touch-icon" href="icon-512.png"/>
 <link rel="manifest" href="manifest.json"/>
@@ -24,9 +24,9 @@
   --text:#1a2540;
   --text2:#4a6080;
   --text3:#8a9db8;
-  --accent:#0099CC;
-  --accent-lt:#E0F5FB;
-  --accent-lter:#E8F7FC;
+  --accent:#1a2540;
+  --accent-lt:#e8eaf0;
+  --accent-lter:#eff0f4;
   --green:#1a9e5c;
   --green-lt:#e8f8ef;
   --red:#d43030;
@@ -104,7 +104,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .chips-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
 .chips-row::-webkit-scrollbar{display:none;}
 .chip{padding:9px 15px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--border2);background:white;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;box-shadow:var(--shadow);}
-.chip.on{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 2px 8px rgba(0,153,204,0.25);}
+.chip.on{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 2px 8px rgba(26,37,64,0.25);}
 
 /* ── CARDS ── */
 .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);}
@@ -178,7 +178,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .loc-mode-tab svg{flex-shrink:0;}
 .loc-mode-tab.active{
   background:var(--accent);color:white;border-color:var(--accent);
-  font-weight:600;box-shadow:0 2px 6px rgba(0,153,204,0.25);
+  font-weight:600;box-shadow:0 2px 6px rgba(26,37,64,0.25);
 }
 
 /* Large station selector button */
@@ -314,7 +314,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 }
 .slider-wrap{padding:4px 0 12px;}
 .slider-wrap input[type=range]{width:100%;-webkit-appearance:none;height:5px;border-radius:3px;background:var(--border2);outline:none;}
-.slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);border:3px solid white;box-shadow:0 1px 4px rgba(0,153,204,0.3);}
+.slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);border:3px solid white;box-shadow:0 1px 4px rgba(26,37,64,0.3);}
 .slider-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:6px;}
 .fld-lbl{font-size:12px;font-weight:600;color:var(--text3);letter-spacing:0.3px;text-transform:uppercase;margin-bottom:7px;}
 
@@ -342,10 +342,10 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .stime{font-size:15px;font-weight:500;color:var(--text2);}
 .stop-item.cur-stop .sname{color:var(--accent);font-weight:700;}
 .stop-item.cur-stop .stime{color:var(--accent);font-weight:700;}
-.stop-item.cur-stop .stop-dot{background:var(--accent);box-shadow:0 0 0 3px rgba(0,153,204,0.2);}
+.stop-item.cur-stop .stop-dot{background:var(--accent);box-shadow:0 0 0 3px rgba(26,37,64,0.2);}
 .slate{font-size:11px;color:var(--orange);margin-left:2px;}
 .act-btns{display:flex;flex-direction:column;gap:8px;margin-top:20px;padding-bottom:20px;}
-.btn-p{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(0,153,204,0.25);}
+.btn-p{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(26,37,64,0.25);}
 .btn-s{background:white;color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:500;cursor:pointer;font-family:inherit;width:100%;}
 
 /* ── TIMETABLE FORM ── */
@@ -358,7 +358,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .tt-date{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:15px 10px;color:var(--text);font-family:inherit;font-size:18px;font-weight:700;width:100%;outline:none;overflow:hidden;-webkit-appearance:none;min-width:0;}
 .tt-now-btn{display:flex;align-items:center;gap:5px;padding:0 14px;background:var(--accent-lt);border:1.5px solid var(--accent);border-radius:var(--radius-sm);color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .tt-now-btn.active{background:var(--accent);color:white;}
-.srch-btn{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:4px;box-shadow:0 2px 8px rgba(0,153,204,0.2);}
+.srch-btn{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:4px;box-shadow:0 2px 8px rgba(26,37,64,0.2);}
 
 /* ── TT CARD ── */
 .tt-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:13px 15px;margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow);transition:box-shadow .15s;}
@@ -467,7 +467,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
         </button>
       </div>
       <div class="swap-btn" onclick="swapTT()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" fill="#0099CC"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" fill="#1a2540"/></svg>
       </div>
       <div class="tt-f">
         <div class="fld-lbl">到達站</div>
@@ -590,7 +590,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 <div class="sc">
   <div class="sec">關於</div>
   <div class="sg">
-    <div class="si"><div class="si-left"><div class="si-icon" style="background:#E0F5FB;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" fill="#0099CC" fill-opacity="0.15"/><circle cx="8" cy="15" r="1.5" fill="#0099CC"/><circle cx="16" cy="15" r="1.5" fill="#0099CC"/><rect x="5" y="6" width="14" height="5" rx="1" fill="#0099CC"/></svg></div><span class="sk">Railshot</span></div><span class="sv">v1.0.0</span></div>
+    <div class="si"><div class="si-left"><div class="si-icon" style="background:#e8eaf0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" fill="#1a2540" fill-opacity="0.15"/><circle cx="8" cy="15" r="1.5" fill="#1a2540"/><circle cx="16" cy="15" r="1.5" fill="#1a2540"/><rect x="5" y="6" width="14" height="5" rx="1" fill="#1a2540"/></svg></div><span class="sk">Railshot</span></div><span class="sv">v1.0.0</span></div>
     <div class="si"><div class="si-left"><div class="si-icon" style="background:#e8f8ef;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1a9e5c" stroke-width="2"/><path d="M8 12l3 3 5-5" stroke="#1a9e5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="sk">資料來源</span></div><span class="sv">TDX 交通部</span></div>
   </div>
 </div>
@@ -770,7 +770,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 <div class="detail-page" id="detail-page">
   <div class="det-hdr">
     <div class="back-btn" onclick="closeDetail()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="#0099CC"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="#1a2540"/></svg>
       返回
     </div>
     <div id="det-hdr-title" style="display:none;"></div>
@@ -782,7 +782,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 <div class="alert-ov" id="alert-ov">
   <div class="alert-box">
     <div class="al-icon">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" fill="#0099CC" fill-opacity="0.2"/><circle cx="8" cy="15" r="2" fill="#0099CC"/><circle cx="16" cy="15" r="2" fill="#0099CC"/><rect x="5" y="6" width="14" height="6" rx="1.5" fill="#0099CC"/></svg>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" fill="#1a2540" fill-opacity="0.2"/><circle cx="8" cy="15" r="2" fill="#1a2540"/><circle cx="16" cy="15" r="2" fill="#1a2540"/><rect x="5" y="6" width="14" height="6" rx="1.5" fill="#1a2540"/></svg>
     </div>
     <div class="al-title" id="al-title"></div>
     <div class="al-sub" id="al-sub"></div>
@@ -1720,12 +1720,11 @@ const ROUTE_JUNGUAN = new Set([
   '造橋','豐富','苗栗','南勢','銅鑼','三義','泰安','后里',
   '豐原','栗林','潭子','頭家厝','松竹','太原','精武','臺中',
   '五權','大慶','烏日','新烏日','成功',
-  '彰化','花壇','大村','員林','永靖','社頭','田中','二水',
+  '彰化','花壇','大村','員林','永靖','社頭','田中','二水', // 二水同時是集集線起點
   '林內','石榴','斗六','斗南','石龜',
   '大林','民雄','嘉北','嘉義','水上','南靖','後壁','新營',
   '柳營','林鳳營','隆田','拔林','善化','南科','新市','永康',
-  '大橋','臺南','保安','仁德',
-  // 中洲、長榮大學、沙崙 屬沙崙支線，不在此
+  '大橋','臺南','保安','仁德','中洲', // 中洲同時是沙崙線起點
   '大湖','路竹','岡山','橋頭','楠梓','新左營','左營','內惟',
   '美術館','鼓山','三塊厝','高雄','民族','科工館','正義',
   '鳳山','後庄','九曲堂','六塊厝','屏東','歸來','麟洛','西勢',
@@ -1744,8 +1743,9 @@ const ROUTE_EAST = new Set([
   '南澳','東澳','永樂','蘇澳','蘇澳新',
   '新馬','冬山','羅東','中里','二結','宜蘭','四城','礁溪',
   '頂埔','頭城','外澳','龜山','大溪','大里','石城',
-  '福隆','貢寮','雙溪','牡丹','三貂嶺','猴硐','瑞芳','四腳亭','暖暖',
+  '福隆','貢寮','雙溪','牡丹','三貂嶺','猴硐','瑞芳','四腳亭','暖暖', // 三貂嶺/瑞芳同時是平溪線起點
 ]);
+
 
 // 取得站所屬路線群組（傳回 Set reference）
 // 內灣/六家線
@@ -1761,17 +1761,17 @@ const ROUTE_SHENAO = new Set(['瑞芳','海科館','八斗子','深澳']);
 // 沙崙線
 const ROUTE_SHALUN = new Set(['中洲','長榮大學','沙崙']);
 
-function stationRoute(name) {
-  // 支線優先：避免支線站被誤歸入主線
-  if (ROUTE_SHALUN.has(name)) return ROUTE_SHALUN;
-  if (ROUTE_NEIWAN.has(name)) return ROUTE_NEIWAN;
-  if (ROUTE_JIJI.has(name)) return ROUTE_JIJI;
-  if (ROUTE_PINGXI.has(name)) return ROUTE_PINGXI;
-  if (ROUTE_SHENAO.has(name)) return ROUTE_SHENAO;
-  // 主線
-  if (ROUTE_JUNGUAN.has(name)) return ROUTE_JUNGUAN;
-  if (ROUTE_EAST.has(name)) return ROUTE_EAST;
-  return null;
+// 取得站所屬路線群組（回傳 Set[]，一站可屬多條路線）
+function stationRoutes(name) {
+  const routes = [];
+  if (ROUTE_JUNGUAN.has(name)) routes.push(ROUTE_JUNGUAN);
+  if (ROUTE_EAST.has(name))    routes.push(ROUTE_EAST);
+  if (ROUTE_NEIWAN.has(name))  routes.push(ROUTE_NEIWAN);
+  if (ROUTE_JIJI.has(name))    routes.push(ROUTE_JIJI);
+  if (ROUTE_PINGXI.has(name))  routes.push(ROUTE_PINGXI);
+  if (ROUTE_SHENAO.has(name))  routes.push(ROUTE_SHENAO);
+  if (ROUTE_SHALUN.has(name))  routes.push(ROUTE_SHALUN);
+  return routes; // 空陣列 = 未知路線，不做路線驗證
 }
 
 // 台/臺互換
@@ -1861,7 +1861,10 @@ function estimatePassTime(train, targetName) {
   const targetKm = stnKm(targetName);
   if (targetKm === undefined) return null;
 
-  const targetRoute = stationRoute(targetName);
+  const altTarget = targetName.replace(/台/g,'臺').replace(/臺/g,'台');
+  const targetRoutes = stationRoutes(targetName).length > 0
+    ? stationRoutes(targetName)
+    : stationRoutes(altTarget);
   const stops = train.stops;
   const altName = targetName.replace(/台/g,'臺').replace(/臺/g,'台');
 
@@ -1882,12 +1885,15 @@ function estimatePassTime(train, targetName) {
     const bKm = stnKm(sB);
     if (aKm === undefined || bKm === undefined) continue;
 
-    // ── 路線驗證：前後站必須與目標站在同一路線 ──────
-    if (targetRoute) {
-      const aRoute = stationRoute(sA);
-      const bRoute = stationRoute(sB);
-      if (aRoute !== targetRoute || bRoute !== targetRoute) continue;
-    }
+  // ── 路線驗證：前後站與目標站至少有一條共同路線 ──────
+  if (targetRoutes.length > 0) {
+    const aRoutes = stationRoutes(sA);
+    const bRoutes = stationRoutes(sB);
+    // 前後站都必須與目標站有共同路線
+    const aMatch = aRoutes.length === 0 || aRoutes.some(r => targetRoutes.includes(r));
+    const bMatch = bRoutes.length === 0 || bRoutes.some(r => targetRoutes.includes(r));
+    if (!aMatch || !bMatch) continue;
+  }
 
     const tA = stops[i].dep || stops[i].arr;
     const tB = stops[i + 1].arr || stops[i + 1].dep;
