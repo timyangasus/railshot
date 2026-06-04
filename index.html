@@ -103,6 +103,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 /* ── CHIPS ── */
 .chips-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
 .chip-round{width:56px;height:56px;border-radius:50%;border:1.5px solid var(--border2);background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:17px;font-weight:700;color:var(--text2);flex-shrink:0;transition:all .15s;line-height:1.2;}
+.chip-round *{pointer-events:none;}
 .chip-round.on{background:var(--accent);border-color:var(--accent);color:white;}
 .chip-round>div:last-child{font-size:12px;font-weight:500;opacity:0.8;}
 .chips-row::-webkit-scrollbar{display:none;}
@@ -1616,7 +1617,7 @@ function doGPSLocate(){
       if(result) result.innerHTML=`
         <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">附近車站（點可更換）</div>
         ${nearest.map((s,i)=>`
-          <div style="background:${i===0?'var(--accent-lter)':'var(--bg)'};border:${i===0?'1.5px solid var(--accent)':'1px solid var(--border)'};border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="applyGPSStation('${s.n}')">
+          <div style="background:${i===0?'var(--accent-lter)':'var(--bg)'};border:${i===0?'1.5px solid var(--accent)':'1px solid var(--border)'};border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="applyGPSStation('${s.n}')">
             <div>
               <span style="font-size:14px;font-weight:${i===0?'700':'500'};color:${i===0?'var(--accent)':'var(--text)'};">${s.n}站</span>
               <span style="font-size:11px;color:var(--text3);margin-left:6px;">${s.dist<1?(s.dist*1000).toFixed(0)+'m':s.dist.toFixed(1)+'km'}</span>
