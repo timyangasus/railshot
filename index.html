@@ -351,6 +351,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .stop-item.in-range .sname{color:#1a2540;font-weight:600;}
 .stop-item.in-range .stime{color:#3992FF;font-weight:600;}
 .stop-item.in-range::after{background:#3992FF !important;width:3px !important;left:6px !important;}
+.stop-item.hl-end::after{background:var(--border2) !important;width:2px !important;left:7px !important;}
 .sname.hl{color:#1a2540;font-weight:700;}
 .stop-dot.hl{border-color:#3992FF;background:#e6f1ff;}
 .slate{font-size:11px;color:var(--orange);margin-left:2px;}
@@ -2729,7 +2730,7 @@ async function openTTDetailObj(t){
       const badge = isStart ? `<span style="font-size:10px;font-weight:700;background:#3992FF;color:white;padding:1px 6px;border-radius:4px;margin-left:6px;">起</span>`
                   : isEnd   ? `<span style="font-size:10px;font-weight:700;background:#27C97A;color:white;padding:1px 6px;border-radius:4px;margin-left:6px;">迄</span>`
                   : '';
-      return `<div class="stop-item${inRange?' in-range':''}">
+      return `<div class="stop-item${inRange?' in-range':''}${isEnd?' hl-end':''}">
         <div class="stop-dot${dotClass}"></div>
         <span class="sname${nameClass}">${s.s}${badge}</span>
         <span class="stime">${s.dep}${s.late>0?`<span class="slate"> +${s.late}</span>`:''}</span>
