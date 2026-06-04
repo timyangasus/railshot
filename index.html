@@ -499,6 +499,12 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
     </div>
     <button class="srch-btn" onclick="searchTT()">查詢班次</button>
   </div>
+  <div id="tt-results-header" style="display:none;justify-content:flex-end;padding:4px 0 2px;">
+    <button onclick="clearTTResults()" style="background:none;border:none;cursor:pointer;color:var(--text3);display:flex;align-items:center;gap:4px;font-size:13px;font-family:inherit;padding:4px 0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>
+      重新查詢
+    </button>
+  </div>
   <div id="tt-results"></div>
 </div>
 </div>
@@ -1321,6 +1327,11 @@ function updSlider(){
   if(sl) sl.value=locState.pos;
   if(pct) pct.textContent=locState.pos+'%';
 }
+function clearTTResults(){
+  document.getElementById('tt-results').innerHTML = '';
+  document.getElementById('tt-results-header').style.display = 'none';
+}
+
 function setLocMode(m){
   locState.mode=m;
   ['single','between'].forEach(x=>{
@@ -1329,7 +1340,7 @@ function setLocMode(m){
     const btn=document.getElementById('mb-'+x);
     if(btn) btn.classList.toggle('active',x===m);
   });
-  // 切到兩站之間時重置：顯示選站按鈕，隱藏區間選項
+  clearShootResults();
   if(m==='between'){
     const step1=document.getElementById('lc-between-step1');
     const opts=document.getElementById('lc-between-options');
@@ -2327,6 +2338,7 @@ async function openDetailByNo(trainNo, atStation) {
     const ti = TYPE_INFO[train.type] || { label: '列車', cls: 'b-exp' };
     const atStop = train.stops.find(s => s.stn === atStation);
     const passTime = atStop ? (atStop.dep || atStop.arr) : '';
+    const displayDir = calculateDisplayDir(train);
 
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
     document.getElementById('det-body').innerHTML = `
@@ -2548,6 +2560,7 @@ async function searchTT(){
 }
 
 function renderTTList(list, isMock) {
+  document.getElementById('tt-results-header').style.display = list.length ? 'flex' : 'none';
   const el=document.getElementById('tt-results');
 
   const mockBanner = isMock ? `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;">
