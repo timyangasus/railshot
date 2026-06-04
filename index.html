@@ -2323,24 +2323,25 @@ async function openDetailByNo(trainNo, atStation) {
     const atStop = train.stops.find(s => s.stn === atStation);
     const passTime = atStop ? (atStop.dep || atStop.arr) : '';
 
+    const displayDir = calculateDisplayDir(train);
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
     document.getElementById('det-body').innerHTML = `
-      <div style="margin-bottom:20px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span style="font-size:26px;font-weight:700;color:var(--text);letter-spacing:-0.5px;">${trainNo}</span>
-          <span class="badge ${ti.cls}" style="font-size:11px;padding:3px 9px;">${ti.label}</span>
+      <div style="background:#1a2540;margin:-18px -14px 0;padding:18px 18px 20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;font-weight:700;color:white;">${trainNo}</span>
+            <span style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;">${ti.label}</span>
+            <span style="background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;">${displayDir === 'up' ? '↑ 上行' : '↓ 下行'}</span>
+          </div>
+          ${delay > 0 ? `<span style="background:rgba(255,100,0,0.25);color:#FFB080;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;">+${delay}分</span>` : `<span style="background:rgba(0,255,120,0.15);color:#80FFB0;font-size:12px;font-weight:500;padding:4px 10px;border-radius:20px;">準點</span>`}
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="font-size:18px;font-weight:500;color:var(--text);">${atStation}站</div>
-          <span class="dir-tag ${calculateDisplayDir(train)}">${calculateDisplayDir(train) === 'up' ? '↑ 上行' : '↓ 下行'}</span>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:10px;">${train.from} → ${train.to}</div>
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <span style="font-size:40px;font-weight:500;color:white;letter-spacing:-2px;line-height:1;">${passTime || '--'}</span>
+          <span style="font-size:14px;color:rgba(255,255,255,0.55);">${atStation}站</span>
         </div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;">
-          <div style="font-size:40px;font-weight:500;color:var(--accent);letter-spacing:-2px;line-height:1;">${passTime || '--'}</div>
-          ${delay > 0 ? `<span style="font-size:13px;font-weight:600;color:var(--orange);">+${delay}分</span>` : `<span style="font-size:13px;color:var(--green);font-weight:500;">準點</span>`}
-        </div>
-        <div style="border-bottom:0.5px solid var(--border);margin-top:14px;"></div>
       </div>
-      <div class="sec">停靠站時刻</div>
+      <div style="margin-top:16px;" class="sec">停靠站時刻</div>
       <div class="stop-list">
         ${train.stops.map(s => {
           const isCur = s.stn === atStation;
@@ -2590,24 +2591,24 @@ async function openTTDetailObj(t){
         <span class="stime">${s.dep}${s.late>0?`<span class="slate"> +${s.late}</span>`:''}</span>
       </div>`).join('');
 
-    const delayStr = t.delay > 0
-      ? `<span style="font-size:13px;font-weight:600;color:var(--orange);">+${t.delay}分</span>`
-      : `<span style="font-size:13px;color:var(--green);font-weight:500;">準點</span>`;
+    const delayBadge = t.delay > 0
+      ? `<span style="background:rgba(255,100,0,0.25);color:#FFB080;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;">+${t.delay}分</span>`
+      : `<span style="background:rgba(0,255,120,0.15);color:#80FFB0;font-size:12px;font-weight:500;padding:4px 10px;border-radius:20px;">準點</span>`;
 
     document.getElementById('det-body').innerHTML=`
-      <div style="margin-bottom:20px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-          <span style="font-size:26px;font-weight:700;color:var(--text);letter-spacing:-0.5px;">${t.no}</span>
-          <span class="badge ${ti.cls}" style="font-size:11px;padding:3px 9px;">${ti.label}</span>
+      <div style="background:#1a2540;margin:-18px -14px 0;padding:18px 18px 20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:20px;font-weight:700;color:white;">${t.no}</span>
+            <span style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;">${ti.label}</span>
+          </div>
+          ${delayBadge}
         </div>
-        <div style="font-size:18px;font-weight:500;color:var(--text);margin-bottom:10px;">${t.from} → ${t.to}</div>
-        <div style="display:flex;align-items:baseline;justify-content:space-between;">
-          <div style="font-size:26px;font-weight:500;color:var(--accent);letter-spacing:-1px;">${t.dep} → ${t.arr}</div>
-          ${delayStr}
-        </div>
-        <div style="border-bottom:0.5px solid var(--border);margin-top:14px;"></div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:10px;">${t.from} → ${t.to}</div>
+        <div style="font-size:28px;font-weight:500;color:white;letter-spacing:-1px;">${t.dep} → ${t.arr}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:4px;">全程 ${t.dur}</div>
       </div>
-      ${stops.length?`<div class="sec">停靠站時刻</div><div class="stop-list">${stopsHtml}</div>`:''}`;
+      ${stops.length?`<div style="margin-top:16px;" class="sec">停靠站時刻</div><div class="stop-list">${stopsHtml}</div>`:''}`;
   };
 
   renderDetail(t.stops || []);
