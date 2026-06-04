@@ -2340,7 +2340,7 @@ async function openDetailByNo(trainNo, atStation) {
         </div>
         <div style="font-size:15px;color:rgba(255,255,255,0.55);margin-bottom:12px;">${train.from} → ${train.to}</div>
         <div style="display:flex;align-items:baseline;gap:12px;">
-          <span style="font-size:40px;font-weight:700;color:white;letter-spacing:-2px;line-height:1;">${passTime || '--'}</span>
+          <span style="font-size:40px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-2px;line-height:1;">${passTime || '--'}</span>
           ${delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;">+${delay}分</span>` : ''}
         </div>
         <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:5px;">${atStation}站</div>
@@ -2610,7 +2610,7 @@ async function openTTDetailObj(t){
         </div>
         <div style="font-size:15px;color:rgba(255,255,255,0.55);margin-bottom:12px;">${t.from} → ${t.to}</div>
         <div style="display:flex;align-items:baseline;gap:12px;">
-          <span style="font-size:34px;font-weight:700;color:white;letter-spacing:-1.5px;line-height:1;">${t.dep} → ${t.arr}</span>
+          <span style="font-size:34px;font-weight:700;color:${t.delay>0?'#FF9966':'#80FFB0'};letter-spacing:-1.5px;line-height:1;">${t.dep} → ${t.arr}</span>
           ${t.delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;">+${t.delay}分</span>` : ''}
         </div>
         <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:5px;">行駛時間：${t.dur}</div>
