@@ -2467,15 +2467,28 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
       </div>
       <div style="margin-top:16px;" class="sec">停靠站時刻</div>
       <div class="stop-list">
-        ${train.stops.map(s => {
-          const isCur = s.stn === atStation || s.stn === s2Station;
-          const isMj = MAJOR.has(s.stn);
-          return `<div class="stop-item${isCur ? ' cur-stop' : ''}">
-            <div class="stop-dot${isMj ? ' mj' : ''}${isCur ? ' cur' : ''}"></div>
-            <span class="sname${isMj ? ' mj' : ''}">${s.stn}</span>
-            <span class="stime">${s.dep || s.arr}</span>
-          </div>`;
-        }).join('')}
+        ${(() => {
+          // 找 atStation 和 s2Station 的 index，計算高亮區間
+          const stops = train.stops;
+          const i1 = stops.findIndex(s => s.stn === atStation);
+          const i2 = isBetween && s2Station ? stops.findIndex(s => s.stn === s2Station) : -1;
+          const hlStart = i2 >= 0 ? Math.min(i1, i2) : i1;
+          const hlEnd   = i2 >= 0 ? Math.max(i1, i2) : i1;
+
+          return stops.map((s, i) => {
+            const inRange  = i >= hlStart && i <= hlEnd;
+            const isHlEnd  = i === hlEnd;
+            const isMj = MAJOR.has(s.stn);
+            const badge = (i === i1 && isBetween) ? `<span style="font-size:10px;font-weight:700;background:#3992FF;color:white;padding:1px 6px;border-radius:4px;margin-left:6px;">起</span>`
+                        : (i === i2 && isBetween) ? `<span style="font-size:10px;font-weight:700;background:#27C97A;color:white;padding:1px 6px;border-radius:4px;margin-left:6px;">迄</span>`
+                        : '';
+            return `<div class="stop-item${inRange?' in-range':''}${isHlEnd?' hl-end':''}">
+              <div class="stop-dot${inRange?' hl':(isMj?' mj':'')}"></div>
+              <span class="sname${inRange?' hl':(isMj?' mj':'')}">${s.stn}${badge}</span>
+              <span class="stime">${s.dep || s.arr}</span>
+            </div>`;
+          }).join('');
+        })()}
       </div>
 `;
   } catch(e) {
