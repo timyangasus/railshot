@@ -1818,7 +1818,7 @@ const STATION_ORDER = {};
   '林內','石榴','斗六','斗南','石龜',
   '大林','民雄','嘉北','嘉義','水上','南靖','後壁','新營',
   '柳營','林鳳營','隆田','拔林','善化','南科','新市','永康','大橋','臺南',
-  '保安','仁德','中洲','長榮大學','沙崙',
+  '保安','仁德','中洲',
   '大湖','路竹','岡山','橋頭','楠梓','新左營','左營','內惟',
   '美術館','鼓山','三塊厝','高雄','民族','科工館','正義',
   '鳳山','後庄','九曲堂','六塊厝','屏東','歸來','麟洛','西勢',
@@ -1861,6 +1861,17 @@ function calculateDisplayDir(train) {
 }
 
 // Debug 工具
+// 從起終站名計算方向（供 TT detail 使用）
+function calcDirFromFromTo(from, to, fallback) {
+  const norm = s => {
+    if (!s) return undefined;
+    return STATION_ORDER[s] ?? STATION_ORDER[s.replace(/臺/g,'台')] ?? STATION_ORDER[s.replace(/台/g,'臺')];
+  };
+  const fi = norm(from), ti = norm(to);
+  if (fi !== undefined && ti !== undefined) return fi < ti ? 'down' : 'up';
+  return fallback || 'down';
+}
+
 window.debugDirection = function(trainNo) {
   if (!gttData) { console.log('gttData not loaded'); return; }
   const train = gttData.trains.find(t => t.no === String(trainNo));
@@ -2245,7 +2256,7 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
       arrowColor = '#3992FF';
       arrowSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     } else if (m1 > m2) {
-      arrowColor = '#CE5900';
+      arrowColor = '#27C97A'; // 綠色：右站先到
       arrowSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6L5 12l6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     } else {
       arrowColor = '#8A9AB2';
@@ -2349,7 +2360,7 @@ async function openDetailByNo(trainNo, atStation) {
     document.getElementById('det-body').innerHTML = `
       <div style="background:#1a2540;margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
         <div style="position:absolute;top:16px;right:16px;">
-          <span style="background:${displayDir==='up'?'rgba(57,146,255,0.15)':'rgba(39,201,122,0.15)'};color:${displayDir==='up'?'#99C8FF':'#80FFB0'};font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${displayDir==='up'?'↑ 上行':'↓ 下行'}</span>
+          <span style="background:${displayDir==='up'?'rgba(57,146,255,0.2)':'rgba(39,201,122,0.2)'};color:${displayDir==='up'?'#99C8FF':'#80FFB0'};font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${displayDir==='up'?'↑ 上行':'↓ 下行'}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-right:90px;">
           <span style="font-size:22px;font-weight:700;color:white;">${trainNo}</span>
@@ -2613,25 +2624,26 @@ async function openTTDetailObj(t){
         <span class="stime">${s.dep}${s.late>0?`<span class="slate"> +${s.late}</span>`:''}</span>
       </div>`).join('');
 
-    const delayBadge = t.delay > 0
-      ? `<span style="background:rgba(255,100,0,0.25);color:#FFB080;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;">+${t.delay}分</span>`
-      : `<span style="background:rgba(0,255,120,0.15);color:#80FFB0;font-size:12px;font-weight:500;padding:4px 10px;border-radius:20px;">準點</span>`;
+    const tDir = calcDirFromFromTo(t.from, t.to, t.dir);
+    const dirBg    = tDir === 'up' ? 'rgba(57,146,255,0.2)'  : 'rgba(39,201,122,0.2)';
+    const dirColor = tDir === 'up' ? '#99C8FF' : '#80FFB0';
+    const dirLabel = tDir === 'up' ? '↑ 上行' : '↓ 下行';
 
     document.getElementById('det-body').innerHTML=`
       <div style="background:#1a2540;margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
         <div style="position:absolute;top:16px;right:16px;">
-          <span style="background:${t.dir==='up'?'rgba(57,146,255,0.15)':'rgba(39,201,122,0.15)'};color:${t.dir==='up'?'#99C8FF':'#80FFB0'};font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${t.dir==='up'?'↑ 上行':'↓ 下行'}</span>
+          <span style="background:${dirBg};color:${dirColor};font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${dirLabel}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-right:90px;">
           <span style="font-size:22px;font-weight:700;color:white;">${t.no}</span>
           <span style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:13px;padding:3px 10px;border-radius:20px;font-weight:500;">${ti.label}</span>
         </div>
-        <div style="font-size:15px;color:rgba(255,255,255,0.55);margin-bottom:12px;">${t.from} → ${t.to}</div>
+        <div style="font-size:15px;color:rgba(255,255,255,0.65);margin-bottom:12px;">${t.from} → ${t.to}</div>
         <div style="display:flex;align-items:baseline;gap:12px;">
           <span style="font-size:34px;font-weight:700;color:${t.delay>0?'#FF9966':'#80FFB0'};letter-spacing:-1.5px;line-height:1;">${t.dep} → ${t.arr}</span>
           ${t.delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;">+${t.delay}分</span>` : ''}
         </div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:5px;">行駛時間：${t.dur}</div>
+        <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);margin-top:5px;">行駛時間：${t.dur}</div>
       </div>
       ${stops.length?`<div style="margin-top:16px;" class="sec">停靠站時刻</div><div class="stop-list">${stopsHtml}</div>`:''}`;
   };
