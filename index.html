@@ -142,7 +142,7 @@ html,body{height:100%;background:#e8eef8;color:var(--text);font-family:-apple-sy
 .tc-mid{display:flex;align-items:center;gap:7px;margin-bottom:7px;flex-wrap:wrap;}
 .dir-tag{font-size:11px;padding:2px 8px;border-radius:5px;font-weight:600;}
 .dir-tag.up{background:#e6f1ff;color:#3992FF;}
-.dir-tag.down{background:var(--orange-lt);color:var(--orange);}
+.dir-tag.down{background:#e6f9f1;color:#27C97A;}
 .tc-route{font-size:13px;color:var(--text2);margin-bottom:5px;}
 .tc-bot{display:flex;align-items:center;justify-content:space-between;}
 .tc-loc{font-size:12px;color:var(--text3);}
@@ -2270,7 +2270,7 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
     const t2Html = s2Est
       ? `<span style="font-size:18px;font-weight:400;color:#446183;">約</span> ${s2Time || '--'}`
       : (s2Time || '--');
-    return `<div class="train-card" onclick="openDetailByNo('${train.no}','${s1Name}')">
+    return `<div class="train-card" onclick="openDetailByNo('${train.no}','${s1Name}','${s2Name}','${s1Time}','${s2Time}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="badge ${ti.cls}">${ti.label}</span>
@@ -2325,8 +2325,8 @@ function renderTrainList(list) {
 }
 
 // ===== DETAIL =====
-async function openDetailByNo(trainNo, atStation) {
-  const detPage = document.getElementById('detail-page');
+async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2TimeOverride) {
+  const isBetween = !!s2Station;
   document.getElementById('det-hdr-title').textContent = '載入中...';
   document.getElementById('det-body').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);"><svg width="36" height="36" viewBox="0 0 40 40" style="animation:spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="16" fill="none" stroke="#e0e0e0" stroke-width="4"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="60 44" stroke-linecap="round"/></svg></div>`;
   detPage.classList.add('open');
@@ -2353,8 +2353,28 @@ async function openDetailByNo(trainNo, atStation) {
 
     const ti = TYPE_INFO[train.type] || { label: '列車', cls: 'b-exp' };
     const atStop = train.stops.find(s => s.stn === atStation);
-    const passTime = atStop ? (atStop.dep || atStop.arr) : '';
+    const passTime = s1TimeOverride || (atStop ? (atStop.dep || atStop.arr) : '');
     const displayDir = calculateDisplayDir(train);
+
+    // 兩站之間模式：顯示 s1→s2 時間
+    const timeSection = isBetween && s2Station && s2TimeOverride
+      ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:2px;">${atStation}</div>
+            <span style="font-size:34px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-1.5px;line-height:1;">${passTime || '--'}</span>
+          </div>
+          <span style="font-size:24px;color:rgba(255,255,255,0.4);margin:0 4px;padding-top:18px;">→</span>
+          <div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:2px;">${s2Station}</div>
+            <span style="font-size:34px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-1.5px;line-height:1;">${s2TimeOverride}</span>
+          </div>
+          ${delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;padding-top:18px;">+${delay}分</span>` : ''}
+        </div>`
+      : `<div style="display:flex;align-items:baseline;gap:12px;">
+          <span style="font-size:40px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-2px;line-height:1;">${passTime || '--'}</span>
+          ${delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;">+${delay}分</span>` : ''}
+        </div>
+        <div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.2);margin-top:6px;">${atStation}站</div>`;
 
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
     document.getElementById('det-body').innerHTML = `
@@ -2366,17 +2386,13 @@ async function openDetailByNo(trainNo, atStation) {
           <span style="font-size:22px;font-weight:700;color:white;">${trainNo}</span>
           <span style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:13px;padding:3px 10px;border-radius:20px;font-weight:500;">${ti.label}</span>
         </div>
-        <div style="font-size:15px;color:rgba(255,255,255,0.55);margin-bottom:12px;">${train.from} → ${train.to}</div>
-        <div style="display:flex;align-items:baseline;gap:12px;">
-          <span style="font-size:40px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-2px;line-height:1;">${passTime || '--'}</span>
-          ${delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;">+${delay}分</span>` : ''}
-        </div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:5px;">${atStation}站</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:14px;">${train.from} → ${train.to}</div>
+        ${timeSection}
       </div>
       <div style="margin-top:16px;" class="sec">停靠站時刻</div>
       <div class="stop-list">
         ${train.stops.map(s => {
-          const isCur = s.stn === atStation;
+          const isCur = s.stn === atStation || s.stn === s2Station;
           const isMj = MAJOR.has(s.stn);
           return `<div class="stop-item${isCur ? ' cur-stop' : ''}">
             <div class="stop-dot${isMj ? ' mj' : ''}${isCur ? ' cur' : ''}"></div>
