@@ -347,6 +347,12 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .stop-item.cur-stop .sname{color:var(--accent);font-weight:700;}
 .stop-item.cur-stop .stime{color:var(--accent);font-weight:700;}
 .stop-item.cur-stop .stop-dot{background:var(--accent);box-shadow:0 0 0 3px rgba(26,37,64,0.2);}
+.stop-item.in-range .stop-dot{border-color:#3992FF;background:#e6f1ff;}
+.stop-item.in-range .sname{color:#1a2540;font-weight:600;}
+.stop-item.in-range .stime{color:#3992FF;font-weight:600;}
+.stop-item.in-range::after{background:#3992FF !important;width:3px !important;left:6px !important;}
+.sname.hl{color:#1a2540;font-weight:700;}
+.stop-dot.hl{border-color:#3992FF;background:#e6f1ff;}
 .slate{font-size:11px;color:var(--orange);margin-left:2px;}
 .act-btns{display:flex;flex-direction:column;gap:8px;margin-top:20px;padding-bottom:20px;}
 .btn-p{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(26,37,64,0.25);}
@@ -2701,13 +2707,34 @@ async function openTTDetailObj(t){
   const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
   document.getElementById('detail-page').classList.add('open');
 
+  // 查詢起終站（從頁面讀取）
+  const qFromLbl = document.getElementById('tt-from-lbl');
+  const qToLbl   = document.getElementById('tt-to-lbl');
+  const qFrom = qFromLbl?.classList.contains('placeholder') ? '' : (qFromLbl?.textContent||'');
+  const qTo   = qToLbl?.classList.contains('placeholder')   ? '' : (qToLbl?.textContent||'');
+
   const renderDetail = (stops) => {
-    const stopsHtml = stops.map(s=>`
-      <div class="stop-item">
-        <div class="stop-dot${s.mj?' mj':''}"></div>
-        <span class="sname${s.mj?' mj':''}">${s.s}</span>
+    // 計算查詢區間高亮範圍
+    const idxFrom = qFrom ? stops.findIndex(s => s.s === qFrom || s.s === qFrom.replace(/台/g,'臺').replace(/臺/g,'台')) : -1;
+    const idxTo   = qTo   ? stops.findIndex(s => s.s === qTo   || s.s === qTo.replace(/台/g,'臺').replace(/臺/g,'台'))   : -1;
+    const hlStart = (idxFrom >= 0 && idxTo >= 0) ? Math.min(idxFrom, idxTo) : -1;
+    const hlEnd   = (idxFrom >= 0 && idxTo >= 0) ? Math.max(idxFrom, idxTo) : -1;
+
+    const stopsHtml = stops.map((s, i) => {
+      const inRange = hlStart >= 0 && i >= hlStart && i <= hlEnd;
+      const isStart = i === (idxFrom <= idxTo ? idxFrom : idxTo) && hlStart >= 0;
+      const isEnd   = i === (idxFrom <= idxTo ? idxTo : idxFrom) && hlStart >= 0;
+      const dotClass = inRange ? ' hl' : (s.mj ? ' mj' : '');
+      const nameClass = inRange ? ' hl' : (s.mj ? ' mj' : '');
+      const badge = isStart ? `<span style="font-size:10px;font-weight:700;background:#3992FF;color:white;padding:1px 6px;border-radius:4px;margin-left:6px;">起</span>`
+                  : isEnd   ? `<span style="font-size:10px;font-weight:700;background:#27C97A;color:white;padding:1px 6px;border-radius:4px;margin-left:6px;">迄</span>`
+                  : '';
+      return `<div class="stop-item${inRange?' in-range':''}">
+        <div class="stop-dot${dotClass}"></div>
+        <span class="sname${nameClass}">${s.s}${badge}</span>
         <span class="stime">${s.dep}${s.late>0?`<span class="slate"> +${s.late}</span>`:''}</span>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     const tDir = calcDirFromFromTo(t.from, t.to, t.dir);
     const dirBg    = tDir === 'up' ? 'rgba(57,146,255,0.2)'  : 'rgba(39,201,122,0.2)';
