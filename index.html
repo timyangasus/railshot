@@ -2702,7 +2702,7 @@ function fstnRenderFreqRow(){
     return;
   }
   row.style.display = 'block';
-  row.innerHTML = freqStns.slice().reverse().map(name =>
+  row.innerHTML = sortedFreqStns().map(name =>
     `<span class="sp-freq-chip" onclick="favStnSelectCounty(findCountyOfStn('${name}'));favStnRenderStns()">${name}</span>`
   ).join('');
 }
@@ -2755,6 +2755,13 @@ function favStnToggle(name){
   spRenderFreqRow();    // 更新選站頁 chip
 }
 
+function sortedFreqStns(){
+  return freqStns.slice().sort((a,b)=>{
+    const ia = STATION_ORDER[a] ?? STATION_ORDER[a.replace(/臺/g,'台')] ?? 9999;
+    const ib = STATION_ORDER[b] ?? STATION_ORDER[b.replace(/臺/g,'台')] ?? 9999;
+    return ia - ib;
+  });
+}
 function renderFreqStns(){
   const el = document.getElementById('fav-stn-list');
   if(!el) return;
@@ -2770,7 +2777,7 @@ function renderFreqStns(){
   }
   el.innerHTML = `<div class="fstn-card">
     <div class="fstn-header">常用車站</div>
-    ${freqStns.slice().reverse().map(name => {
+    ${sortedFreqStns().map(name => {
       const isMj = MAJOR.has(name);
       return `<div class="fstn-item">
         <span class="fstn-name${isMj?' major':''}">${name}</span>
@@ -2797,7 +2804,7 @@ function spRenderFreqRow(){
     return;
   }
   row.style.display = 'block';
-  row.innerHTML = freqStns.slice().reverse().map(name =>
+  row.innerHTML = sortedFreqStns().map(name =>
     `<span class="sp-freq-chip" onclick="spSelectStation('${name}')">${name}</span>`
   ).join('');
 }
