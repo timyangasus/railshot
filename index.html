@@ -2285,7 +2285,7 @@ async function doSearch() {
 
   const timeRange = parseInt(timeEl?.dataset.val || '60');
   const now = new Date();
-  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const nowMins = timeRange >= 1440 ? 0 : now.getHours() * 60 + now.getMinutes();
   const endMins = timeRange >= 1440 ? 23 * 60 + 59 : nowMins + timeRange;
 
   const isBetween = locMode === '兩站之間' || loc.includes('－') || loc.includes('間');
