@@ -88,15 +88,21 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   width:100%;
   box-sizing:border-box;
 }
-.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;color:var(--text3);transition:color .2s;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:8px 0;color:var(--text3);transition:color .2s;}
 .tab-item.active{color:var(--accent);}
-.tab-icon{width:26px;height:26px;display:flex;align-items:center;justify-content:center;}
-.tab-label{font-size:10px;font-weight:500;letter-spacing:0.1px;}
-.tab-active-bar{width:20px;height:2.5px;border-radius:2px;background:var(--accent);margin-top:1px;opacity:0;transition:opacity .2s;}
+.tab-label{font-size:13px;font-weight:500;letter-spacing:0.1px;}
+.tab-item.active .tab-label{font-weight:700;}
+.tab-active-bar{width:20px;height:2.5px;border-radius:2px;background:var(--accent);margin-top:2px;opacity:0;transition:opacity .2s;}
 .tab-item.active .tab-active-bar{opacity:1;}
 
 /* ── SCREENS ── */
 .screen{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:none;flex-direction:column;}
+#tab-fav{overflow:hidden;}
+#tab-fav.active{display:flex;}
+#fav-tt-panel{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#fav-stn-panel{flex:1;overflow:hidden;}
+#fav-stn-panel.visible{display:flex!important;}
+/* County col in fav-stn manager — uses .stn-county-col/.stn-list-item from above */
 .screen.active{display:flex;}
 .sc{padding:14px 14px 20px;}
 
@@ -429,9 +435,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .tt-card-nearest{border-color:var(--accent);border-width:1.5px;}
 .tt-nearest-tag{display:inline-flex;align-items:center;gap:4px;background:var(--accent);color:white;font-size:11px;font-weight:600;padding:3px 9px;border-radius:5px;margin-bottom:8px;}
 /* ── FAV SUB-TABS ── */
-.fav-subtabs{display:flex;gap:0;background:#C8C8CE;border-radius:10px;padding:3px;margin-bottom:14px;}
-.fav-subtab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border-radius:8px;font-size:13px;font-weight:500;font-family:inherit;border:none;background:transparent;color:var(--text3);cursor:pointer;transition:all .15s;}
-.fav-subtab.active{background:white;color:var(--accent);font-weight:600;box-shadow:var(--shadow);}
+.fav-subtabs{display:flex;gap:0;background:#E0E0E5;border-radius:10px;padding:3px;margin-bottom:14px;}
+.fav-subtab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border-radius:8px;font-size:13px;font-weight:500;font-family:inherit;border:none;background:transparent;color:#6e7a8a;cursor:pointer;transition:all .15s;}
+.fav-subtab.active{background:white;color:var(--accent);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.12);}
 
 /* ── TT CARD HEART ── */
 .tt-card{position:relative;}
@@ -440,10 +446,26 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .tt-heart-btn.liked{color:var(--red);}
 .tt-fav-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:13px 15px;margin-bottom:8px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;}
 .tt-fav-body{flex:1;min-width:0;}
+.tt-fav-query{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:4px;}
 .tt-fav-times{font-size:18px;font-weight:800;letter-spacing:-0.5px;color:var(--text);margin-bottom:5px;}
 .tt-fav-mid{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
 .tt-fav-route{font-size:13px;color:var(--text2);}
 .tt-fav-del{width:34px;height:34px;border-radius:50%;background:var(--red-lt);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+/* Frequent station list in fav tab */
+.fstn-card{background:white;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;}
+.fstn-header{padding:10px 15px 6px;font-size:12px;font-weight:700;color:var(--text3);letter-spacing:0.4px;}
+.fstn-item{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;border-top:1px solid var(--border);}
+.fstn-item:first-of-type{border-top:none;}
+.fstn-name{font-size:17px;font-weight:500;color:var(--text);}
+.fstn-name.major{font-weight:700;}
+.fstn-del{width:30px;height:30px;border-radius:50%;background:var(--red-lt);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+/* Heart button in station list */
+.stn-heart{width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#c8d0dc;transition:color .15s;}
+.stn-heart.liked{color:#e05c6a;}
+.stn-heart:active{transform:scale(0.88);}
+/* Frequent station chips in picker */
+.sp-freq-chip{display:inline-flex;align-items:center;background:var(--accent-lt);border:1.5px solid var(--accent);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;margin-right:8px;white-space:nowrap;transition:background .12s;}
+.sp-freq-chip:active{background:var(--accent);color:white;}
 
 /* ── ANIMATIONS ── */
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -582,27 +604,32 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 
 <!-- TAB 3: 收藏 -->
 <div class="screen" id="tab-fav">
-<div class="sc">
-  <!-- Sub-tab switcher -->
-  <div class="fav-subtabs">
-    <button class="fav-subtab active" id="fst-tt" onclick="switchFavSubTab('tt',this)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
-      時刻表
-    </button>
-    <button class="fav-subtab" id="fst-shoot" onclick="switchFavSubTab('shoot',this)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 15.2A3.2 3.2 0 0 1 8.8 12 3.2 3.2 0 0 1 12 8.8 3.2 3.2 0 0 1 15.2 12 3.2 3.2 0 0 1 12 15.2M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z" fill="currentColor"/></svg>
-      拍車
-    </button>
+  <!-- Sub-tab switcher — 不走 .sc，讓下方兩欄能撐滿 -->
+  <div style="padding:12px 16px 0;">
+    <div class="fav-subtabs">
+      <button class="fav-subtab active" id="fst-tt" onclick="switchFavSubTab('tt',this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
+        時刻表
+      </button>
+      <button class="fav-subtab" id="fst-stn" onclick="switchFavSubTab('stn',this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
+        常用車站
+      </button>
+    </div>
   </div>
   <!-- TT Favs -->
-  <div id="fav-tt-panel">
+  <div id="fav-tt-panel" style="flex:1;overflow-y:auto;padding:12px 16px;">
     <div id="fav-tt-list"></div>
   </div>
-  <!-- Shoot Favs -->
-  <div id="fav-shoot-panel" style="display:none;">
-    <div id="fav-list"></div>
+  <!-- 常用車站：兩欄管理器，複用選站頁同款 CSS -->
+  <div id="fav-stn-panel" style="display:none;flex:1;overflow:hidden;">
+    <div class="stn-body" style="height:100%;">
+      <div class="stn-county-col" id="fstn-county-col"></div>
+      <div class="stn-list-col" id="fstn-stn-col">
+        <div class="stn-empty-col">← 請先從左側選擇縣市</div>
+      </div>
+    </div>
   </div>
-</div>
 </div>
 
 <!-- TAB 4: 設定 -->
@@ -619,30 +646,18 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <!-- TAB BAR -->
 <div class="tab-bar">
   <div class="tab-item active" onclick="switchTab('tt',this)" id="tbtn-tt">
-    <div class="tab-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M582-298 440-440v-200h80v167l118 118-56 57ZM440-720v-80h80v80h-80Zm280 280v-80h80v80h-80ZM440-160v-80h80v80h-80ZM160-440v-80h80v80h-80ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
-    </div>
     <div class="tab-label">時刻表</div>
     <div class="tab-active-bar"></div>
   </div>
   <div class="tab-item" onclick="switchTab('shoot',this)" id="tbtn-shoot">
-    <div class="tab-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M480-260q75 0 127.5-52.5T660-440q0-75-52.5-127.5T480-620q-75 0-127.5 52.5T300-440q0 75 52.5 127.5T480-260Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM160-120q-33 0-56.5-23.5T80-200v-480q0-33 23.5-56.5T160-760h126l74-80h240l74 80h126q33 0 56.5 23.5T880-680v480q0 33-23.5 56.5T800-120H160Zm0-80h640v-480H638l-73-80H395l-73 80H160v480Zm320-240Z"/></svg>
-    </div>
     <div class="tab-label">拍車</div>
     <div class="tab-active-bar"></div>
   </div>
   <div class="tab-item" onclick="switchTab('fav',this)" id="tbtn-fav">
-    <div class="tab-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Zm0-108q96-86 158-147.5t98-107q36-45.5 50-81t14-70.5q0-60-40-100t-100-40q-47 0-87 26.5T518-680h-76q-15-41-55-67.5T300-774q-60 0-100 40t-40 100q0 35 14 70.5t50 81q36 45.5 98 107T480-228Zm0-273Z"/></svg>
-    </div>
     <div class="tab-label">收藏</div>
     <div class="tab-active-bar"></div>
   </div>
   <div class="tab-item" onclick="switchTab('settings',this)" id="tbtn-settings">
-    <div class="tab-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/></svg>
-    </div>
     <div class="tab-label">設定</div>
     <div class="tab-active-bar"></div>
   </div>
@@ -777,10 +792,15 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       </div>
     </div>
   </div>
-  <div class="stn-body">
-    <div class="stn-county-col" id="sp-county-col"></div>
-    <div class="stn-list-col" id="sp-stn-col">
-      <div class="stn-empty-col">← 請先從左側選擇縣市</div>
+  <div class="stn-body" style="flex-direction:column;">
+    <!-- 常用車站 chip row -->
+    <div id="sp-freq-row" style="display:none;flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--border);padding:18px 14px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch;">
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <div class="stn-county-col" id="sp-county-col"></div>
+      <div class="stn-list-col" id="sp-stn-col">
+        <div class="stn-empty-col">← 請先從左側選擇縣市</div>
+      </div>
     </div>
   </div>
 </div>
@@ -963,7 +983,15 @@ function switchTab(name,el){
   document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
-  if(name==='fav'){ renderFavs(); renderTTFavs(); }
+  if(name==='fav'){
+    renderTTFavs();
+    // 若常用車站 panel 正顯示，刷新右欄愛心狀態
+    if(document.getElementById('fav-stn-panel')?.classList.contains('visible')) favStnRenderStns();
+  }
+
+  // refresh 按鈕只在時刻表顯示
+  const resetBtn = document.getElementById('tt-reset-btn');
+  if(resetBtn) resetBtn.style.display = name === 'tt' ? 'flex' : 'none';
 
   // 點同一個 tab icon → 滾回最頂部
   if(isSameTab){
@@ -1024,8 +1052,18 @@ function autoSearchTT(){
 function switchFavSubTab(sub, btn){
   document.querySelectorAll('.fav-subtab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('fav-tt-panel').style.display = sub==='tt'?'block':'none';
-  document.getElementById('fav-shoot-panel').style.display = sub==='shoot'?'block':'none';
+  const ttPanel  = document.getElementById('fav-tt-panel');
+  const stnPanel = document.getElementById('fav-stn-panel');
+  if(sub === 'tt'){
+    ttPanel.style.display  = '';
+    stnPanel.classList.remove('visible');
+    stnPanel.style.display = 'none';
+  } else {
+    ttPanel.style.display  = 'none';
+    stnPanel.style.display = '';
+    stnPanel.classList.add('visible');
+    initFavStnManager();
+  }
 }
 function setChip(el,gid){
   document.querySelectorAll('#'+gid+' .chip, #'+gid+' .chip-round').forEach(c=>c.classList.remove('on'));
@@ -1098,6 +1136,7 @@ function openStnPage(caller, initialFrom, initialTo, activeSlot, cb){
   }
 
   document.getElementById('stn-page').classList.add('open');
+  spRenderFreqRow();
 }
 
 function spFindCountyOfStation(stnName){
@@ -1220,8 +1259,6 @@ function spRenderStnCol(){
   const curSel = spState.active === 'from' ? fromSel : toSel;
   el.innerHTML = stns.map(s => {
     const isCurSel = curSel === s;
-    // Also show if it's the other slot's selection (different color hint)
-    const isOtherSel = spState.active === 'from' ? toSel === s : fromSel === s;
     const isMaj = MAJOR.has(s);
     let cls = 'stn-list-item';
     if(isCurSel) cls += ' sel';
@@ -2590,9 +2627,130 @@ function swapTT(){
   document.getElementById('tt-results').innerHTML = '';
 }
 // TT Favourites stored in memory
+// ===== FREQUENT STATIONS =====
+let freqStns = JSON.parse(localStorage.getItem('rs_freqstns') || '[]'); // array of station names, ordered by add time
+function saveFreqStns(){ localStorage.setItem('rs_freqstns', JSON.stringify(freqStns)); }
+function isStnFaved(name){ return freqStns.includes(name); }
+function toggleStnFav(name, event){
+  if(event) event.stopPropagation();
+  const idx = freqStns.indexOf(name);
+  if(idx > -1) freqStns.splice(idx, 1);
+  else freqStns.push(name);
+  saveFreqStns();
+  // update hearts in current station page view
+  spRenderStnCol();
+  spRenderFreqRow();
+  // update fav tab if open
+  renderFreqStns();
+}
+// ── 常用車站管理器（收藏 tab 右側）────────────────────
+let favStnSelectedCounty = '';
+function initFavStnManager(){
+  // 預設選第一個縣市
+  if(!favStnSelectedCounty) favStnSelectedCounty = COUNTY_LIST[0];
+  favStnRenderCountyCol();
+  favStnRenderStns();
+}
+function favStnRenderCountyCol(){
+  const el = document.getElementById('fstn-county-col');
+  if(!el) return;
+  let html = COUNTY_LIST.map(c =>
+    `<div class="stn-county-item${c===favStnSelectedCounty?' sel':''}" onclick="favStnSelectCounty('${c}')">${c}</div>`
+  ).join('');
+  html += `<div class="stn-county-sep">支線</div>`;
+  html += Object.keys(BRANCH_LINES).map(br =>
+    `<div class="stn-county-item${br===favStnSelectedCounty?' sel':''}" onclick="favStnSelectCounty('${br}')">${br}</div>`
+  ).join('');
+  el.innerHTML = html;
+}
+function favStnSelectCounty(county){
+  favStnSelectedCounty = county;
+  favStnRenderCountyCol();
+  favStnRenderStns();
+  document.getElementById('fstn-stn-col').scrollTop = 0;
+}
+function favStnRenderStns(){
+  const el = document.getElementById('fstn-stn-col');
+  if(!el || !favStnSelectedCounty) return;
+  const stns = STN_DATA[favStnSelectedCounty] || BRANCH_LINES[favStnSelectedCounty] || [];
+  if(!stns.length){ el.innerHTML = `<div class="stn-empty-col">此縣市無車站資料</div>`; return; }
+  const heartFull  = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#e05c6a"/></svg>`;
+  const heartEmpty = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" fill="#c8d0dc"/></svg>`;
+  el.innerHTML = stns.map(s => {
+    const faved = isStnFaved(s);
+    const isMj  = MAJOR.has(s);
+    return `<div class="stn-list-item${isMj?' major-stn':''}">
+      <span>${s}</span>
+      <button onclick="favStnToggle('${s}')" style="width:36px;height:36px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;">${faved?heartFull:heartEmpty}</button>
+    </div>`;
+  }).join('');
+}
+function favStnToggle(name){
+  const idx = freqStns.indexOf(name);
+  if(idx > -1) freqStns.splice(idx, 1);
+  else freqStns.push(name);
+  saveFreqStns();
+  favStnRenderStns();   // 只重繪右欄
+  spRenderFreqRow();    // 更新選站頁 chip
+}
+
+function renderFreqStns(){
+  const el = document.getElementById('fav-stn-list');
+  if(!el) return;
+  if(!freqStns.length){
+    el.innerHTML=`<div class="empty-state">
+      <div class="empty-icon" style="display:flex;justify-content:center;">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" fill="#dde6f5"/></svg>
+      </div>
+      <div class="empty-text">尚無常用車站</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:6px;">在選站頁面點 ♡ 加入常用</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = `<div class="fstn-card">
+    <div class="fstn-header">常用車站</div>
+    ${freqStns.slice().reverse().map(name => {
+      const isMj = MAJOR.has(name);
+      return `<div class="fstn-item">
+        <span class="fstn-name${isMj?' major':''}">${name}</span>
+        <button class="fstn-del" onclick="removeStnFav('${name}')" aria-label="移除">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="#d43030"/></svg>
+        </button>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function removeStnFav(name){
+  freqStns = freqStns.filter(s => s !== name);
+  saveFreqStns();
+  renderFreqStns();
+  spRenderFreqRow();
+  spRenderStnCol();
+}
+// Render chip row in station picker
+function spRenderFreqRow(){
+  const row = document.getElementById('sp-freq-row');
+  if(!row) return;
+  if(!freqStns.length){
+    row.style.display = 'none';
+    return;
+  }
+  row.style.display = 'block';
+  row.innerHTML = freqStns.slice().reverse().map(name =>
+    `<span class="sp-freq-chip" onclick="spSelectStation('${name}')">${name}</span>`
+  ).join('');
+}
+
 let ttFavs = JSON.parse(localStorage.getItem('rs_ttfavs') || '[]');
 function saveTTFavs(){ localStorage.setItem('rs_ttfavs', JSON.stringify(ttFavs)); }
-function isTTFaved(no){ return ttFavs.some(f=>f.no===no); }
+function isTTFaved(no){
+  // read current query from DOM to match exact (queryFrom+queryTo+no)
+  const fromLbl = document.getElementById('tt-from-lbl');
+  const toLbl   = document.getElementById('tt-to-lbl');
+  const qFrom = fromLbl?.classList.contains('placeholder') ? '' : (fromLbl?.textContent||'');
+  const qTo   = toLbl?.classList.contains('placeholder')   ? '' : (toLbl?.textContent||'');
+  return ttFavs.some(f => f.no===no && (f.queryFrom||'')===(qFrom) && (f.queryTo||'')===(qTo));
+}
 function toggleTTFav(no, event){
   event.stopPropagation();
   const t = TT_TRAINS.find(x=>x.no===no); if(!t) return;
@@ -2816,12 +2974,21 @@ async function openTTDetailObj(t){
 function toggleTTFavObj(t, event){
   event.stopPropagation();
   if(typeof t==='string') t=JSON.parse(t);
-  const idx=ttFavs.findIndex(f=>f.no===t.no);
+  // read current query stations from DOM
+  const fromLbl = document.getElementById('tt-from-lbl');
+  const toLbl   = document.getElementById('tt-to-lbl');
+  const qFrom = fromLbl?.classList.contains('placeholder') ? '' : (fromLbl?.textContent||'');
+  const qTo   = toLbl?.classList.contains('placeholder')   ? '' : (toLbl?.textContent||'');
+  const idx=ttFavs.findIndex(f=>f.no===t.no && f.queryFrom===qFrom && f.queryTo===qTo);
   if(idx>-1) ttFavs.splice(idx,1);
-  else ttFavs.push({...t, savedAt:Date.now()});
+  else ttFavs.push({...t, queryFrom:qFrom, queryTo:qTo, savedAt:Date.now()});
   saveTTFavs();
   searchTT();
   renderTTFavs();
+}
+
+function isTTFavedWithQuery(no, qFrom, qTo){
+  return ttFavs.some(f => f.no===no && f.queryFrom===qFrom && f.queryTo===qTo);
 }
 
 function renderTTFavs(){
@@ -2837,10 +3004,16 @@ function renderTTFavs(){
     </div>`;
     return;
   }
-  el.innerHTML=ttFavs.map(t=>{
-    const ti=TYPE_INFO[t.type];
-    return `<div class="tt-fav-card">
+  el.innerHTML=ttFavs.slice().reverse().map(t=>{
+    const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
+    const hasQuery = t.queryFrom && t.queryTo;
+    const delKey = JSON.stringify({no:t.no,qFrom:t.queryFrom||'',qTo:t.queryTo||''}).replace(/"/g,'&quot;');
+    return `<div class="tt-fav-card" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
       <div class="tt-fav-body">
+        ${hasQuery ? `<div class="tt-fav-query">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          ${t.queryFrom} → ${t.queryTo}
+        </div>` : ''}
         <div class="tt-fav-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:15px;">→</span> ${t.arr}
           <span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:6px;">${t.dur}</span>
         </div>
@@ -2849,21 +3022,21 @@ function renderTTFavs(){
           <span style="font-size:13px;font-weight:600;color:var(--text);">${t.no}</span>
         </div>
         <div class="tt-fav-route">${t.from} → ${t.to}</div>
+        ${t.delay>0?`<div style="font-size:12px;font-weight:600;color:var(--orange);margin-top:4px;">誤點 +${t.delay}分</div>`:''}
       </div>
-      <button class="tt-fav-del" onclick="removeTTFav('${t.no}')" aria-label="移除收藏">
+      <button class="tt-fav-del" onclick="removeTTFav('${t.no}','${t.queryFrom||''}','${t.queryTo||''}',event)" aria-label="移除收藏">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="#d43030"/></svg>
       </button>
     </div>`;
   }).join('');
 }
 
-function removeTTFav(no){
-  ttFavs = ttFavs.filter(f=>f.no!==no);
+function removeTTFav(no, qFrom, qTo, event){
+  if(event) event.stopPropagation();
+  ttFavs = ttFavs.filter(f => !(f.no===no && (f.queryFrom||'')===(qFrom||'') && (f.queryTo||'')===(qTo||'')));
   saveTTFavs();
   renderTTFavs();
-  // update heart in search results if visible
-  const hBtn = document.querySelector(`.tt-heart-btn`);
-  if(hBtn) searchTT();
+  searchTT();
 }
 function openTTDetail(no){
   const t=TT_TRAINS.find(x=>x.no===no);if(!t)return;
@@ -2883,67 +3056,6 @@ function openTTDetail(no){
     </div>
     <div class="act-btns"><button class="btn-s" onclick="closeDetail()">← 返回</button></div>`;
   document.getElementById('detail-page').classList.add('open');
-}
-
-// ===== FAVS =====
-function renderFavs(){
-  const el = document.getElementById('fav-list');
-  if(!FAVS.length){
-    el.innerHTML=`<div class="empty-state">
-      <div class="empty-icon" style="display:flex;justify-content:center;">
-        <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#dde6f5"/></svg>
-      </div>
-      <div class="empty-text">尚無收藏拍攝點</div>
-      <div style="font-size:13px;color:var(--text3);margin-top:6px;">在拍車頁面查詢後可收藏常用地點</div>
-    </div>`;
-    return;
-  }
-  el.innerHTML=FAVS.map(f=>`
-    <div class="fav-card">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">
-        <div>
-          <div class="fav-name">${f.name}</div>
-          <div class="fav-meta">${f.type==='between'?'兩站之間':'單一車站'} · ${f.loc}${f.pos?' · '+f.pos:''}</div>
-        </div>
-        <div style="width:36px;height:36px;border-radius:50%;background:var(--red-lt);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;" onclick="deleteFav(${f.id})">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="#d43030"/></svg>
-        </div>
-      </div>
-      <div class="fav-tags">
-        <div class="fav-tag">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="vertical-align:-1px;margin-right:3px;"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
-          ${f.timeRange}
-        </div>
-        <div class="fav-tag">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="vertical-align:-1px;margin-right:3px;"><rect x="3" y="4" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2"/></svg>
-          ${f.filter}
-        </div>
-      </div>
-      <div class="fav-go" onclick="goFav(${f.id})">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;margin-right:4px;"><path d="M12 15.2A3.2 3.2 0 0 1 8.8 12 3.2 3.2 0 0 1 12 8.8 3.2 3.2 0 0 1 15.2 12 3.2 3.2 0 0 1 12 15.2M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9z" fill="currentColor"/></svg>
-        前往拍車
-      </div>
-    </div>`).join('');
-}
-function deleteFav(id){
-  if(!confirm('確定移除此收藏？')) return;
-  const idx = FAVS.findIndex(f=>f.id===id);
-  if(idx>-1) FAVS.splice(idx,1);
-  renderFavs();
-}
-function openAddFavHint(){
-  alert('請在「拍車」頁面查詢列車後，點選列車詳細頁面的「收藏此拍攝點」按鈕');
-}
-function goFav(id){
-  const f=FAVS.find(x=>x.id===id);
-  if(!f) return;
-  document.getElementById('loc-display').textContent=f.loc;
-  document.getElementById('loc-mode-display').textContent=f.type==='between'?'兩站之間':'單一車站';
-  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('tab-shoot').classList.add('active');
-  document.getElementById('tbtn-shoot').classList.add('active');
-setTimeout(doSearch,80);
 }
 
 // ===== REMINDERS =====
