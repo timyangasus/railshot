@@ -90,9 +90,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   width:100%;
   box-sizing:border-box;
 }
-.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:10px 0 8px;color:var(--text3);transition:color .2s;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:10px 0 8px;color:var(--text3);transition:color .2s;}
 .tab-item.active{color:var(--accent);}
-.tab-label{font-size:13px;font-weight:500;letter-spacing:0.1px;}
+.tab-icon{width:24px;height:24px;flex-shrink:0;display:block;}
+.tab-label{font-size:11px;font-weight:500;letter-spacing:0.1px;}
 .tab-item.active .tab-label{font-weight:700;}
 .tab-active-bar{width:20px;height:2.5px;border-radius:2px;background:var(--accent);margin-top:2px;opacity:0;transition:opacity .2s;}
 .tab-item.active .tab-active-bar{opacity:1;}
@@ -547,10 +548,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <div class="screen" id="tab-shoot">
 <div class="sc">
   <!-- 拍攝點 + 日期 並排 -->
-  <div style="display:flex;gap:10px;margin-bottom:16px;align-items:stretch;">
-    <div style="flex:1;display:flex;flex-direction:column;">
+  <div style="display:flex;gap:10px;margin-bottom:16px;">
+    <div style="flex:1;">
       <div class="sec" style="margin-bottom:6px;">拍攝點</div>
-      <div class="loc-bar" onclick="openSheet('loc-sheet')" style="margin-bottom:0;flex:1;">
+      <div class="loc-bar" onclick="openSheet('loc-sheet')" style="margin-bottom:0;">
         <div>
           <div class="loc-name" id="loc-display">點此設定拍攝點</div>
           <div class="loc-mode" id="loc-mode-display"></div>
@@ -558,9 +559,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
       </div>
     </div>
-    <div style="flex:1;display:flex;flex-direction:column;">
+    <div style="flex:1;">
       <div class="sec" style="margin-bottom:6px;">時間</div>
-      <div style="background:white;border-radius:var(--radius);border:1px solid var(--border);padding:14px 14px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);flex:1;">
+      <div style="background:white;border-radius:var(--radius);border:1px solid var(--border);padding:14px 14px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;color:var(--text3);"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
         <div id="shoot-date-lbl" style="font-size:15px;font-weight:600;color:var(--text);"></div>
       </div>
@@ -656,17 +657,17 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <!-- TAB BAR -->
 <div class="tab-bar">
   <div class="tab-item active" onclick="switchTab('tt',this)" id="tbtn-tt">
-    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m612-292 56-56-148-148v-184h-80v216l172 172ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg>
+    <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="m612-292 56-56-148-148v-184h-80v216l172 172ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg>
     <div class="tab-label">時刻表</div>
     <div class="tab-active-bar"></div>
   </div>
   <div class="tab-item" onclick="switchTab('shoot',this)" id="tbtn-shoot">
-    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M480-260q75 0 127.5-52.5T660-440q0-75-52.5-127.5T480-620q-75 0-127.5 52.5T300-440q0 75 52.5 127.5T480-260Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM160-120q-33 0-56.5-23.5T80-200v-480q0-33 23.5-56.5T160-760h126l74-80h240l74 80h126q33 0 56.5 23.5T880-680v480q0 33-23.5 56.5T800-120H160Zm0-80h640v-480H638l-73-80H395l-73 80H160v480Zm320-240Z"/></svg>
+    <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-260q75 0 127.5-52.5T660-440q0-75-52.5-127.5T480-620q-75 0-127.5 52.5T300-440q0 75 52.5 127.5T480-260Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM160-120q-33 0-56.5-23.5T80-200v-480q0-33 23.5-56.5T160-760h126l74-80h240l74 80h126q33 0 56.5 23.5T880-680v480q0 33-23.5 56.5T800-120H160Zm0-80h640v-480H638l-73-80H395l-73 80H160v480Zm320-240Z"/></svg>
     <div class="tab-label">拍車</div>
     <div class="tab-active-bar"></div>
   </div>
   <div class="tab-item" onclick="switchTab('fav',this)" id="tbtn-fav">
-    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Zm0-108q96-86 158-147.5t98-107q36-45.5 50-81t14-70.5q0-60-40-100t-100-40q-47 0-87 26.5T518-680h-76q-15-41-55-67.5T300-774q-60 0-100 40t-40 100q0 35 14 70.5t50 81q36 45.5 98 107T480-228Zm0-273Z"/></svg>
+    <svg class="tab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Zm0-108q96-86 158-147.5t98-107q36-45.5 50-81t14-70.5q0-60-40-100t-100-40q-47 0-87 26.5T518-680h-76q-15-41-55-67.5T300-774q-60 0-100 40t-40 100q0 35 14 70.5t50 81q36 45.5 98 107T480-228Zm0-273Z"/></svg>
     <div class="tab-label">收藏</div>
     <div class="tab-active-bar"></div>
   </div>
