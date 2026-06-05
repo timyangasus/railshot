@@ -91,9 +91,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   margin-left:calc(-50vw + 50%);
   box-sizing:border-box;
 }
-.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:0 0 env(safe-area-inset-bottom,0px);color:var(--text3);transition:color .2s;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:8px 0 0;color:var(--text3);transition:color .2s;}
 .tab-item.active{color:var(--accent);}
-.tab-icon{width:24px;height:24px;flex-shrink:0;display:block;overflow:visible;}
+.tab-icon{width:20px;height:20px;flex-shrink:0;display:block;overflow:visible;}
 .tab-label{font-size:11px;font-weight:500;letter-spacing:0.1px;}
 .tab-item.active .tab-label{font-weight:700;}
 .tab-active-bar{width:20px;height:2.5px;border-radius:2px;background:var(--accent);margin-top:2px;opacity:0;transition:opacity .2s;}
@@ -563,10 +563,11 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     </div>
     <div style="flex:1;">
       <div class="sec" style="margin-bottom:6px;">時間</div>
-      <div style="background:white;border-radius:var(--radius);border:1px solid var(--border);padding:14px 14px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);">
+      <label for="shoot-date-input" style="background:white;border-radius:var(--radius);border:1px solid var(--border);padding:18px 16px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);cursor:pointer;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;color:var(--text3);"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
         <div id="shoot-date-lbl" style="font-size:15px;font-weight:600;color:var(--text);"></div>
-      </div>
+        <input type="date" id="shoot-date-input" onchange="onShootDateChange(this.value)" style="position:absolute;opacity:0;width:0;height:0;"/>
+      </label>
     </div>
   </div>
 
@@ -1415,6 +1416,16 @@ function updateShootDateLbl(){
   if(!el) return;
   const d = shootDate;
   el.textContent = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+  // sync hidden input
+  const inp = document.getElementById('shoot-date-input');
+  if(inp) inp.valueAsDate = d;
+}
+function onShootDateChange(val){
+  if(!val) return;
+  const [y,m,d] = val.split('-').map(Number);
+  shootDate = new Date(y, m-1, d);
+  updateShootDateLbl();
+  filterTrains();
 }
 function onTimeChipChange(){ filterTrains(); }
 
