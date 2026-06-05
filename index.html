@@ -451,11 +451,11 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .tt-heart-btn{position:absolute;top:11px;right:11px;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:transparent;border:none;cursor:pointer;color:var(--text3);transition:color .15s,transform .15s;z-index:2;}
 .tt-heart-btn:active{transform:scale(0.82);}
 .tt-heart-btn.liked{color:var(--red);}
-.tt-fav-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:13px 15px;margin-bottom:8px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;}
+.tt-fav-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:16px 15px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;}
 .tt-fav-body{flex:1;min-width:0;}
 .tt-fav-query{font-size:19px;font-weight:700;color:var(--accent);margin-bottom:6px;}
-.tt-fav-times{font-size:22px;font-weight:800;letter-spacing:-0.5px;color:var(--text);margin-bottom:5px;}
-.tt-fav-mid{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.tt-fav-times{font-size:22px;font-weight:800;letter-spacing:-0.5px;color:#4a6080;margin-bottom:7px;}
+.tt-fav-mid{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
 .tt-fav-route{font-size:13px;color:var(--text2);}
 .tt-fav-del{width:34px;height:34px;border-radius:50%;background:var(--red-lt);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
 /* Frequent station list in fav tab */
@@ -3065,7 +3065,7 @@ function renderTTFavs(){
     </div>`;
     return;
   }
-  el.innerHTML=ttFavs.slice().reverse().map(t=>{
+  el.innerHTML=ttFavs.slice().sort((a,b)=>(a.dep||'').localeCompare(b.dep||'')).map(t=>{
     const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
     const hasQuery = t.queryFrom && t.queryTo;
     const delKey = JSON.stringify({no:t.no,qFrom:t.queryFrom||'',qTo:t.queryTo||''}).replace(/"/g,'&quot;');
