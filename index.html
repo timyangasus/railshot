@@ -67,7 +67,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 
 /* ── HEADER ── */
 .header{height:calc(var(--header-h) + var(--safe-top));padding-top:var(--safe-top);background:var(--bg);border-bottom:none;display:flex;align-items:flex-end;flex-shrink:0;z-index:100;}
-.header-inner{display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 18px 8px;}
+.header-inner{display:flex;align-items:center;justify-content:space-between;width:100%;padding:0 18px 2px;}
 .logo-text{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-0.8px;}
 .bell-btn{width:38px;height:38px;border-radius:50%;background:white;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--text2);transition:background .15s;box-shadow:var(--shadow);}
 .bell-btn:active{background:var(--bg3);}
@@ -462,6 +462,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <div class="header">
   <div class="header-inner">
     <div class="logo-text">Railshot</div>
+    <button onclick="resetTTForm()" id="tt-reset-btn" title="重設查詢" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:opacity .15s;opacity:0.55;" onmousedown="this.style.opacity='1'" onmouseup="this.style.opacity='0.55'">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M204-318q-22-38-33-78t-11-82q0-134 93-228t227-94h7l-64-64 56-56 160 160-160 160-56-56 64-64h-7q-100 0-170 70.5T240-478q0 26 6 51t18 49l-60 60ZM481-40 321-200l160-160 56 56-64 64h7q100 0 170-70.5T720-482q0-26-6-51t-18-49l60-60q22 38 33 78t11 82q0 134-93 228t-227 94h-7l64 64-56 56Z"/></svg>
+    </button>
   </div>
 </div>
 
@@ -509,12 +512,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <div class="chip" data-val="tze" onclick="ttChipToggle(this,'tze')">太魯閣</div>
     </div>
     <button class="srch-btn" onclick="searchTT()">查詢班次</button>
-  </div>
-  <div id="tt-results-header" style="display:none;justify-content:flex-end;padding:4px 0 2px;">
-    <button onclick="clearTTResults()" style="background:none;border:none;cursor:pointer;color:var(--text3);display:flex;align-items:center;gap:4px;font-size:13px;font-family:inherit;padding:4px 0;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>
-      重新查詢
-    </button>
   </div>
   <div id="tt-results"></div>
 </div>
@@ -1407,7 +1404,27 @@ function resetSearchState() {
 
 function clearTTResults(){
   document.getElementById('tt-results').innerHTML = '';
-  document.getElementById('tt-results-header').style.display = 'none';
+}
+
+function resetTTForm(){
+  // 清空出發/到達站
+  const fromLbl = document.getElementById('tt-from-lbl');
+  const toLbl   = document.getElementById('tt-to-lbl');
+  fromLbl.textContent = '選擇車站'; fromLbl.className = 'placeholder';
+  toLbl.textContent   = '選擇車站'; toLbl.className   = 'placeholder';
+  // 重設日期為今天、開啟現在時刻模式
+  document.getElementById('tt-date').valueAsDate = new Date();
+  ttNowMode = true;
+  document.getElementById('tt-now-btn').classList.add('active');
+  // 重設車種為全部
+  const chips = document.querySelectorAll('#tt-type-chips .chip');
+  chips.forEach(c => c.classList.remove('on'));
+  document.querySelector('#tt-type-chips .chip[data-val="all"]').classList.add('on');
+  // 清空結果
+  document.getElementById('tt-results').innerHTML = '';
+  // 捲回頂部
+  const screen = document.getElementById('tab-tt');
+  if(screen) screen.scrollTop = 0;
 }
 
 function setLocMode(m){
@@ -1456,7 +1473,7 @@ function getAdjacentStations(stnName) {
   // 各路線的站序陣列
   const routes = [
     // 縱貫線北段
-    ['基隆','三坑','八堵','七堵','百福','五堵','汐止','汐科','南港','松山','臺北','萬華','板橋','浮洲','樹林','南樹林','山佳','鶯歌','鳳鳴','桃園','內壢','中壢','埔心','楊梅','富岡','新富','北湖','湖口','新豐','竹北','新竹','三姓橋','香山','崎頂','竹南','談文','大山','後龍','龍港','白沙屯','新埔','通霄','苑裡','日南','大甲','臺中港','清水','沙鹿','龍井','大肚','追分'],
+    ['基隆','三坑','八堵','七堵','百福','五堵','汐止','汐科','南港','松山','臺北','萬華','板橋','浮洲','樹林','南樹林','山佳','鶯歌','鳳鳴','桃園','內壢','中壢','埔心','楊梅','富岡','新富','北湖','湖口','新豐','竹北','北新竹','千甲','新莊','新竹','三姓橋','香山','崎頂','竹南','談文','大山','後龍','龍港','白沙屯','新埔','通霄','苑裡','日南','大甲','臺中港','清水','沙鹿','龍井','大肚','追分'],
     // 山線
     ['造橋','豐富','苗栗','南勢','銅鑼','三義','泰安','后里','豐原','栗林','潭子','頭家厝','松竹','太原','精武','臺中','五權','大慶','烏日','新烏日','成功'],
     // 縱貫線南段
@@ -2681,7 +2698,6 @@ async function searchTT(){
 }
 
 function renderTTList(list, isMock) {
-  document.getElementById('tt-results-header').style.display = list.length ? 'flex' : 'none';
   const el=document.getElementById('tt-results');
 
   const mockBanner = isMock ? `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;">
