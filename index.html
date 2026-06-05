@@ -571,7 +571,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <div class="sec" style="margin-bottom:6px;">拍攝點</div>
       <div class="loc-bar" onclick="openSheet('loc-sheet')" style="margin-bottom:0;flex:1;">
         <div>
-          <div class="loc-name placeholder-loc" id="loc-display">點此設定拍攝點</div>
+          <div class="loc-name placeholder-loc" id="loc-display">選擇車站</div>
           <div class="loc-mode" id="loc-mode-display"></div>
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
@@ -1490,7 +1490,7 @@ function resetSearchState() {
   clearShootResults();
 
   // 清空拍攝點顯示
-  const _ld=document.getElementById('loc-display');_ld.textContent='點此設定拍攝點';_ld.classList.add('placeholder-loc');
+  const _ld=document.getElementById('loc-display');_ld.textContent='選擇車站';_ld.classList.add('placeholder-loc');
   document.getElementById('loc-mode-display').textContent = '';
 }
 
@@ -1500,7 +1500,7 @@ function clearTTResults(){
 
 function resetShootForm(){
   // 清空拍攝點
-  const _ld=document.getElementById('loc-display');_ld.textContent='點此設定拍攝點';_ld.classList.add('placeholder-loc');
+  const _ld=document.getElementById('loc-display');_ld.textContent='選擇車站';_ld.classList.add('placeholder-loc');
   document.getElementById('loc-mode-display').textContent = '';
   // 重設日期
   shootDate = new Date();
@@ -2337,7 +2337,7 @@ async function doSearch() {
   const endMins = timeRange >= 1440 ? 23 * 60 + 59 : nowMins + timeRange;
 
   const isBetween = locMode === '兩站之間' || loc.includes('－') || loc.includes('間');
-  const isEmpty = !loc || loc === '點此設定拍攝點';
+  const isEmpty = !loc || loc === '選擇車站';
 
   if (isEmpty) {
     document.getElementById('train-list').innerHTML =
