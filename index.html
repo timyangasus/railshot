@@ -542,22 +542,34 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <!-- TAB 2: 拍車 (SECOND) -->
 <div class="screen" id="tab-shoot">
 <div class="sc">
-  <div class="sec">拍攝點</div>
-  <div class="loc-bar" onclick="openSheet('loc-sheet')">
-    <div>
-      <div class="loc-name" id="loc-display">點此設定拍攝點</div>
-      <div class="loc-mode" id="loc-mode-display"></div>
+  <!-- 拍攝點 + 日期 並排 -->
+  <div style="display:flex;gap:10px;margin-bottom:16px;align-items:stretch;">
+    <div style="flex:1;display:flex;flex-direction:column;">
+      <div class="sec" style="margin-bottom:6px;">拍攝點</div>
+      <div class="loc-bar" onclick="openSheet('loc-sheet')" style="margin-bottom:0;flex:1;">
+        <div>
+          <div class="loc-name" id="loc-display">點此設定拍攝點</div>
+          <div class="loc-mode" id="loc-mode-display"></div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+      </div>
     </div>
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+    <div style="flex:1;display:flex;flex-direction:column;">
+      <div class="sec" style="margin-bottom:6px;">時間</div>
+      <div style="background:white;border-radius:var(--radius);border:1px solid var(--border);padding:14px 14px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);flex:1;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;color:var(--text3);"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
+        <div id="shoot-date-lbl" style="font-size:15px;font-weight:600;color:var(--text);"></div>
+      </div>
+    </div>
   </div>
 
   <div style="display:flex;align-items:flex-start;margin-bottom:12px;">
     <div>
       <div class="sec" style="margin:0 0 8px;">時間範圍</div>
       <div id="time-chips" style="display:flex;gap:8px;">
-        <div class="chip-round on" data-val="60" onclick="setChip(this,'time-chips');filterTrains()"><div>1</div><div>hr</div></div>
-        <div class="chip-round" data-val="120" onclick="setChip(this,'time-chips');filterTrains()"><div>2</div><div>hr</div></div>
-        <div class="chip-round" data-val="180" onclick="setChip(this,'time-chips');filterTrains()"><div>3</div><div>hr</div></div>
+        <div class="chip-round on" data-val="60" onclick="setChip(this,'time-chips');onTimeChipChange()"><div>1</div><div>hr</div></div>
+        <div class="chip-round" data-val="120" onclick="setChip(this,'time-chips');onTimeChipChange()"><div>2</div><div>hr</div></div>
+        <div class="chip-round" data-val="1440" onclick="setChip(this,'time-chips');onTimeChipChange()"><div>整天</div></div>
       </div>
     </div>
     <div style="width:1px;height:80px;background:var(--border);margin:0 16px;flex-shrink:0;align-self:flex-end;"></div>
@@ -1396,6 +1408,16 @@ function updSlider(){
   if(sl) sl.value=locState.pos;
   if(pct) pct.textContent=locState.pos+'%';
 }
+// ── 拍車日期 ──────────────────────────────────────────
+let shootDate = new Date();
+function updateShootDateLbl(){
+  const el = document.getElementById('shoot-date-lbl');
+  if(!el) return;
+  const d = shootDate;
+  el.textContent = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+function onTimeChipChange(){ filterTrains(); }
+
 function resetSearchState() {
   // 清空 state（含已套用）
   locState.s1 = '';
@@ -2253,7 +2275,7 @@ async function doSearch() {
   const timeRange = parseInt(timeEl?.dataset.val || '60');
   const now = new Date();
   const nowMins = now.getHours() * 60 + now.getMinutes();
-  const endMins = nowMins + timeRange;
+  const endMins = timeRange >= 1440 ? 23 * 60 + 59 : nowMins + timeRange;
 
   const isBetween = locMode === '兩站之間' || loc.includes('－') || loc.includes('間');
   const isEmpty = !loc || loc === '點此設定拍攝點';
@@ -3110,6 +3132,7 @@ function alertDetail(){document.getElementById('alert-ov').classList.remove('ope
 
 // ===== INIT =====
 document.getElementById('tt-date').valueAsDate=new Date();
+updateShootDateLbl();
 // 現在時刻預設開啟
 document.getElementById('tt-now-btn').classList.add('active');
 setLocMode('single');
