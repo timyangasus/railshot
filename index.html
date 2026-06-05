@@ -111,7 +111,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 
 /* ── CHIPS ── */
 .chips-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-right:-14px;padding-right:14px;}
-.chip-round{width:56px;height:56px;border-radius:50%;border:1.5px solid var(--border2);background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:17px;font-weight:700;color:var(--text2);flex-shrink:0;transition:all .15s;line-height:1.2;}
+.chip-round{width:50px;height:50px;border-radius:50%;border:1.5px solid var(--border2);background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:700;color:var(--text2);flex-shrink:0;transition:all .15s;line-height:1.2;}
 .chip-round *{pointer-events:none;}
 .chip-round.on{background:var(--accent);border-color:var(--accent);color:white;}
 .chip-round>div:last-child{font-size:12px;font-weight:500;opacity:0.8;}
@@ -128,7 +128,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .sec:first-child{margin-top:0;}
 
 /* ── LOCATION BAR ── */
-.loc-bar{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:18px 16px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);}
+.loc-bar{background:#eef0f5;border-radius:var(--radius);border:1px solid var(--border);padding:18px 16px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
 .loc-bar:active{background:var(--bg3);}
 .loc-name{font-size:17px;font-weight:700;color:var(--text);}
 .loc-mode{font-size:12px;color:var(--text3);margin-top:3px;}
@@ -333,7 +333,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .slider-wrap input[type=range]{width:100%;-webkit-appearance:none;height:5px;border-radius:3px;background:var(--border2);outline:none;}
 .slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);border:3px solid white;box-shadow:0 1px 4px rgba(26,37,64,0.3);}
 .slider-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:6px;}
-.fld-lbl{font-size:12px;font-weight:600;color:var(--text3);letter-spacing:0.3px;text-transform:uppercase;margin-bottom:7px;}
+.fld-lbl{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.3px;text-transform:uppercase;margin-bottom:7px;}
 
 /* ── DETAIL PAGE ── */
 .detail-page{position:fixed;inset:0;background:var(--bg);z-index:150;display:none;flex-direction:column;overflow:hidden;}
@@ -376,10 +376,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .tt-form{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:18px;margin-bottom:12px;box-shadow:var(--shadow);}
 .tt-row{display:flex;align-items:flex-end;gap:7px;margin-bottom:14px;}
 .tt-f{flex:1;min-width:0;}
-.stn-display-btn{width:100%;padding:15px 14px;background:white;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:left;font-size:19px;font-weight:600;color:var(--text);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;overflow:hidden;box-shadow:var(--shadow);}
+.stn-display-btn{width:100%;padding:15px 14px;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:left;font-size:17px;font-weight:600;color:var(--text);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;overflow:hidden;}
 .stn-display-btn .placeholder{color:var(--text3);font-weight:400;}
 .swap-btn{width:42px;height:52px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);flex-shrink:0;}
-.tt-date{background:white;border:1px solid var(--border);border-radius:var(--radius-sm);padding:15px 10px;color:var(--text);font-family:inherit;font-size:18px;font-weight:700;width:100%;outline:none;overflow:hidden;-webkit-appearance:none;min-width:0;box-shadow:var(--shadow);}
+.tt-date{background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-sm);padding:15px 10px;color:var(--text);font-family:inherit;font-size:18px;font-weight:700;width:100%;outline:none;overflow:hidden;-webkit-appearance:none;min-width:0;}
 .tt-date::-webkit-calendar-picker-indicator{display:none;}
 .tt-now-btn{display:flex;align-items:center;gap:5px;padding:0 14px;background:var(--accent-lt);border:1.5px solid var(--accent);border-radius:var(--radius-sm);color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .tt-now-btn.active{background:var(--accent);color:white;}
@@ -510,6 +510,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <!-- TAB 1: 時刻表 (FIRST) -->
 <div class="screen active" id="tab-tt">
 <div class="sc">
+  <div class="tt-form">
     <div class="tt-row">
       <div class="tt-f">
         <div class="fld-lbl">出發站</div>
@@ -554,13 +555,15 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <div class="chip" data-val="tze" onclick="ttChipToggle(this,'tze')">太魯閣</div>
     </div>
     <button class="srch-btn" onclick="searchTT()">查詢班次</button>
-  <div id="tt-results"></div>
+  </div>
+  <div id="tt-results" style="margin-top:12px;"></div>
 </div>
 </div>
 
 <!-- TAB 2: 拍車 (SECOND) -->
 <div class="screen" id="tab-shoot">
 <div class="sc">
+  <div class="tt-form">
   <!-- 拍攝點 + 日期 並排 -->
   <div style="display:flex;gap:10px;margin-bottom:16px;align-items:stretch;">
     <div style="flex:1;display:flex;flex-direction:column;">
@@ -575,8 +578,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     </div>
     <div style="flex:1;display:flex;flex-direction:column;">
       <div class="sec" style="margin-bottom:6px;">時間</div>
-      <label for="shoot-date-input" style="background:white;border-radius:var(--radius);border:1px solid var(--border);padding:0 16px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);cursor:pointer;flex:1;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;color:var(--text3);"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
+      <label for="shoot-date-input" style="background:#eef0f5;border-radius:var(--radius);border:1px solid var(--border);padding:0 16px;display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
         <div id="shoot-date-lbl" style="font-size:17px;font-weight:700;color:var(--text);"></div>
         <input type="date" id="shoot-date-input" onchange="onShootDateChange(this.value)" style="position:absolute;opacity:0;width:0;height:0;"/>
       </label>
@@ -623,8 +625,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       </span>
     </button>
   </div>
+  </div><!-- /tt-form -->
 
-  <div id="shoot-results" style="margin-top:16px;display:none;">
+  <div id="shoot-results" style="margin-top:12px;display:none;">
     <div class="rh">
       <div class="rt" id="res-loc"></div>
       <div class="rc" id="res-count"></div>
@@ -994,7 +997,7 @@ const TT_TRAINS=[
 let reminders=JSON.parse(localStorage.getItem('rs_rem')||'[]');
 let alertQueue=[],currentAlert=null;
 function saveR(){localStorage.setItem('rs_rem',JSON.stringify(reminders));}
-function updateBell(){document.getElementById('bell-badge').style.display=reminders.filter(r=>r.status==='waiting').length>0?'block':'none';}
+function updateBell(){const b=document.getElementById('bell-badge');if(b)b.style.display=reminders.filter(r=>r.status==='waiting').length>0?'block':'none';}
 
 // ===== TABS =====
 function switchTab(name,el){
@@ -1133,8 +1136,10 @@ function openStnPage(caller, initialFrom, initialTo, activeSlot, cb){
   // loc-b1（兩站之間選第一站）用單框，只選一站，選完後自動顯示相鄰區間
   const isSingle = caller === 'loc-single' || caller === 'loc-b2' || caller === 'loc-b1';
   const isBetween = false; // loc-b1 現在用單框
-  document.getElementById('sp-single-mode').style.display = isSingle ? 'block' : 'none';
-  document.getElementById('sp-double-mode').style.display = isSingle ? 'none' : 'flex';
+  const single = document.getElementById('sp-single-mode');
+  const dbl = document.getElementById('sp-double-mode');
+  if(single) single.style.display = isSingle ? 'block' : 'none';
+  if(dbl) dbl.style.display = isSingle ? 'none' : 'flex';
 
   // 標籤
   const fromLabel = document.getElementById('sp-from-label');
@@ -3212,7 +3217,7 @@ function alertDetail(){document.getElementById('alert-ov').classList.remove('ope
 document.getElementById('tt-date').valueAsDate=new Date();
 updateShootDateLbl();
 // 現在時刻預設開啟
-document.getElementById('tt-now-btn').classList.add('active');
+// 現在時刻 toggle 預設開啟已在 HTML checked 屬性處理
 setLocMode('single');
 updateBell();
 setInterval(checkReminders,30000);
