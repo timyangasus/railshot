@@ -494,6 +494,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <button onclick="resetTTForm()" id="tt-reset-btn" title="重設查詢" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:opacity .15s;opacity:0.55;" onmousedown="this.style.opacity='1'" onmouseup="this.style.opacity='0.55'">
       <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M204-318q-22-38-33-78t-11-82q0-134 93-228t227-94h7l-64-64 56-56 160 160-160 160-56-56 64-64h-7q-100 0-170 70.5T240-478q0 26 6 51t18 49l-60 60ZM481-40 321-200l160-160 56 56-64 64h7q100 0 170-70.5T720-482q0-26-6-51t-18-49l60-60q22 38 33 78t11 82q0 134-93 228t-227 94h-7l64 64-56 56Z"/></svg>
     </button>
+    <button onclick="resetShootForm()" id="shoot-reset-btn" title="重設查詢" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:opacity .15s;opacity:0.55;" onmousedown="this.style.opacity='1'" onmouseup="this.style.opacity='0.55'">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M204-318q-22-38-33-78t-11-82q0-134 93-228t227-94h7l-64-64 56-56 160 160-160 160-56-56 64-64h-7q-100 0-170 70.5T240-478q0 26 6 51t18 49l-60 60ZM481-40 321-200l160-160 56 56-64 64h7q100 0 170-70.5T720-482q0-26-6-51t-18-49l60-60q22 38 33 78t11 82q0 134-93 228t-227 94h-7l64 64-56 56Z"/></svg>
+    </button>
   </div>
 </div>
 
@@ -530,10 +533,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       </div>
       <div style="display:flex;gap:10px;align-items:center;">
         <input type="date" class="tt-date" id="tt-date" style="flex:1;min-width:0;"/>
-        <label style="position:relative;display:inline-block;width:44px;height:26px;cursor:pointer;flex-shrink:0;">
+        <label style="position:relative;display:inline-block;width:52px;height:30px;cursor:pointer;flex-shrink:0;">
           <input type="checkbox" id="tt-now-toggle" onchange="onNowToggle(this.checked)" style="opacity:0;width:0;height:0;position:absolute;" checked/>
-          <span id="tt-now-track" style="position:absolute;inset:0;border-radius:13px;background:var(--accent);transition:background .2s;"></span>
-          <span id="tt-now-thumb" style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:white;transition:transform .2s;transform:translateX(18px);box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
+          <span id="tt-now-track" style="position:absolute;inset:0;border-radius:15px;background:var(--accent);transition:background .2s;"></span>
+          <span id="tt-now-thumb" style="position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:white;transition:transform .2s;transform:translateX(22px);box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
         </label>
       </div>
     </div>
@@ -1011,9 +1014,11 @@ function switchTab(name,el){
     if(document.getElementById('fav-stn-panel')?.classList.contains('visible')) favStnRenderStns();
   }
 
-  // refresh 按鈕只在時刻表顯示
+  // reset 按鈕切換
   const resetBtn = document.getElementById('tt-reset-btn');
+  const shootResetBtn = document.getElementById('shoot-reset-btn');
   if(resetBtn) resetBtn.style.display = name === 'tt' ? 'flex' : 'none';
+  if(shootResetBtn) shootResetBtn.style.display = name === 'shoot' ? 'flex' : 'none';
 
   // 點同一個 tab icon → 滾回最頂部
   if(isSameTab){
@@ -1483,6 +1488,30 @@ function resetSearchState() {
 
 function clearTTResults(){
   document.getElementById('tt-results').innerHTML = '';
+}
+
+function resetShootForm(){
+  // 清空拍攝點
+  document.getElementById('loc-display').textContent = '點此設定拍攝點';
+  document.getElementById('loc-mode-display').textContent = '';
+  // 重設日期
+  shootDate = new Date();
+  updateShootDateLbl();
+  // 重設時間範圍為 1hr
+  document.querySelectorAll('#time-chips .chip-round').forEach(c => c.classList.remove('on'));
+  document.querySelector('#time-chips .chip-round[data-val="60"]').classList.add('on');
+  // 重設方向為全部
+  document.querySelectorAll('#dir-chips .chip-round').forEach(c => c.classList.remove('on'));
+  document.querySelector('#dir-chips .chip-round[data-val="all"]').classList.add('on');
+  // 重設車種為全部
+  document.querySelectorAll('#type-chips .chip').forEach(c => c.classList.remove('on'));
+  document.querySelector('#type-chips .chip[data-val="all"]').classList.add('on');
+  // 清空結果
+  clearShootResults();
+  resetSearchState();
+  // 捲回頂部
+  const screen = document.getElementById('tab-shoot');
+  if(screen) screen.scrollTop = 0;
 }
 
 function resetTTForm(){
@@ -2658,7 +2687,7 @@ function onNowToggle(checked){
   const track = document.getElementById('tt-now-track');
   const thumb = document.getElementById('tt-now-thumb');
   if(track) track.style.background = checked ? 'var(--accent)' : '#ccc';
-  if(thumb) thumb.style.transform = checked ? 'translateX(18px)' : 'translateX(0)';
+  if(thumb) thumb.style.transform = checked ? 'translateX(22px)' : 'translateX(0)';
   if(checked) document.getElementById('tt-date').valueAsDate = new Date();
 }
 function swapTT(){
@@ -3043,7 +3072,6 @@ async function openTTDetailObj(t){
 function toggleTTFavObj(t, event){
   event.stopPropagation();
   if(typeof t==='string') t=JSON.parse(t);
-  // read current query stations from DOM
   const fromLbl = document.getElementById('tt-from-lbl');
   const toLbl   = document.getElementById('tt-to-lbl');
   const qFrom = fromLbl?.classList.contains('placeholder') ? '' : (fromLbl?.textContent||'');
@@ -3052,7 +3080,11 @@ function toggleTTFavObj(t, event){
   if(idx>-1) ttFavs.splice(idx,1);
   else ttFavs.push({...t, queryFrom:qFrom, queryTo:qTo, savedAt:Date.now()});
   saveTTFavs();
-  searchTT();
+  // 只更新這張卡片的愛心，不重新搜尋
+  const btn = event.currentTarget;
+  const faved = isTTFaved(t.no);
+  btn.innerHTML = faved ? HEART_FULL : HEART_EMPTY;
+  btn.classList.toggle('liked', faved);
   renderTTFavs();
 }
 
