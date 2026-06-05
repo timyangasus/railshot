@@ -1529,7 +1529,7 @@ function resetTTForm(){
   fromLbl.textContent = '選擇車站'; fromLbl.className = 'placeholder';
   toLbl.textContent   = '選擇車站'; toLbl.className   = 'placeholder';
   // 重設日期為今天、開啟現在時刻模式
-  document.getElementById('tt-date').valueAsDate = new Date();
+  setTTDateToToday();
   ttNowMode = true;
   const tog = document.getElementById('tt-now-toggle');
   if(tog) tog.checked = true;
@@ -2690,13 +2690,15 @@ function setReminderByTrain(trainNo, station, passTime) {
 
 // ===== TIMETABLE =====
 let ttNowMode = true;
+function localDateStr(d){ d=d||new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function setTTDateToToday(){ document.getElementById('tt-date').value = localDateStr(); }
 function onNowToggle(checked){
   ttNowMode = checked;
   const track = document.getElementById('tt-now-track');
   const thumb = document.getElementById('tt-now-thumb');
   if(track) track.style.background = checked ? 'var(--accent)' : '#ccc';
   if(thumb) thumb.style.transform = checked ? 'translateX(22px)' : 'translateX(0)';
-  if(checked) document.getElementById('tt-date').valueAsDate = new Date();
+  if(checked) setTTDateToToday();
 }
 function swapTT(){
   const a=document.getElementById('tt-from-lbl'),b=document.getElementById('tt-to-lbl');
@@ -3216,7 +3218,7 @@ function dismissAlert(){document.getElementById('alert-ov').classList.remove('op
 function alertDetail(){document.getElementById('alert-ov').classList.remove('open');if(currentAlert)openDetail(currentAlert.tid);currentAlert=null;}
 
 // ===== INIT =====
-document.getElementById('tt-date').valueAsDate=new Date();
+setTTDateToToday();
 updateShootDateLbl();
 // 現在時刻預設開啟
 // 現在時刻 toggle 預設開啟已在 HTML checked 屬性處理
