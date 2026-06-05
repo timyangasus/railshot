@@ -87,7 +87,8 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   display:flex;
   align-items:stretch;
   z-index:100;
-  width:100%;
+  width:100vw;
+  margin-left:calc(-50vw + 50%);
   box-sizing:border-box;
 }
 .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:14px 0 8px;color:var(--text3);transition:color .2s;}
@@ -166,7 +167,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .rc{font-size:13px;color:var(--text3);}
 
 /* ── SHEET ── */
-.sheet-ov{position:absolute;inset:0;background:rgba(30,50,90,0.35);z-index:200;display:none;align-items:flex-end;backdrop-filter:blur(2px);}
+.sheet-ov{position:fixed;inset:0;background:rgba(30,50,90,0.35);z-index:200;display:none;align-items:flex-end;backdrop-filter:blur(2px);}
 .sheet-ov.open{display:flex;}
 .sheet{background:white;border-radius:22px 22px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding-bottom:calc(16px + var(--safe-bot));}
 .sh-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;}
@@ -215,7 +216,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .loc-stn-big-name.placeholder-name{font-size:14px;font-weight:400;color:var(--text3);}
 
 /* ── FULL-PAGE STATION PICKER ── */
-.stn-page{position:absolute;inset:0;background:white;z-index:210;display:none;flex-direction:column;}
+.stn-page{position:fixed;inset:0;background:white;z-index:210;display:none;flex-direction:column;}
 .stn-page.open{display:flex;}
 
 /* Top bar: blue header with back / title / confirm */
@@ -316,6 +317,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   display:flex;align-items:center;justify-content:space-between;
   transition:background .1s;
 }
+.stn-list-item.fav-row{padding:11px 12px 11px 16px;}
 .stn-list-item:active{background:#f5f5f5;}
 .stn-list-item.sel{color:var(--accent);font-weight:700;}
 .stn-list-item.major-stn{font-weight:700;color:#1a1a1a;}
@@ -331,7 +333,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .fld-lbl{font-size:12px;font-weight:600;color:var(--text3);letter-spacing:0.3px;text-transform:uppercase;margin-bottom:7px;}
 
 /* ── DETAIL PAGE ── */
-.detail-page{position:absolute;inset:0;background:var(--bg);z-index:150;display:none;flex-direction:column;overflow:hidden;}
+.detail-page{position:fixed;inset:0;background:var(--bg);z-index:150;display:none;flex-direction:column;overflow:hidden;}
 .detail-page.open{display:flex;}
 .det-hdr{padding:calc(var(--safe-top) + 8px) 18px 13px;background:transparent;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0;}
 .back-btn{display:flex;align-items:center;gap:4px;color:var(--accent);font-size:15px;font-weight:500;cursor:pointer;}
@@ -422,7 +424,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .binfo{font-size:12px;color:var(--text3);}
 
 /* ── ALERT ── */
-.alert-ov{position:absolute;inset:0;background:rgba(20,40,90,0.4);z-index:300;display:none;align-items:center;justify-content:center;padding:22px;backdrop-filter:blur(4px);}
+.alert-ov{position:fixed;inset:0;background:rgba(20,40,90,0.4);z-index:300;display:none;align-items:center;justify-content:center;padding:22px;backdrop-filter:blur(4px);}
 .alert-ov.open{display:flex;}
 .alert-box{background:white;border-radius:20px;width:100%;padding:26px 20px;box-shadow:0 8px 32px rgba(26,64,128,0.18);}
 .al-icon{width:56px;height:56px;border-radius:50%;background:var(--accent-lt);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
@@ -2699,9 +2701,9 @@ function favStnRenderStns(){
   el.innerHTML = stns.map(s => {
     const faved = isStnFaved(s);
     const isMj  = MAJOR.has(s);
-    return `<div class="stn-list-item${isMj?' major-stn':''}">
+    return `<div class="stn-list-item fav-row${isMj?' major-stn':''}">
       <span>${s}</span>
-      <button onclick="favStnToggle('${s}')" style="width:36px;height:36px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;">${faved?heartFull:heartEmpty}</button>
+      <button onclick="favStnToggle('${s}')" style="width:30px;height:30px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;margin-right:20px;">${faved?heartFull:heartEmpty}</button>
     </div>`;
   }).join('');
 }
