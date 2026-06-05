@@ -2704,6 +2704,7 @@ function findCountyOfStn(name){
   for(const br of Object.keys(BRANCH_LINES)){ if(BRANCH_LINES[br].includes(name)) return br; }
   return COUNTY_LIST[0];
 }
+function favStnRenderCountyCol(){
   const el = document.getElementById('fstn-county-col');
   if(!el) return;
   let html = COUNTY_LIST.map(c =>
