@@ -2311,8 +2311,9 @@ async function doSearch() {
   // 有 API_BASE → 用真實資料
   if (API_BASE) {
     document.getElementById('train-list').innerHTML =
-      `<div style="text-align:center;padding:2rem 0;color:var(--text3);">
-        <svg width="36" height="36" viewBox="0 0 40 40" style="animation:spin 1s linear infinite;margin-bottom:8px;" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="16" fill="none" stroke="#e0e0e0" stroke-width="4"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="60 44" stroke-linecap="round"/></svg>查詢中...
+      `<div style="display:flex;flex-direction:column;align-items:center;padding:2rem 0;color:var(--text3);gap:8px;">
+        <svg width="36" height="36" viewBox="0 0 40 40" style="animation:spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="16" fill="none" stroke="#e0e0e0" stroke-width="4"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="60 44" stroke-linecap="round"/></svg>
+        <div style="font-size:14px;">查詢中...</div>
       </div>`;
     try {
       await ensureGTT();
