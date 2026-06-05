@@ -59,7 +59,7 @@
   --radius-xs:7px;
 }
 html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-system,'SF Pro Text','Helvetica Neue',system-ui,sans-serif;overflow:hidden;}
-#app{max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--bg);}
+#app{max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;position:relative;background:var(--bg);}
 
 /* ── SVG ICON SYSTEM ── */
 .icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -75,20 +75,19 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 
 /* ── TABS ── */
 .tab-bar{
-  height:calc(var(--tab-h) + var(--safe-bot));
-  padding-bottom:var(--safe-bot);
-  padding-top:8px;
-  background:#F2F2F7;
+  flex-shrink:0;
+  height:83px;
+  padding-bottom:env(safe-area-inset-bottom,34px);
+  padding-top:0;
+  background:white;
   border-top:1px solid #d0d6e8;
   display:flex;
-  align-items:flex-start;
+  align-items:stretch;
   z-index:100;
-  flex-shrink:0;
-  /* 滿版貼底 */
   width:100%;
   box-sizing:border-box;
 }
-.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:8px 0;color:var(--text3);transition:color .2s;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:10px 0 8px;color:var(--text3);transition:color .2s;}
 .tab-item.active{color:var(--accent);}
 .tab-label{font-size:13px;font-weight:500;letter-spacing:0.1px;}
 .tab-item.active .tab-label{font-weight:700;}
@@ -96,14 +95,13 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .tab-item.active .tab-active-bar{opacity:1;}
 
 /* ── SCREENS ── */
-.screen{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:none;flex-direction:column;}
-#tab-fav{overflow:hidden;}
-#tab-fav.active{display:flex;}
+.page-container{flex:1;overflow:hidden;position:relative;}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:none;flex-direction:column;background:var(--bg);}
+.screen.active{display:flex;}
+#tab-fav,#tab-fav.active{overflow:hidden;}
 #fav-tt-panel{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 #fav-stn-panel{flex:1;overflow:hidden;}
 #fav-stn-panel.visible{display:flex!important;}
-/* County col in fav-stn manager — uses .stn-county-col/.stn-list-item from above */
-.screen.active{display:flex;}
 .sc{padding:14px 14px 20px;}
 
 /* ── CHIPS ── */
@@ -490,6 +488,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   </div>
 </div>
 
+<!-- PAGE CONTAINER -->
+<div class="page-container">
+
 <!-- TAB 1: 時刻表 (FIRST) -->
 <div class="screen active" id="tab-tt">
 <div class="sc">
@@ -645,32 +646,25 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 </div>
 
 <!-- TAB 4: 設定 -->
-<div class="screen" id="tab-settings">
-<div class="sc">
-  <div class="sec">關於</div>
-  <div class="sg">
-    <div class="si"><div class="si-left"><div class="si-icon" style="background:#e8eaf0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" fill="#1a2540" fill-opacity="0.15"/><circle cx="8" cy="15" r="1.5" fill="#1a2540"/><circle cx="16" cy="15" r="1.5" fill="#1a2540"/><rect x="5" y="6" width="14" height="5" rx="1" fill="#1a2540"/></svg></div><span class="sk">Railshot</span></div><span class="sv">v1.0.0</span></div>
-    <div class="si"><div class="si-left"><div class="si-icon" style="background:#e8f8ef;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#1a9e5c" stroke-width="2"/><path d="M8 12l3 3 5-5" stroke="#1a9e5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="sk">資料來源</span></div><span class="sv">TDX 交通部</span></div>
-  </div>
-</div>
-</div>
+
+
+</div><!-- /page-container -->
 
 <!-- TAB BAR -->
 <div class="tab-bar">
   <div class="tab-item active" onclick="switchTab('tt',this)" id="tbtn-tt">
+    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m612-292 56-56-148-148v-184h-80v216l172 172ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg>
     <div class="tab-label">時刻表</div>
     <div class="tab-active-bar"></div>
   </div>
   <div class="tab-item" onclick="switchTab('shoot',this)" id="tbtn-shoot">
+    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M480-260q75 0 127.5-52.5T660-440q0-75-52.5-127.5T480-620q-75 0-127.5 52.5T300-440q0 75 52.5 127.5T480-260Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM160-120q-33 0-56.5-23.5T80-200v-480q0-33 23.5-56.5T160-760h126l74-80h240l74 80h126q33 0 56.5 23.5T880-680v480q0 33-23.5 56.5T800-120H160Zm0-80h640v-480H638l-73-80H395l-73 80H160v480Zm320-240Z"/></svg>
     <div class="tab-label">拍車</div>
     <div class="tab-active-bar"></div>
   </div>
   <div class="tab-item" onclick="switchTab('fav',this)" id="tbtn-fav">
+    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Zm0-108q96-86 158-147.5t98-107q36-45.5 50-81t14-70.5q0-60-40-100t-100-40q-47 0-87 26.5T518-680h-76q-15-41-55-67.5T300-774q-60 0-100 40t-40 100q0 35 14 70.5t50 81q36 45.5 98 107T480-228Zm0-273Z"/></svg>
     <div class="tab-label">收藏</div>
-    <div class="tab-active-bar"></div>
-  </div>
-  <div class="tab-item" onclick="switchTab('settings',this)" id="tbtn-settings">
-    <div class="tab-label">設定</div>
     <div class="tab-active-bar"></div>
   </div>
 </div>
