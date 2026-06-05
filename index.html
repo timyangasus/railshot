@@ -106,7 +106,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 #tab-fav,#tab-fav.active{overflow:hidden;}
 #fav-tt-panel{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 #fav-stn-panel{flex:1;overflow:hidden;}
-#fav-stn-panel.visible{display:flex!important;}
+#fav-stn-panel.visible{display:flex!important;flex-direction:column;}
 .sc{padding:14px 14px 20px;}
 
 /* ── CHIPS ── */
@@ -642,8 +642,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div id="fav-tt-list"></div>
   </div>
   <!-- 常用車站：兩欄管理器，複用選站頁同款 CSS -->
-  <div id="fav-stn-panel" style="display:none;flex:1;overflow:hidden;">
-    <div class="stn-body" style="height:100%;">
+  <div id="fav-stn-panel" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
+    <!-- 已加入的車站 chip row -->
+    <div id="fstn-freq-row" style="display:none;flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--border);padding:18px 14px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch;"></div>
+    <div class="stn-body" style="flex:1;overflow:hidden;">
       <div class="stn-county-col" id="fstn-county-col"></div>
       <div class="stn-list-col" id="fstn-stn-col">
         <div class="stn-empty-col">← 請先從左側選擇縣市</div>
@@ -2681,10 +2683,27 @@ let favStnSelectedCounty = '';
 function initFavStnManager(){
   // 預設選第一個縣市
   if(!favStnSelectedCounty) favStnSelectedCounty = COUNTY_LIST[0];
+  fstnRenderFreqRow();
   favStnRenderCountyCol();
   favStnRenderStns();
 }
-function favStnRenderCountyCol(){
+function fstnRenderFreqRow(){
+  const row = document.getElementById('fstn-freq-row');
+  if(!row) return;
+  if(!freqStns.length){
+    row.style.display = 'none';
+    return;
+  }
+  row.style.display = 'block';
+  row.innerHTML = freqStns.slice().reverse().map(name =>
+    `<span class="sp-freq-chip" onclick="favStnSelectCounty(findCountyOfStn('${name}'));favStnRenderStns()">${name}</span>`
+  ).join('');
+}
+function findCountyOfStn(name){
+  for(const c of COUNTY_LIST){ if((STN_DATA[c]||[]).includes(name)) return c; }
+  for(const br of Object.keys(BRANCH_LINES)){ if(BRANCH_LINES[br].includes(name)) return br; }
+  return COUNTY_LIST[0];
+}
   const el = document.getElementById('fstn-county-col');
   if(!el) return;
   let html = COUNTY_LIST.map(c =>
@@ -2724,6 +2743,7 @@ function favStnToggle(name){
   else freqStns.push(name);
   saveFreqStns();
   favStnRenderStns();   // 只重繪右欄
+  fstnRenderFreqRow();  // 更新管理器上方 chip row
   spRenderFreqRow();    // 更新選站頁 chip
 }
 
