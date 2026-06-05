@@ -550,10 +550,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <div class="screen" id="tab-shoot">
 <div class="sc">
   <!-- 拍攝點 + 日期 並排 -->
-  <div style="display:flex;gap:10px;margin-bottom:16px;">
-    <div style="flex:1;">
+  <div style="display:flex;gap:10px;margin-bottom:16px;align-items:stretch;">
+    <div style="flex:1;display:flex;flex-direction:column;">
       <div class="sec" style="margin-bottom:6px;">拍攝點</div>
-      <div class="loc-bar" onclick="openSheet('loc-sheet')" style="margin-bottom:0;">
+      <div class="loc-bar" onclick="openSheet('loc-sheet')" style="margin-bottom:0;flex:1;">
         <div>
           <div class="loc-name" id="loc-display">點此設定拍攝點</div>
           <div class="loc-mode" id="loc-mode-display"></div>
@@ -561,11 +561,11 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
       </div>
     </div>
-    <div style="flex:1;">
+    <div style="flex:1;display:flex;flex-direction:column;">
       <div class="sec" style="margin-bottom:6px;">時間</div>
-      <label for="shoot-date-input" style="background:white;border-radius:var(--radius);border:1px solid var(--border);padding:18px 16px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);cursor:pointer;">
+      <label for="shoot-date-input" style="background:white;border-radius:var(--radius);border:1px solid var(--border);padding:0 16px;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);cursor:pointer;flex:1;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;color:var(--text3);"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
-        <div id="shoot-date-lbl" style="font-size:15px;font-weight:600;color:var(--text);"></div>
+        <div id="shoot-date-lbl" style="font-size:17px;font-weight:700;color:var(--text);"></div>
         <input type="date" id="shoot-date-input" onchange="onShootDateChange(this.value)" style="position:absolute;opacity:0;width:0;height:0;"/>
       </label>
     </div>
