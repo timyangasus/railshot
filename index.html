@@ -3181,6 +3181,7 @@ document.getElementById('tt-now-btn').classList.add('active');
 setLocMode('single');
 updateBell();
 setInterval(checkReminders,30000);
+setInterval(()=>fetch('https://railshot.onrender.com/api/live?train=0000').catch(()=>{}), 14*60*1000);
 checkReminders();
 </script>
 </body>
