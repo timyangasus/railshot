@@ -130,7 +130,8 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 /* ── LOCATION BAR ── */
 .loc-bar{background:#eef0f5;border-radius:var(--radius);border:1px solid var(--border);padding:18px 16px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
 .loc-bar:active{background:var(--bg3);}
-.loc-name{font-size:17px;font-weight:700;color:var(--text);}
+.loc-name{font-size:19px;font-weight:700;color:var(--text);}
+.loc-name.placeholder-loc{font-size:17px;font-weight:400;color:var(--text3);}
 .loc-mode{font-size:12px;color:var(--text3);margin-top:3px;}
 
 /* ── BADGE COLORS ── */
@@ -570,7 +571,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <div class="sec" style="margin-bottom:6px;">拍攝點</div>
       <div class="loc-bar" onclick="openSheet('loc-sheet')" style="margin-bottom:0;flex:1;">
         <div>
-          <div class="loc-name" id="loc-display">點此設定拍攝點</div>
+          <div class="loc-name placeholder-loc" id="loc-display">點此設定拍攝點</div>
           <div class="loc-mode" id="loc-mode-display"></div>
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
@@ -579,7 +580,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div style="flex:1;display:flex;flex-direction:column;">
       <div class="sec" style="margin-bottom:6px;">時間</div>
       <label for="shoot-date-input" style="background:#eef0f5;border-radius:var(--radius);border:1px solid var(--border);padding:0 16px;display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
-        <div id="shoot-date-lbl" style="font-size:17px;font-weight:700;color:var(--text);"></div>
+        <div id="shoot-date-lbl" style="font-size:18px;font-weight:700;color:var(--text);"></div>
         <input type="date" id="shoot-date-input" onchange="onShootDateChange(this.value)" style="position:absolute;opacity:0;width:0;height:0;"/>
       </label>
     </div>
@@ -1489,7 +1490,7 @@ function resetSearchState() {
   clearShootResults();
 
   // 清空拍攝點顯示
-  document.getElementById('loc-display').textContent = '點此設定拍攝點';
+  const _ld=document.getElementById('loc-display');_ld.textContent='點此設定拍攝點';_ld.classList.add('placeholder-loc');
   document.getElementById('loc-mode-display').textContent = '';
 }
 
@@ -1499,7 +1500,7 @@ function clearTTResults(){
 
 function resetShootForm(){
   // 清空拍攝點
-  document.getElementById('loc-display').textContent = '點此設定拍攝點';
+  const _ld=document.getElementById('loc-display');_ld.textContent='點此設定拍攝點';_ld.classList.add('placeholder-loc');
   document.getElementById('loc-mode-display').textContent = '';
   // 重設日期
   shootDate = new Date();
@@ -1571,7 +1572,7 @@ function applyLocSingle(){
   gpsNearest = null;
   const gpsResult = document.getElementById('lc-gps-inline-result');
   if(gpsResult) gpsResult.innerHTML = '';
-  document.getElementById('loc-display').textContent = s + '站';
+  const _ld2=document.getElementById('loc-display');_ld2.textContent=s+'站';_ld2.classList.remove('placeholder-loc');
   document.getElementById('loc-mode-display').textContent = '單一車站';
   clearShootResults();
   closeSheet('loc-sheet');
@@ -1660,7 +1661,7 @@ function applyLocSection(which) {
   if (!s1 || !s2) return;
   locState.s1 = s1; locState.s2 = s2;
   locState.applied.s1 = s1; locState.applied.s2 = s2;
-  document.getElementById('loc-display').textContent = s1 + '－' + s2 + '間';
+  const _ld3=document.getElementById('loc-display');_ld3.textContent=s1+'－'+s2+'間';_ld3.classList.remove('placeholder-loc');
   document.getElementById('loc-mode-display').textContent = '兩站之間';
   clearShootResults();
   closeSheet('loc-sheet');
@@ -2889,7 +2890,8 @@ async function searchTT(){
   const _now = new Date();
   const nowStr = tStr(_now.getHours(), _now.getMinutes());
   const dateVal = document.getElementById('tt-date').value;
-  const isToday = dateVal === _now.toISOString().split('T')[0];
+  const _nowDateStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
+  const isToday = dateVal === _nowDateStr;
 
   const fromLbl = document.getElementById('tt-from-lbl');
   const toLbl   = document.getElementById('tt-to-lbl');
