@@ -115,6 +115,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .chip-round *{pointer-events:none;}
 .chip-round.on{background:var(--accent);border-color:var(--accent);color:white;}
 .chip-round>div:last-child{font-size:12px;font-weight:500;opacity:0.8;}
+.chip-round.sm>div{opacity:1;}
+.chip-round.sm{font-size:13px;font-weight:500;background:white;}
+.chip-round.sm.on{background:var(--accent);border-color:var(--accent);color:white;}
 .chips-row::-webkit-scrollbar{display:none;}
 .chip{padding:9px 15px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--border2);background:white;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;box-shadow:var(--shadow);}
 .chip.on{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 2px 8px rgba(26,37,64,0.25);}
@@ -521,13 +524,17 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       </div>
     </div>
     <div style="margin-bottom:14px;">
-      <div class="fld-lbl">日期 / 時刻</div>
-      <div style="display:flex;gap:7px;align-items:stretch;">
-        <input type="date" class="tt-date" id="tt-date" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;"/>
-        <button class="tt-now-btn" onclick="setNowTime()" id="tt-now-btn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
-          現在時刻
-        </button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
+        <div class="fld-lbl" style="margin-bottom:0;">日期</div>
+        <span style="font-size:12px;font-weight:600;color:var(--text3);letter-spacing:0.3px;text-transform:uppercase;">現在時刻</span>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <input type="date" class="tt-date" id="tt-date" style="flex:1;min-width:0;"/>
+        <label style="position:relative;display:inline-block;width:44px;height:26px;cursor:pointer;flex-shrink:0;">
+          <input type="checkbox" id="tt-now-toggle" onchange="onNowToggle(this.checked)" style="opacity:0;width:0;height:0;position:absolute;" checked/>
+          <span id="tt-now-track" style="position:absolute;inset:0;border-radius:13px;background:var(--accent);transition:background .2s;"></span>
+          <span id="tt-now-thumb" style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:white;transition:transform .2s;transform:translateX(18px);box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
+        </label>
       </div>
     </div>
     <div class="chips-row" id="tt-type-chips" style="margin-bottom:11px;">
@@ -577,16 +584,16 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <div id="time-chips" style="display:flex;gap:8px;">
         <div class="chip-round on" data-val="60" onclick="setChip(this,'time-chips');onTimeChipChange()"><div>1</div><div>hr</div></div>
         <div class="chip-round" data-val="120" onclick="setChip(this,'time-chips');onTimeChipChange()"><div>2</div><div>hr</div></div>
-        <div class="chip-round" data-val="1440" onclick="setChip(this,'time-chips');onTimeChipChange()"><div>整天</div></div>
+        <div class="chip-round sm" data-val="1440" onclick="setChip(this,'time-chips');onTimeChipChange()"><div>整天</div></div>
       </div>
     </div>
     <div style="width:1px;height:80px;background:var(--border);margin:0 16px;flex-shrink:0;align-self:flex-end;"></div>
     <div>
       <div class="sec" style="margin:0 0 8px;">方向</div>
       <div id="dir-chips" style="display:flex;gap:8px;">
-        <div class="chip-round on" data-val="all" onclick="setChip(this,'dir-chips');filterTrains()"><div>全部</div></div>
-        <div class="chip-round" data-val="up" onclick="setChip(this,'dir-chips');filterTrains()"><div>上行</div></div>
-        <div class="chip-round" data-val="down" onclick="setChip(this,'dir-chips');filterTrains()"><div>下行</div></div>
+        <div class="chip-round sm on" data-val="all" onclick="setChip(this,'dir-chips');filterTrains()"><div>全部</div></div>
+        <div class="chip-round sm" data-val="up" onclick="setChip(this,'dir-chips');filterTrains()"><div>上行</div></div>
+        <div class="chip-round sm" data-val="down" onclick="setChip(this,'dir-chips');filterTrains()"><div>下行</div></div>
       </div>
     </div>
   </div>
@@ -1487,7 +1494,9 @@ function resetTTForm(){
   // 重設日期為今天、開啟現在時刻模式
   document.getElementById('tt-date').valueAsDate = new Date();
   ttNowMode = true;
-  document.getElementById('tt-now-btn').classList.add('active');
+  const tog = document.getElementById('tt-now-toggle');
+  if(tog) tog.checked = true;
+  onNowToggle(true);
   // 重設車種為全部
   const chips = document.querySelectorAll('#tt-type-chips .chip');
   chips.forEach(c => c.classList.remove('on'));
@@ -2642,16 +2651,14 @@ function setReminderByTrain(trainNo, station, passTime) {
 }
 
 // ===== TIMETABLE =====
-let ttNowMode = true;  // 預設開啟現在時刻
-function setNowTime(){
-  ttNowMode = !ttNowMode;
-  const btn = document.getElementById('tt-now-btn');
-  if(ttNowMode){
-    btn.classList.add('active');
-    document.getElementById('tt-date').valueAsDate = new Date();
-  } else {
-    btn.classList.remove('active');
-  }
+let ttNowMode = true;
+function onNowToggle(checked){
+  ttNowMode = checked;
+  const track = document.getElementById('tt-now-track');
+  const thumb = document.getElementById('tt-now-thumb');
+  if(track) track.style.background = checked ? 'var(--accent)' : '#ccc';
+  if(thumb) thumb.style.transform = checked ? 'translateX(18px)' : 'translateX(0)';
+  if(checked) document.getElementById('tt-date').valueAsDate = new Date();
 }
 function swapTT(){
   const a=document.getElementById('tt-from-lbl'),b=document.getElementById('tt-to-lbl');
