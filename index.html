@@ -3020,11 +3020,13 @@ async function openTTDetailObj(t){
   const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
   document.getElementById('detail-page').classList.add('open');
 
-  // 查詢起終站（從頁面讀取）
+  // 查詢起終站：優先用收藏資料裡的 queryFrom/queryTo，再從頁面讀取
   const qFromLbl = document.getElementById('tt-from-lbl');
   const qToLbl   = document.getElementById('tt-to-lbl');
-  const qFrom = qFromLbl?.classList.contains('placeholder') ? '' : (qFromLbl?.textContent||'');
-  const qTo   = qToLbl?.classList.contains('placeholder')   ? '' : (qToLbl?.textContent||'');
+  const domFrom = qFromLbl?.classList.contains('placeholder') ? '' : (qFromLbl?.textContent||'');
+  const domTo   = qToLbl?.classList.contains('placeholder')   ? '' : (qToLbl?.textContent||'');
+  const qFrom = t.queryFrom || domFrom;
+  const qTo   = t.queryTo   || domTo;
 
   const renderDetail = (stops) => {
     // 計算查詢區間高亮範圍
