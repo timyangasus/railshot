@@ -739,7 +739,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
           </button>
         </div>
         <div id="lc-gps-inline-result" style="margin-top:8px;"></div>
-        <button class="btn-p" onclick="applyLocSingle()" style="margin-top:12px;">列車查詢</button>
+        <button class="btn-p" onclick="applyLocSingle()" style="margin-top:12px;">查詢班次</button>
       </div>
 
       <!-- Between mode -->
@@ -3231,6 +3231,9 @@ updateShootDateLbl();
 // 現在時刻預設開啟
 // 現在時刻 toggle 預設開啟已在 HTML checked 屬性處理
 setLocMode('single');
+// 如果已有拍攝點設定，refresh 顯示深藍
+const _locEl = document.getElementById('loc-display');
+if(_locEl && !_locEl.classList.contains('placeholder-loc')) setResetBtnActive('shoot-reset-btn', true);
 updateBell();
 setInterval(checkReminders,30000);
 setInterval(()=>fetch('https://railshot.onrender.com/api/live?train=0000').catch(()=>{}), 14*60*1000);
