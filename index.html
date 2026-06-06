@@ -497,10 +497,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <div class="header">
   <div class="header-inner">
     <div class="logo-text">Railshot</div>
-    <button onclick="resetTTForm()" id="tt-reset-btn" title="重設查詢" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:opacity .15s;opacity:0.55;" onmousedown="this.style.opacity='1'" onmouseup="this.style.opacity='0.55'">
+    <button onclick="resetTTForm()" id="tt-reset-btn" title="重設查詢" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
       <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M204-318q-22-38-33-78t-11-82q0-134 93-228t227-94h7l-64-64 56-56 160 160-160 160-56-56 64-64h-7q-100 0-170 70.5T240-478q0 26 6 51t18 49l-60 60ZM481-40 321-200l160-160 56 56-64 64h7q100 0 170-70.5T720-482q0-26-6-51t-18-49l60-60q22 38 33 78t11 82q0 134-93 228t-227 94h-7l64 64-56 56Z"/></svg>
     </button>
-    <button onclick="resetShootForm()" id="shoot-reset-btn" title="重設查詢" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:opacity .15s;opacity:0.55;" onmousedown="this.style.opacity='1'" onmouseup="this.style.opacity='0.55'">
+    <button onclick="resetShootForm()" id="shoot-reset-btn" title="重設查詢" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
       <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M204-318q-22-38-33-78t-11-82q0-134 93-228t227-94h7l-64-64 56-56 160 160-160 160-56-56 64-64h-7q-100 0-170 70.5T240-478q0 26 6 51t18 49l-60 60ZM481-40 321-200l160-160 56 56-64 64h7q100 0 170-70.5T720-482q0-26-6-51t-18-49l60-60q22 38 33 78t11 82q0 134-93 228t-227 94h-7l64 64-56 56Z"/></svg>
     </button>
   </div>
@@ -1489,8 +1489,13 @@ function resetSearchState() {
   document.getElementById('loc-mode-display').textContent = '';
 }
 
+function setResetBtnActive(id, active){
+  const btn = document.getElementById(id);
+  if(btn) btn.style.color = active ? 'var(--accent)' : '#c8d0dc';
+}
 function clearTTResults(){
   document.getElementById('tt-results').innerHTML = '';
+  setResetBtnActive('tt-reset-btn', false);
 }
 
 function resetShootForm(){
@@ -1556,6 +1561,7 @@ function clearShootResults(){
   document.getElementById('train-list').innerHTML = '';
   document.getElementById('res-count').textContent = '';
   document.getElementById('res-loc').textContent = '';
+  setResetBtnActive('shoot-reset-btn', false);
 }
 
 function applyLocSingle(){
@@ -2374,11 +2380,13 @@ async function doSearch() {
       const results = queryBetween(s1, s2, nowMins, endMins, dv, tv);
       document.getElementById('res-count').textContent = results.length + ' 班';
       renderBetweenResults(results, s1, s2, liveMap);
+      setResetBtnActive('shoot-reset-btn', results.length > 0);
     } else {
       const stn = loc.replace(/站$/, '').trim();
       const results = queryStation(stn, nowMins, endMins, dv, tv);
       document.getElementById('res-count').textContent = results.length + ' 班';
       renderStationResults(results, stn, liveMap);
+      setResetBtnActive('shoot-reset-btn', results.length > 0);
     }
     return;
   }
@@ -2963,6 +2971,7 @@ async function searchTT(){
 
 function renderTTList(list, isMock) {
   const el=document.getElementById('tt-results');
+  setResetBtnActive('tt-reset-btn', list.length > 0);
 
   const mockBanner = isMock ? `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" fill="#f9a825"/></svg>
