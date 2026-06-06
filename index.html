@@ -227,7 +227,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 /* Top bar: blue header with back / title / confirm */
 .stn-page-hdr{
   padding:calc(var(--safe-top) + 4px) 0 0;
-  background:var(--accent);
+  background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);
   flex-shrink:0;
 }
 .stn-page-topbar{
@@ -256,12 +256,12 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .stn-sel-box{
   background:transparent !important;border-radius:8px;padding:9px 12px;
   min-height:48px;display:flex;align-items:center;justify-content:center;
-  border:2.5px solid rgba(255,255,255,0.4);
+  border:1px solid rgba(255,255,255,0.4);
   transition:all .15s;cursor:pointer;
 }
 .stn-sel-wrap.active .stn-sel-box{
   background:transparent !important;
-  border:2.5px solid rgba(255,255,255,1);
+  border:1px solid rgba(255,255,255,1);
   box-shadow:none;
 }
 .stn-sel-name{font-size:17px;font-weight:700;color:rgba(255,255,255,1);}
@@ -371,7 +371,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .stop-dot.hl{border-color:#3992FF;background:#e6f1ff;}
 .slate{font-size:11px;color:var(--orange);margin-left:2px;}
 .act-btns{display:flex;flex-direction:column;gap:8px;margin-top:20px;padding-bottom:20px;}
-.btn-p{background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(26,37,64,0.25);}
+.btn-p{background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(26,37,64,0.25);}
 .btn-s{background:white;color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:500;cursor:pointer;font-family:inherit;width:100%;}
 
 /* ── TIMETABLE FORM ── */
@@ -2585,7 +2585,7 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
 
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
     document.getElementById('det-body').innerHTML = `
-      <div style="background:#1a2540;margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
+      <div style="background:linear-gradient(135deg,#2d4a8a 0%,#3a5fa8 100%);margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
         <div style="position:absolute;top:16px;right:16px;">
           <span style="background:${displayDir==='up'?'rgba(57,146,255,0.2)':'rgba(39,201,122,0.2)'};color:${displayDir==='up'?'#99C8FF':'#80FFB0'};font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${displayDir==='up'?'↑ 上行':'↓ 下行'}</span>
         </div>
@@ -3034,7 +3034,7 @@ async function openTTDetailObj(t){
     const dirLabel = tDir === 'up' ? '↑ 上行' : '↓ 下行';
 
     document.getElementById('det-body').innerHTML=`
-      <div style="background:#1a2540;margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
+      <div style="background:linear-gradient(135deg,#2d4a8a 0%,#3a5fa8 100%);margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
         <div style="position:absolute;top:16px;right:16px;">
           <span style="background:${dirBg};color:${dirColor};font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${dirLabel}</span>
         </div>
