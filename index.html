@@ -376,6 +376,22 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 
 /* ── TIMETABLE FORM ── */
 .tt-form{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:18px;margin-bottom:12px;box-shadow:var(--shadow);}
+/* 拍車深藍卡片 */
+.shoot-form{background:#1a2540;border:none;box-shadow:0 4px 16px rgba(26,37,64,0.35);}
+.shoot-form .sec{color:rgba(255,255,255,0.55);}
+.shoot-form .loc-bar{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);box-shadow:none;}
+.shoot-form .loc-name{color:white !important;}
+.shoot-form .loc-name.placeholder-loc{color:rgba(255,255,255,0.55) !important;}
+.shoot-form .loc-mode{color:rgba(255,255,255,0.55);}
+.shoot-form label[for="shoot-date-input"]{background:rgba(255,255,255,0.1) !important;border:1px solid rgba(255,255,255,0.2);box-shadow:none;}
+.shoot-form #shoot-date-lbl{color:white !important;}
+.shoot-form .chip-round{background:transparent;border:1.5px solid rgba(255,255,255,0.5);color:rgba(255,255,255,0.5);}
+.shoot-form .chip-round.on{background:linear-gradient(135deg,#3a5fa8 0%,#5080cc 100%);border:none;color:white;}
+.shoot-form .chip-round.sm{background:transparent;border:1.5px solid rgba(255,255,255,0.5);color:rgba(255,255,255,0.5);}
+.shoot-form .chip-round.sm.on{background:linear-gradient(135deg,#3a5fa8 0%,#5080cc 100%);border:none;color:white;}
+.shoot-form .chip{background:transparent;border:1.5px solid rgba(255,255,255,0.5);color:rgba(255,255,255,0.5);box-shadow:none;}
+.shoot-form .chip.on{background:linear-gradient(135deg,#3a5fa8 0%,#5080cc 100%);border:none;color:white;}
+.shoot-form .chips-row{margin-right:-18px;padding-right:18px;}
 .tt-row{display:flex;align-items:flex-end;gap:7px;margin-bottom:14px;}
 .tt-f{flex:1;min-width:0;}
 .stn-display-btn{width:100%;padding:15px 14px;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:left;font-size:21px;font-weight:700;color:var(--text);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;overflow:hidden;}
@@ -565,7 +581,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <!-- TAB 2: 拍車 (SECOND) -->
 <div class="screen" id="tab-shoot">
 <div class="sc">
-  <div class="tt-form">
+  <div class="tt-form shoot-form">
   <!-- 拍攝點 + 日期 並排 -->
   <div style="display:flex;gap:10px;margin-bottom:16px;align-items:stretch;">
     <div style="flex:1;display:flex;flex-direction:column;">
@@ -596,7 +612,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
         <div class="chip-round sm" data-val="1440" onclick="setChip(this,'time-chips');onTimeChipChange()"><div>整天</div></div>
       </div>
     </div>
-    <div style="width:1px;background:var(--border);margin:0 16px;align-self:stretch;flex-shrink:0;"></div>
+    <div style="width:1px;background:rgba(255,255,255,0.25);margin:0 16px;align-self:stretch;flex-shrink:0;"></div>
     <div>
       <div class="sec" style="margin:0 0 8px;">方向</div>
       <div id="dir-chips" style="display:flex;gap:8px;">
@@ -619,9 +635,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div class="chip" data-val="tze" onclick="shootChipToggle(this,'tze')">太魯閣</div>
   </div>
 
-  <div style="margin-top:14px;">
-    <button class="srch-btn" onclick="doSearch()">查詢列車</button>
-  </div>
   </div><!-- /tt-form -->
 
   <div id="shoot-results" style="margin-top:12px;display:none;">
@@ -1365,6 +1378,8 @@ function openStnPicker(target){
     else { fromLbl.textContent = '選擇車站'; fromLbl.classList.add('placeholder'); }
     if(t){ toLbl.textContent = t; toLbl.classList.remove('placeholder'); }
     else { toLbl.textContent = '選擇車站'; toLbl.classList.add('placeholder'); }
+    const hasStation = !fromLbl.classList.contains('placeholder') || !toLbl.classList.contains('placeholder');
+    setResetBtnActive('tt-reset-btn', hasStation);
   });
 }
 function confirmStnPick(){ confirmStnPage(); }
@@ -1528,6 +1543,7 @@ function resetTTForm(){
   const toLbl   = document.getElementById('tt-to-lbl');
   fromLbl.textContent = '選擇車站'; fromLbl.className = 'placeholder';
   toLbl.textContent   = '選擇車站'; toLbl.className   = 'placeholder';
+  setResetBtnActive('tt-reset-btn', false);
   // 重設日期為今天、開啟現在時刻模式
   setTTDateToToday();
   ttNowMode = true;
