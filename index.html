@@ -1577,6 +1577,7 @@ function applyLocSingle(){
   document.getElementById('loc-mode-display').textContent = '單一車站';
   clearShootResults();
   closeSheet('loc-sheet');
+  setResetBtnActive('shoot-reset-btn', true);
   setTimeout(doSearch, 100);
 }
 function swapLocBetween(){
@@ -1667,6 +1668,7 @@ function applyLocSection(which) {
   document.getElementById('loc-mode-display').textContent = '兩站之間';
   clearShootResults();
   closeSheet('loc-sheet');
+  setResetBtnActive('shoot-reset-btn', true);
   doSearch();
 }
 
@@ -1677,6 +1679,7 @@ function applyLocBetween(){
   document.getElementById('loc-mode-display').textContent='兩站之間';
   clearShootResults();
   closeSheet('loc-sheet');
+  setResetBtnActive('shoot-reset-btn', true);
   setTimeout(doSearch, 100);
 }
 function applyLocFav(id){
