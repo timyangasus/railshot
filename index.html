@@ -92,7 +92,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   box-sizing:border-box;
 }
 .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:8px 0 0;color:var(--text3);transition:color .2s;}
-.tab-item.active{color:var(--accent);}
+.tab-item.active{color:#4a72c4;}
 .tab-icon{width:20px;height:20px;flex-shrink:0;display:block;overflow:visible;}
 .tab-label{font-size:11px;font-weight:500;letter-spacing:0.1px;}
 .tab-item.active .tab-label{font-weight:700;}
@@ -579,7 +579,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       </div>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;">
-      <div class="sec" style="margin-bottom:6px;">時間</div>
+      <div class="sec" style="margin-bottom:6px;margin-left:11px;">時間</div>
       <label for="shoot-date-input" style="background:#eef0f5;border-radius:var(--radius);border:1px solid var(--border);padding:15px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
         <div id="shoot-date-lbl" style="font-size:18px;font-weight:700;color:var(--text);"></div>
         <input type="date" id="shoot-date-input" onchange="onShootDateChange(this.value)" style="position:absolute;opacity:0;width:0;height:0;"/>
@@ -596,7 +596,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
         <div class="chip-round sm" data-val="1440" onclick="setChip(this,'time-chips');onTimeChipChange()"><div>整天</div></div>
       </div>
     </div>
-    <div style="width:1px;height:80px;background:var(--border);margin:0 16px;flex-shrink:0;align-self:flex-end;"></div>
+    <div style="width:1px;background:var(--border);margin:0 16px;align-self:stretch;flex-shrink:0;"></div>
     <div>
       <div class="sec" style="margin:0 0 8px;">方向</div>
       <div id="dir-chips" style="display:flex;gap:8px;">
@@ -3118,7 +3118,6 @@ function renderTTFavs(){
         <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" fill="#dde6f5"/></svg>
       </div>
       <div class="empty-text">尚無收藏班次</div>
-      <div style="font-size:13px;color:var(--text3);margin-top:6px;">在時刻表搜尋結果點 ♡ 收藏</div>
     </div>`;
     return;
   }
