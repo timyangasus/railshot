@@ -563,17 +563,16 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 </div>
 
 <!-- TAB 2: 拍車 (SECOND) -->
-<div class="screen" id="tab-shoot">
+<!-- TAB 2: 單點 -->
+<div class="screen" id="tab-single">
 <div class="sc">
   <div class="tt-form">
-  <!-- 拍攝點 + 日期 並排 -->
   <div style="display:flex;gap:10px;margin-bottom:16px;align-items:stretch;">
     <div style="flex:1;display:flex;flex-direction:column;">
-      <div class="sec" style="margin-bottom:6px;">拍攝點</div>
-      <div class="loc-bar" onclick="openSheet('loc-sheet')" style="margin-bottom:0;flex:1;">
+      <div class="sec" style="margin-bottom:6px;">定點車站</div>
+      <div class="loc-bar" onclick="openSingleStnPicker()" style="margin-bottom:0;flex:1;">
         <div>
           <div class="loc-name placeholder-loc" id="loc-display">選擇車站</div>
-          <div class="loc-mode" id="loc-mode-display"></div>
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
       </div>
@@ -631,6 +630,77 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 </div>
 </div>
 
+<!-- TAB 3: 兩站 -->
+<div class="screen" id="tab-between">
+<div class="sc">
+  <div class="tt-form">
+  <div style="display:flex;gap:10px;margin-bottom:16px;align-items:stretch;">
+    <div style="flex:1;display:flex;flex-direction:column;">
+      <div class="sec" style="margin-bottom:6px;">區間</div>
+      <!-- 未選狀態：點選車站 -->
+      <div id="tab-between-pick" class="loc-bar" onclick="openBetweenStnPicker()" style="margin-bottom:0;flex:1;">
+        <div class="loc-name placeholder-loc">選擇車站</div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+      </div>
+      <!-- 已選狀態：顯示區間，點 ✕ 重選 -->
+      <div id="tab-between-selected" class="loc-bar" onclick="resetBetweenSection()" style="display:none;margin-bottom:0;flex:1;">
+        <div class="loc-name" id="loc-between-display"></div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="#8a9db8"/></svg>
+      </div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;">
+      <div class="sec" style="margin-bottom:6px;margin-left:11px;">時間</div>
+      <label for="between-date-input" style="background:#eef0f5;border-radius:var(--radius);border:1px solid var(--border);padding:15px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
+        <div id="between-date-lbl" style="font-size:18px;font-weight:700;color:var(--text);"></div>
+        <input type="date" id="between-date-input" onchange="onBetweenDateChange(this.value)" style="position:absolute;opacity:0;width:0;height:0;"/>
+      </label>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:flex-start;margin-bottom:12px;">
+    <div>
+      <div class="sec" style="margin:0 0 8px;">時間範圍</div>
+      <div id="btime-chips" style="display:flex;gap:8px;">
+        <div class="chip-round on" data-val="60" onclick="setChip(this,'btime-chips');filterBetween()"><div>1</div><div>hr</div></div>
+        <div class="chip-round" data-val="120" onclick="setChip(this,'btime-chips');filterBetween()"><div>2</div><div>hr</div></div>
+        <div class="chip-round sm" data-val="1440" onclick="setChip(this,'btime-chips');filterBetween()"><div>整天</div></div>
+      </div>
+    </div>
+    <div style="width:1px;background:var(--border);margin:0 16px;align-self:stretch;flex-shrink:0;"></div>
+    <div>
+      <div class="sec" style="margin:0 0 8px;">方向</div>
+      <div id="bdir-chips" style="display:flex;gap:8px;">
+        <div class="chip-round sm on" data-val="all" onclick="setChip(this,'bdir-chips');filterBetween()"><div>全部</div></div>
+        <div class="chip-round sm" data-val="up" onclick="setChip(this,'bdir-chips');filterBetween()"><div>上行</div></div>
+        <div class="chip-round sm" data-val="down" onclick="setChip(this,'bdir-chips');filterBetween()"><div>下行</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-top:4px;">車種</div>
+  <div class="chips-row" id="btype-chips">
+    <div class="chip on" data-val="all" onclick="betweenChipToggle(this,'all')">全部</div>
+    <div class="chip" data-val="exp3" onclick="betweenChipToggle(this,'exp3')">自強3000</div>
+    <div class="chip" data-val="puy" onclick="betweenChipToggle(this,'puy')">普悠瑪</div>
+    <div class="chip" data-val="exp" onclick="betweenChipToggle(this,'exp')">自強</div>
+    <div class="chip" data-val="moc" onclick="betweenChipToggle(this,'moc')">莒光</div>
+    <div class="chip" data-val="localx" onclick="betweenChipToggle(this,'localx')">區間快</div>
+    <div class="chip" data-val="local" onclick="betweenChipToggle(this,'local')">區間</div>
+    <div class="chip" data-val="tze" onclick="betweenChipToggle(this,'tze')">太魯閣</div>
+  </div>
+
+  </div><!-- /tt-form -->
+
+  <div id="between-results" style="margin-top:12px;display:none;">
+    <div class="rh">
+      <div class="rt" id="bres-loc"></div>
+      <div class="rc" id="bres-count"></div>
+    </div>
+    <div id="between-list"></div>
+  </div>
+</div>
+</div>
+
 <!-- TAB 3: 收藏 -->
 <div class="screen" id="tab-fav">
   <!-- Sub-tab switcher — 不走 .sc，讓下方兩欄能撐滿 -->
@@ -675,9 +745,14 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div class="tab-label">時刻表</div>
     <div class="tab-active-bar"></div>
   </div>
-  <div class="tab-item" onclick="switchTab('shoot',this)" id="tbtn-shoot">
+  <div class="tab-item" onclick="switchTab('single',this)" id="tbtn-single">
     <svg class="tab-icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M536.5-503.5Q560-527 560-560t-23.5-56.5Q513-640 480-640t-56.5 23.5Q400-593 400-560t23.5 56.5Q447-480 480-480t56.5-23.5ZM480-186q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg>
-    <div class="tab-label">定點</div>
+    <div class="tab-label">單點</div>
+    <div class="tab-active-bar"></div>
+  </div>
+  <div class="tab-item" onclick="switchTab('between',this)" id="tbtn-between">
+    <svg class="tab-icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-280 80-480l200-200 56 56-103 104h494L624-624l56-56 200 200-200 200-56-56 103-104H233l103 104-56 56Z"/></svg>
+    <div class="tab-label">區間</div>
     <div class="tab-active-bar"></div>
   </div>
   <div class="tab-item" onclick="switchTab('fav',this)" id="tbtn-fav">
@@ -698,6 +773,30 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       </div>
     </div>
     <div class="sh-body" id="bell-body"></div>
+  </div>
+</div>
+
+<!-- SHEET: 選擇區間 -->
+<div class="sheet-ov" id="between-section-sheet" onclick="closeOv(event,'between-section-sheet')">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-hdr">
+      <div class="sh-title" id="between-sheet-title">選擇區間</div>
+      <div class="sh-close" onclick="closeSheet('between-section-sheet')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+      </div>
+    </div>
+    <div class="sh-body">
+      <div id="bsheet-prev" onclick="applyTabSection('prev')" style="display:none;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;margin-bottom:10px;">
+        <span id="bsheet-prev-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+      </div>
+      <div id="bsheet-next" onclick="applyTabSection('next')" style="display:none;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;">
+        <span id="bsheet-next-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+      </div>
+      <div id="bsheet-no-adj" style="display:none;padding:12px;font-size:13px;color:var(--text3);text-align:center;">此站無相鄰站資訊</div>
+    </div>
   </div>
 </div>
 
@@ -739,7 +838,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
           </button>
         </div>
         <div id="lc-gps-inline-result" style="margin-top:8px;"></div>
-        <button class="btn-p" onclick="applyLocSingle()" style="margin-top:12px;">查詢班次</button>
+
       </div>
 
       <!-- Between mode -->
@@ -995,15 +1094,17 @@ function updateBell(){const b=document.getElementById('bell-badge');if(b)b.style
 
 // ===== TABS =====
 function switchTab(name,el){
-  const TAB_TITLES = { tt: '時刻表', shoot: '定點', fav: '收藏' };
+  const TAB_TITLES = { tt: '時刻表', single: '單點', between: '區間', fav: '收藏' };
   const titleEl = document.getElementById('header-title');
   if(titleEl) titleEl.textContent = TAB_TITLES[name] || '';
 
   const currentActive = document.querySelector('.tab-item.active')?.id;
   const isSameTab = currentActive === el.id;
 
-  // 離開拍車 tab 時清除結果
-  if(currentActive === 'tbtn-shoot' && name !== 'shoot') clearShootResults();
+  // 離開單點 tab 時清除結果
+  if(currentActive === 'tbtn-single' && name !== 'single') clearShootResults();
+  // 離開兩站 tab 時清除結果
+  if(currentActive === 'tbtn-between' && name !== 'between') clearBetweenResults();
   // 離開時刻表 tab 時清除結果
   if(currentActive === 'tbtn-tt' && name !== 'tt') clearTTResults();
 
@@ -1011,7 +1112,7 @@ function switchTab(name,el){
   document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
-  if(name==='shoot') updateShootResetBtn();
+  if(name==='single') updateShootResetBtn();
   if(name==='tt'){
     const fl = document.getElementById('tt-from-lbl');
     const tl = document.getElementById('tt-to-lbl');
@@ -1020,7 +1121,6 @@ function switchTab(name,el){
   }
   if(name==='fav'){
     renderTTFavs();
-    // 若常用車站 panel 正顯示，刷新右欄愛心狀態
     if(document.getElementById('fav-stn-panel')?.classList.contains('visible')) favStnRenderStns();
   }
 
@@ -1028,7 +1128,7 @@ function switchTab(name,el){
   const resetBtn = document.getElementById('tt-reset-btn');
   const shootResetBtn = document.getElementById('shoot-reset-btn');
   if(resetBtn) resetBtn.style.display = name === 'tt' ? 'flex' : 'none';
-  if(shootResetBtn) shootResetBtn.style.display = name === 'shoot' ? 'flex' : 'none';
+  if(shootResetBtn) shootResetBtn.style.display = (name === 'single' || name === 'between') ? 'flex' : 'none';
 
   // 點同一個 tab icon → 滾回最頂部
   if(isSameTab){
@@ -1196,6 +1296,8 @@ function closeStnPage(){
 function confirmStnPage(){
   if(spState.callerCb) spState.callerCb(spState.from, spState.to);
   closeStnPage();
+  if(spState.caller === 'loc-single') applyLocSingle();
+  if(spState.caller === 'loc-b1' && locState.s1) showTabBetweenOptions(locState.s1);
 }
 function spSetActive(slot){
   spState.active = slot;
@@ -1439,6 +1541,7 @@ function updSlider(){
 }
 // ── 拍車日期 ──────────────────────────────────────────
 let shootDate = new Date();
+let betweenDate = new Date();
 function updateShootDateLbl(){
   const el = document.getElementById('shoot-date-lbl');
   if(!el) return;
@@ -1496,7 +1599,7 @@ function resetSearchState() {
 
   // 清空拍攝點顯示
   const _ld=document.getElementById('loc-display');_ld.textContent='選擇車站';_ld.classList.add('placeholder-loc');
-  document.getElementById('loc-mode-display').textContent = '';
+  const _lmd0 = document.getElementById('loc-mode-display'); if(_lmd0) _lmd0.textContent = '';
 }
 
 function setResetBtnActive(id, active){
@@ -1509,27 +1612,37 @@ function clearTTResults(){
 }
 
 function resetShootForm(){
-  // 清空拍攝點
-  const _ld=document.getElementById('loc-display');_ld.textContent='選擇車站';_ld.classList.add('placeholder-loc');
-  document.getElementById('loc-mode-display').textContent = '';
-  // 重設日期
-  shootDate = new Date();
-  updateShootDateLbl();
-  // 重設時間範圍為 1hr
-  document.querySelectorAll('#time-chips .chip-round').forEach(c => c.classList.remove('on'));
-  document.querySelector('#time-chips .chip-round[data-val="60"]').classList.add('on');
-  // 重設方向為全部
-  document.querySelectorAll('#dir-chips .chip-round').forEach(c => c.classList.remove('on'));
-  document.querySelector('#dir-chips .chip-round[data-val="all"]').classList.add('on');
-  // 重設車種為全部
-  document.querySelectorAll('#type-chips .chip').forEach(c => c.classList.remove('on'));
-  document.querySelector('#type-chips .chip[data-val="all"]').classList.add('on');
-  // 清空結果
-  clearShootResults();
-  resetSearchState();
-  // 捲回頂部
-  const screen = document.getElementById('tab-shoot');
-  if(screen) screen.scrollTop = 0;
+  const activeTab = document.querySelector('.tab-item.active')?.id;
+  if(activeTab === 'tbtn-between'){
+    // 重設兩站 tab
+    resetBetweenSection();
+    betweenDate = new Date();
+    updateBetweenDateLbl();
+    document.querySelectorAll('#btime-chips .chip-round').forEach(c => c.classList.remove('on'));
+    document.querySelector('#btime-chips .chip-round[data-val="60"]').classList.add('on');
+    document.querySelectorAll('#bdir-chips .chip-round').forEach(c => c.classList.remove('on'));
+    document.querySelector('#bdir-chips .chip-round[data-val="all"]').classList.add('on');
+    document.querySelectorAll('#btype-chips .chip').forEach(c => c.classList.remove('on'));
+    document.querySelector('#btype-chips .chip[data-val="all"]').classList.add('on');
+    const screen = document.getElementById('tab-between');
+    if(screen) screen.scrollTop = 0;
+  } else {
+    // 重設單點 tab
+    const _ld = document.getElementById('loc-display'); _ld.textContent='選擇車站'; _ld.classList.add('placeholder-loc');
+    const _lmd0 = document.getElementById('loc-mode-display'); if(_lmd0) _lmd0.textContent = '';
+    locState.s1 = ''; locState.applied.s1 = '';
+    shootDate = new Date();
+    updateShootDateLbl();
+    document.querySelectorAll('#time-chips .chip-round').forEach(c => c.classList.remove('on'));
+    document.querySelector('#time-chips .chip-round[data-val="60"]').classList.add('on');
+    document.querySelectorAll('#dir-chips .chip-round').forEach(c => c.classList.remove('on'));
+    document.querySelector('#dir-chips .chip-round[data-val="all"]').classList.add('on');
+    document.querySelectorAll('#type-chips .chip').forEach(c => c.classList.remove('on'));
+    document.querySelector('#type-chips .chip[data-val="all"]').classList.add('on');
+    clearShootResults();
+    const screen = document.getElementById('tab-single');
+    if(screen) screen.scrollTop = 0;
+  }
 }
 
 function resetTTForm(){
@@ -1585,7 +1698,7 @@ function applyLocSingle(){
   const gpsResult = document.getElementById('lc-gps-inline-result');
   if(gpsResult) gpsResult.innerHTML = '';
   const _ld2=document.getElementById('loc-display');_ld2.textContent=s+'站';_ld2.classList.remove('placeholder-loc');
-  document.getElementById('loc-mode-display').textContent = '單一車站';
+  const _lmd1 = document.getElementById('loc-mode-display'); if(_lmd1) _lmd1.textContent = '單一車站';
   clearShootResults();
   closeSheet('loc-sheet');
   setResetBtnActive('shoot-reset-btn', true);
@@ -1675,19 +1788,20 @@ function applyLocSection(which) {
   if (!s1 || !s2) return;
   locState.s1 = s1; locState.s2 = s2;
   locState.applied.s1 = s1; locState.applied.s2 = s2;
-  const _ld3=document.getElementById('loc-display');_ld3.textContent=s1+'－'+s2+'間';_ld3.classList.remove('placeholder-loc');
-  document.getElementById('loc-mode-display').textContent = '兩站之間';
-  clearShootResults();
+  // 更新兩站 tab 的顯示
+  const bdisplay = document.getElementById('loc-between-display');
+  if(bdisplay){ bdisplay.textContent = s1+'－'+s2+'間'; bdisplay.classList.remove('placeholder-loc'); }
+  clearBetweenResults();
   closeSheet('loc-sheet');
   setResetBtnActive('shoot-reset-btn', true);
-  doSearch();
+  doBetweenSearch();
 }
 
 function applyLocBetween(){
   const s1=locState.s1, s2=locState.s2;
   if(!s1||!s2){alert('請選擇兩個車站');return;}
   document.getElementById('loc-display').textContent=s1+'－'+s2+'間';
-  document.getElementById('loc-mode-display').textContent='兩站之間';
+  const _lmd3 = document.getElementById('loc-mode-display'); if(_lmd3) _lmd3.textContent='兩站之間';
   clearShootResults();
   closeSheet('loc-sheet');
   setResetBtnActive('shoot-reset-btn', true);
@@ -1696,7 +1810,7 @@ function applyLocBetween(){
 function applyLocFav(id){
   const f=FAVS.find(x=>x.id===id);
   document.getElementById('loc-display').textContent=f.loc;
-  document.getElementById('loc-mode-display').textContent=f.type==='between'?'兩站之間':'單一車站';
+  const _lmd4 = document.getElementById('loc-mode-display'); if(_lmd4) _lmd4.textContent=f.type==='between'?'兩站之間':'單一車站';
   clearShootResults();
   closeSheet('loc-sheet');
 }
@@ -1810,7 +1924,7 @@ function applyLocGPS(){
     applyGPSStation(gpsNearest.n);
   } else {
     document.getElementById('loc-display').textContent='大湖－路竹間';
-    document.getElementById('loc-mode-display').textContent='目前位置 · GPS';
+    const _lmd5 = document.getElementById('loc-mode-display'); if(_lmd5) _lmd5.textContent='目前位置 · GPS';
     closeSheet('loc-sheet');
   }
 }
@@ -2343,7 +2457,7 @@ async function doSearch() {
   const dv  = dirEl?.dataset.val || 'all';
   const tv  = getShootSelectedTypes();
   const loc = document.getElementById('loc-display').textContent.trim();
-  const locMode = document.getElementById('loc-mode-display').textContent;
+  const locMode = locState.mode;  // 'single' or 'between'
 
   document.getElementById('res-loc').textContent = loc;
   document.getElementById('shoot-results').style.display = 'block';
@@ -2353,7 +2467,7 @@ async function doSearch() {
   const nowMins = timeRange >= 1440 ? 0 : now.getHours() * 60 + now.getMinutes();
   const endMins = timeRange >= 1440 ? 23 * 60 + 59 : nowMins + timeRange;
 
-  const isBetween = locMode === '兩站之間' || loc.includes('－') || loc.includes('間');
+  const isBetween = locState.mode === 'between';
   const isEmpty = !loc || loc === '選擇車站';
 
   if (isEmpty) {
@@ -3241,8 +3355,7 @@ function alertDetail(){document.getElementById('alert-ov').classList.remove('ope
 // ===== INIT =====
 setTTDateToToday();
 updateShootDateLbl();
-// 現在時刻預設開啟
-// 現在時刻 toggle 預設開啟已在 HTML checked 屬性處理
+updateBetweenDateLbl();
 setLocMode('single');
 updateShootResetBtn();
 // 如果已有拍攝點設定，refresh 顯示深藍
@@ -3255,6 +3368,229 @@ updateBell();
 setInterval(checkReminders,30000);
 setInterval(()=>fetch('https://railshot.onrender.com/api/live?train=0000').catch(()=>{}), 14*60*1000);
 checkReminders();
+
+// ===== 單點 Tab =====
+function openSingleStnPicker(){
+  openStnPage('loc-single', locState.s1, '', 'from', (f)=>{
+    if(f){ locState.s1 = f; }
+  });
+}
+
+// ===== 兩站 Tab =====
+
+function updateBetweenDateLbl(){
+  const el = document.getElementById('between-date-lbl');
+  if(!el) return;
+  const d = betweenDate;
+  el.textContent = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  const inp = document.getElementById('between-date-input');
+  if(inp) inp.valueAsDate = d;
+}
+
+function onBetweenDateChange(val){
+  if(!val) return;
+  const [y,m,d] = val.split('-').map(Number);
+  betweenDate = new Date(y, m-1, d);
+  updateBetweenDateLbl();
+  filterBetween();
+}
+
+function openBetweenStnPicker(){
+  openStnPage('loc-b1', locState.s1, '', 'from', (f)=>{
+    if(f){ locState.s1 = f; }
+  });
+}
+
+function showTabBetweenOptions(stnName){
+  const { prev, next } = getAdjacentStations(stnName);
+  const prevEl = document.getElementById('bsheet-prev');
+  const nextEl = document.getElementById('bsheet-next');
+  const noAdj  = document.getElementById('bsheet-no-adj');
+  const title  = document.getElementById('between-sheet-title');
+  if(title) title.textContent = stnName + ' 的相鄰區間';
+
+  if(!prev && !next){
+    if(prevEl) prevEl.style.display = 'none';
+    if(nextEl) nextEl.style.display = 'none';
+    if(noAdj)  noAdj.style.display  = 'block';
+  } else {
+    if(noAdj) noAdj.style.display = 'none';
+    if(prev){
+      document.getElementById('bsheet-prev-label').textContent = `${prev} ↔ ${stnName}`;
+      prevEl.dataset.s1 = prev; prevEl.dataset.s2 = stnName;
+      prevEl.style.display = 'flex';
+    } else { if(prevEl) prevEl.style.display = 'none'; }
+    if(next){
+      document.getElementById('bsheet-next-label').textContent = `${stnName} ↔ ${next}`;
+      nextEl.dataset.s1 = stnName; nextEl.dataset.s2 = next;
+      nextEl.style.display = 'flex';
+    } else { if(nextEl) nextEl.style.display = 'none'; }
+  }
+  openSheet('between-section-sheet');
+}
+
+function applyTabSection(which){
+  const el = document.getElementById(which === 'prev' ? 'bsheet-prev' : 'bsheet-next');
+  const s1 = el.dataset.s1;
+  const s2 = el.dataset.s2;
+  if(!s1 || !s2) return;
+  locState.s1 = s1; locState.s2 = s2;
+  locState.applied.s1 = s1; locState.applied.s2 = s2;
+
+  closeSheet('between-section-sheet');
+
+  // 切換顯示：隱藏選站列，顯示已選區間列
+  document.getElementById('tab-between-pick').style.display = 'none';
+  const selEl = document.getElementById('tab-between-selected');
+  selEl.style.display = 'flex';
+  const dispEl = document.getElementById('loc-between-display');
+  if(dispEl){ dispEl.textContent = s1 + '－' + s2 + '間'; }
+
+  clearBetweenResults();
+  setResetBtnActive('shoot-reset-btn', true);
+  doBetweenSearch();
+}
+
+function resetBetweenSection(){
+  locState.s1 = ''; locState.s2 = '';
+  locState.applied.s1 = ''; locState.applied.s2 = '';
+  document.getElementById('tab-between-selected').style.display = 'none';
+  document.getElementById('tab-between-pick').style.display = 'flex';
+  clearBetweenResults();
+  setResetBtnActive('shoot-reset-btn', false);
+  openBetweenStnPicker();
+}
+
+function betweenChipToggle(el, val){
+  const chips = document.querySelectorAll('#btype-chips .chip');
+  const allChip = document.querySelector('#btype-chips .chip[data-val="all"]');
+  if(val === 'all'){
+    chips.forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+  } else {
+    allChip.classList.remove('on');
+    el.classList.toggle('on');
+    const anyOn = Array.from(chips).some(c => c.classList.contains('on') && c.dataset.val !== 'all');
+    if(!anyOn) allChip.classList.add('on');
+  }
+  filterBetween();
+}
+
+function getBetweenSelectedTypes(){
+  const allChip = document.querySelector('#btype-chips .chip[data-val="all"]');
+  if(allChip && allChip.classList.contains('on')) return 'all';
+  return Array.from(document.querySelectorAll('#btype-chips .chip.on')).map(c => c.dataset.val);
+}
+
+function filterBetween(){
+  if(document.getElementById('between-results').style.display === 'none') return;
+  doBetweenSearch();
+}
+
+function clearBetweenResults(){
+  document.getElementById('between-results').style.display = 'none';
+  document.getElementById('between-list').innerHTML = '';
+  document.getElementById('bres-count').textContent = '';
+  document.getElementById('bres-loc').textContent = '';
+  setResetBtnActive('shoot-reset-btn', false);
+}
+
+async function doBetweenSearch(){
+  const s1 = locState.applied.s1;
+  const s2 = locState.applied.s2;
+  if(!s1 || !s2) return;
+
+  const dirEl = document.querySelector('#bdir-chips .chip-round.on');
+  const timeEl = document.querySelector('#btime-chips .chip-round.on');
+  const dv = dirEl?.dataset.val || 'all';
+  const tv = getBetweenSelectedTypes();
+  const timeRange = parseInt(timeEl?.dataset.val || '60');
+  const now = new Date();
+  const nowMins = timeRange >= 1440 ? 0 : now.getHours() * 60 + now.getMinutes();
+  const endMins = timeRange >= 1440 ? 23 * 60 + 59 : nowMins + timeRange;
+
+  const locLbl = s1 + '－' + s2 + '間';
+  document.getElementById('bres-loc').textContent = locLbl;
+  document.getElementById('between-results').style.display = 'block';
+  document.getElementById('between-list').innerHTML =
+    `<div style="display:flex;flex-direction:column;align-items:center;padding:2rem 0;color:var(--text3);gap:8px;">
+      <svg width="36" height="36" viewBox="0 0 40 40" style="animation:spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="16" fill="none" stroke="#e0e0e0" stroke-width="4"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="60 44" stroke-linecap="round"/></svg>
+      <div style="font-size:14px;">查詢中...</div>
+    </div>`;
+
+  try {
+    await ensureGTT();
+    let liveMap = {};
+    try {
+      const lr = await fetch(`${API_BASE}/api/live`);
+      const ld = await lr.json();
+      (ld.TrainLiveBoards || []).forEach(t => { liveMap[t.TrainNo] = t.DelayTime || 0; });
+    } catch(e) {}
+
+    const results = queryBetween(s1, s2, nowMins, endMins, dv, tv);
+    document.getElementById('bres-count').textContent = results.length + ' 班';
+    renderBetweenResultsTo('between-list', results, s1, s2, liveMap);
+    setResetBtnActive('shoot-reset-btn', true);
+  } catch(e) {
+    document.getElementById('between-list').innerHTML =
+      `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-sm);padding:14px;color:var(--red);font-size:14px;">⚠️ 載入失敗：${e.message}</div>`;
+  }
+}
+
+// 兩站結果渲染（複用邏輯，目標 el id 可指定）
+function renderBetweenResultsTo(elId, results, s1Name, s2Name, liveMap){
+  const el = document.getElementById(elId);
+  if(!results.length){
+    el.innerHTML = `<div class="empty-state"><div class="empty-text">查無列車</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:6px;">此時段無列車通過</div></div>`;
+    return;
+  }
+  el.innerHTML = results.map(r => {
+    const { train, s1Time, s2Time, s1Est, s2Est } = r;
+    const ti = TYPE_INFO[train.type] || { label: '列車', cls: 'b-exp' };
+    const delay = liveMap[train.no] || 0;
+    const delayStr = delay > 0
+      ? `<span style="color:var(--orange);font-size:13px;font-weight:600;">誤點 +${delay}分</span>`
+      : `<span style="color:var(--green);font-size:13px;font-weight:500;">準點</span>`;
+    const m1 = toMins(s1Time);
+    const m2 = toMins(s2Time || '');
+    let arrowColor, arrowSvg;
+    if(m1 < m2){
+      arrowColor = '#3992FF';
+      arrowSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    } else if(m1 > m2){
+      arrowColor = '#27C97A';
+      arrowSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 6L5 12l6 6" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    } else {
+      arrowColor = '#8A9AB2';
+      arrowSvg = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="${arrowColor}" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+    }
+    const t1Html = s1Est ? `<span style="font-size:18px;font-weight:400;color:#446183;">約</span> ${s1Time}` : s1Time;
+    const t2Html = s2Est ? `<span style="font-size:18px;font-weight:400;color:#446183;">約</span> ${s2Time||'--'}` : (s2Time||'--');
+    const t1Color = s1Est ? '#446183' : 'var(--text)';
+    const t2Color = s2Est ? '#446183' : 'var(--text)';
+    return `<div class="train-card" onclick="openDetailByNo('${train.no}','${s1Name}','${s2Name}','${s1Time}','${s2Time}')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="badge ${ti.cls}">${ti.label}</span>
+          <span style="font-size:15px;font-weight:700;color:var(--text);">${train.no}</span>
+        </div>
+        ${delayStr}
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:0;">
+        <div style="flex:1;">
+          <div style="font-size:13px;color:var(--text2);margin-bottom:2px;">${s1Name}</div>
+          <div style="font-size:32px;font-weight:800;color:${t1Color};letter-spacing:-1.5px;line-height:1;">${t1Html}</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;padding:0 8px;padding-bottom:4px;">${arrowSvg}</div>
+        <div style="flex:1;text-align:right;">
+          <div style="font-size:13px;color:var(--text2);margin-bottom:2px;">${s2Name}</div>
+          <div style="font-size:32px;font-weight:800;color:${t2Color};letter-spacing:-1.5px;line-height:1;">${t2Html}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
 
 let _toastTimer;
 function showToast(msg){
