@@ -256,7 +256,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 }
 .stn-sel-wrap{flex:1;display:flex;flex-direction:column;}
 .stn-sel-box{
-  background:transparent !important;border-radius:8px;padding:9px 12px;
+  background:transparent !important;border-radius:0;padding:9px 12px;
   min-height:48px;display:flex;align-items:center;justify-content:center;
   border:1px solid rgba(255,255,255,0.4);
   transition:all .15s;cursor:pointer;
@@ -1184,9 +1184,11 @@ function getShootSelectedTypes(){
   return Array.from(document.querySelectorAll('#type-chips .chip.on')).map(c => c.dataset.val);
 }
 function autoSearchTT(){
-  // 只有已經查過（有結果）才自動重查
-  const results = document.getElementById('tt-results');
-  if(results && results.innerHTML.trim()) searchTT();
+  const fromLbl = document.getElementById('tt-from-lbl');
+  const toLbl   = document.getElementById('tt-to-lbl');
+  const hasFrom = fromLbl && !fromLbl.classList.contains('placeholder');
+  const hasTo   = toLbl   && !toLbl.classList.contains('placeholder');
+  if(hasFrom && hasTo) searchTT();
 }
 function switchFavSubTab(sub, btn){
   document.querySelectorAll('.fav-subtab').forEach(b=>b.classList.remove('active'));
@@ -2834,6 +2836,7 @@ function onNowToggle(checked){
   if(track) track.style.background = checked ? 'var(--accent)' : '#eef0f5';
   if(thumb) thumb.style.transform = checked ? 'translateX(22px)' : 'translateX(0)';
   if(checked) setTTDateToToday();
+  autoSearchTT();
 }
 function swapTT(){
   const a=document.getElementById('tt-from-lbl'),b=document.getElementById('tt-to-lbl');

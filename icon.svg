@@ -1,7 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
-  <rect width="192" height="192" rx="42.24" fill="#1a2540"/>
-  <line x1="40.32" y1="96.0" x2="70.656" y2="96.0" stroke="white" stroke-width="9.792" stroke-linecap="square"/>
-  <line x1="121.344" y1="96.0" x2="151.68" y2="96.0" stroke="white" stroke-width="9.792" stroke-linecap="square"/>
-  <circle cx="96.0" cy="96.0" r="25.344" fill="white"/>
-  <circle cx="96.0" cy="96.0" r="15.552000000000001" fill="#1a2540"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#253a6e"/>
+      <stop offset="100%" stop-color="#1a2540"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="4.800000000000001" stdDeviation="4.224" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="192" height="192" rx="42.24" fill="url(#bg)"/>
+  <g filter="url(#shadow)">
+    <line x1="40.32" y1="96.0" x2="70.656" y2="96.0" stroke="white" stroke-width="9.792" stroke-linecap="square"/>
+    <line x1="121.344" y1="96.0" x2="151.68" y2="96.0" stroke="white" stroke-width="9.792" stroke-linecap="square"/>
+    <circle cx="96.0" cy="96.0" r="25.344" fill="white"/>
+    <circle cx="96.0" cy="96.0" r="15.552000000000001" fill="url(#bg)"/>
+  </g>
 </svg>
