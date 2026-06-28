@@ -60,6 +60,8 @@
   --radius:14px;
   --radius-sm:10px;
   --radius-xs:7px;
+  --radius-input:0px;
+  --radius-btn:0px;
 }
 html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-system,'SF Pro Text','Helvetica Neue',system-ui,sans-serif;overflow:hidden;}
 #app{max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;position:relative;background:var(--bg);}
@@ -128,7 +130,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .sec:first-child{margin-top:0;}
 
 /* ── LOCATION BAR ── */
-.loc-bar{background:#eef0f5;border-radius:var(--radius);border:1px solid var(--border);padding:15px 16px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
+.loc-bar{background:#eef0f5;border-radius:var(--radius-input);border:1px solid var(--border);padding:15px 16px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
 .loc-bar:active{background:var(--bg3);}
 .loc-name{font-size:19px;font-weight:700;color:var(--text);}
 .loc-name.placeholder-loc{font-size:17px;font-weight:400;color:var(--text3);}
@@ -203,7 +205,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .loc-stn-big-btn{
   width:100%;display:flex;align-items:center;gap:14px;
   padding:18px 16px;background:var(--bg);
-  border:1.5px solid var(--border2);border-radius:var(--radius);
+  border:1.5px solid var(--border2);border-radius:var(--radius-input);
   cursor:pointer;font-family:inherit;text-align:left;
   transition:border-color .15s,background .15s;
 }
@@ -371,21 +373,21 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .stop-dot.hl{border-color:#3992FF;background:#e6f1ff;}
 .slate{font-size:11px;color:var(--orange);margin-left:2px;}
 .act-btns{display:flex;flex-direction:column;gap:8px;margin-top:20px;padding-bottom:20px;}
-.btn-p{background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(26,37,64,0.25);}
-.btn-s{background:white;color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:500;cursor:pointer;font-family:inherit;width:100%;}
+.btn-p{background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);color:white;border:none;border-radius:var(--radius-input);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(26,37,64,0.25);}
+.btn-s{background:white;color:var(--text);border:1px solid var(--border);border-radius:var(--radius-input);padding:18px;font-size:16px;font-weight:500;cursor:pointer;font-family:inherit;width:100%;}
 
 /* ── TIMETABLE FORM ── */
 .tt-form{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:18px;margin-bottom:12px;box-shadow:var(--shadow);}
 .tt-row{display:flex;align-items:flex-end;gap:7px;margin-bottom:14px;}
 .tt-f{flex:1;min-width:0;}
-.stn-display-btn{width:100%;padding:15px 14px;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-sm);text-align:left;font-size:21px;font-weight:700;color:var(--text);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;overflow:hidden;}
+.stn-display-btn{width:100%;padding:15px 14px;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);text-align:left;font-size:21px;font-weight:700;color:var(--text);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;overflow:hidden;}
 .stn-display-btn .placeholder{color:var(--text3);font-weight:400;font-size:17px;}
-.swap-btn{width:42px;height:52px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);flex-shrink:0;}
-.tt-date{background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-sm);padding:15px 10px;color:var(--text);font-family:inherit;font-size:18px;font-weight:700;width:100%;outline:none;overflow:hidden;-webkit-appearance:none;min-width:0;}
+.swap-btn{width:42px;height:52px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-input);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);flex-shrink:0;}
+.tt-date{background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:15px 10px;color:var(--text);font-family:inherit;font-size:18px;font-weight:700;width:100%;outline:none;overflow:hidden;-webkit-appearance:none;min-width:0;}
 .tt-date::-webkit-calendar-picker-indicator{display:none;}
-.tt-now-btn{display:flex;align-items:center;gap:5px;padding:0 14px;background:var(--accent-lt);border:1.5px solid var(--accent);border-radius:var(--radius-sm);color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.tt-now-btn{display:flex;align-items:center;gap:5px;padding:0 14px;background:var(--accent-lt);border:1.5px solid var(--accent);border-radius:var(--radius-input);color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .tt-now-btn.active{background:var(--accent);color:white;}
-.srch-btn{background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);color:white;border:none;border-radius:var(--radius-sm);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:4px;box-shadow:0 3px 10px rgba(26,37,64,0.25);}
+.srch-btn{background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);color:white;border:none;border-radius:var(--radius-input);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:4px;box-shadow:0 3px 10px rgba(26,37,64,0.25);}
 
 /* ── TT CARD ── */
 .tt-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:13px 15px;margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow);transition:box-shadow .15s;}
@@ -405,7 +407,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .fav-meta{font-size:12px;color:var(--text3);margin-bottom:9px;}
 .fav-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:11px;}
 .fav-tag{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:3px 8px;font-size:11px;color:var(--text2);}
-.fav-go{background:var(--accent-lt);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:9px;text-align:center;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;}
+.fav-go{background:var(--accent-lt);border:1px solid var(--accent);border-radius:var(--radius-input);padding:9px;text-align:center;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;}
 
 /* ── SETTINGS ── */
 .sg{background:white;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);}
@@ -541,8 +543,8 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
         <input type="date" class="tt-date" id="tt-date" style="flex:1;min-width:0;"/>
         <label style="position:relative;display:inline-block;width:52px;height:30px;cursor:pointer;flex-shrink:0;">
           <input type="checkbox" id="tt-now-toggle" onchange="onNowToggle(this.checked)" style="opacity:0;width:0;height:0;position:absolute;"/>
-          <span id="tt-now-track" style="position:absolute;inset:0;border-radius:15px;background:var(--accent);transition:background .2s;"></span>
-          <span id="tt-now-thumb" style="position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:white;transition:transform .2s;transform:translateX(22px);box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
+          <span id="tt-now-track" style="position:absolute;inset:0;border-radius:15px;background:#eef0f5;transition:background .2s;"></span>
+          <span id="tt-now-thumb" style="position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:white;transition:transform .2s;transform:translateX(0);box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
         </label>
       </div>
     </div>
@@ -579,7 +581,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     </div>
     <div style="flex:1;display:flex;flex-direction:column;">
       <div class="sec" style="margin-bottom:6px;margin-left:11px;">時間</div>
-      <label for="shoot-date-input" style="background:#eef0f5;border-radius:var(--radius);border:1px solid var(--border);padding:15px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
+      <label for="shoot-date-input" style="background:#eef0f5;border-radius:var(--radius-input);border:1px solid var(--border);padding:15px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
         <div id="shoot-date-lbl" style="font-size:18px;font-weight:700;color:var(--text);"></div>
         <input type="date" id="shoot-date-input" onchange="onShootDateChange(this.value)" style="position:absolute;opacity:0;width:0;height:0;"/>
       </label>
@@ -650,7 +652,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     </div>
     <div style="flex:1;display:flex;flex-direction:column;">
       <div class="sec" style="margin-bottom:6px;margin-left:11px;">時間</div>
-      <label for="between-date-input" style="background:#eef0f5;border-radius:var(--radius);border:1px solid var(--border);padding:15px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
+      <label for="between-date-input" style="background:#eef0f5;border-radius:var(--radius-input);border:1px solid var(--border);padding:15px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;">
         <div id="between-date-lbl" style="font-size:18px;font-weight:700;color:var(--text);"></div>
         <input type="date" id="between-date-input" onchange="onBetweenDateChange(this.value)" style="position:absolute;opacity:0;width:0;height:0;"/>
       </label>
@@ -787,11 +789,11 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       </div>
     </div>
     <div class="sh-body">
-      <div id="bsheet-prev" onclick="applyTabSection('prev')" style="display:none;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;margin-bottom:10px;">
+      <div id="bsheet-prev" onclick="applyTabSection('prev')" style="display:none;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-input);cursor:pointer;margin-bottom:10px;">
         <span id="bsheet-prev-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
       </div>
-      <div id="bsheet-next" onclick="applyTabSection('next')" style="display:none;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;">
+      <div id="bsheet-next" onclick="applyTabSection('next')" style="display:none;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-input);cursor:pointer;">
         <span id="bsheet-next-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
       </div>
@@ -833,7 +835,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
             </div>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
           </button>
-          <button onclick="doGPSLocate()" id="lc-gps-quick-btn" style="width:56px;flex-shrink:0;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);">
+          <button onclick="doGPSLocate()" id="lc-gps-quick-btn" style="width:56px;flex-shrink:0;border-radius:var(--radius-input);border:1.5px solid var(--border2);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="currentColor"/></svg>
           </button>
         </div>
@@ -856,11 +858,11 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
           </button>
         </div>
         <div id="lc-between-options" style="display:none;">
-          <div id="lc-section-prev" onclick="applyLocSection('prev')" style="display:flex;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;margin-bottom:10px;min-height:100px;">
+          <div id="lc-section-prev" onclick="applyLocSection('prev')" style="display:flex;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-input);cursor:pointer;margin-bottom:10px;min-height:100px;">
             <span id="lc-section-prev-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
           </div>
-          <div id="lc-section-next" onclick="applyLocSection('next')" style="display:flex;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;min-height:100px;">
+          <div id="lc-section-next" onclick="applyLocSection('next')" style="display:flex;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-input);cursor:pointer;min-height:100px;">
             <span id="lc-section-next-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
           </div>
@@ -1890,7 +1892,7 @@ function doGPSLocate(){
       if(result) result.innerHTML=`
         <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">附近車站（點可更換）</div>
         ${nearest.map((s,i)=>`
-          <div style="background:${i===0?'var(--accent-lter)':'var(--bg)'};border:${i===0?'1.5px solid var(--accent)':'1px solid var(--border)'};border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="applyGPSStation('${s.n}')">
+          <div style="background:${i===0?'var(--accent-lter)':'var(--bg)'};border:${i===0?'1.5px solid var(--accent)':'1px solid var(--border)'};border-radius:var(--radius-input);padding:14px 16px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="applyGPSStation('${s.n}')">
             <div>
               <span style="font-size:14px;font-weight:${i===0?'700':'500'};color:${i===0?'var(--accent)':'var(--text)'};">${s.n}站</span>
               <span style="font-size:11px;color:var(--text3);margin-left:6px;">${s.dist<1?(s.dist*1000).toFixed(0)+'m':s.dist.toFixed(1)+'km'}</span>
@@ -2487,7 +2489,7 @@ async function doSearch() {
       await ensureGTT();
     } catch(e) {
       document.getElementById('train-list').innerHTML =
-        `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-sm);padding:14px;color:var(--red);font-size:14px;">
+        `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-input);padding:14px;color:var(--red);font-size:14px;">
           ⚠️ 載入失敗：${e.message}
         </div>`;
       return;
@@ -2829,7 +2831,7 @@ function onNowToggle(checked){
   ttNowMode = checked;
   const track = document.getElementById('tt-now-track');
   const thumb = document.getElementById('tt-now-thumb');
-  if(track) track.style.background = checked ? 'var(--accent)' : '#ccc';
+  if(track) track.style.background = checked ? 'var(--accent)' : '#eef0f5';
   if(thumb) thumb.style.transform = checked ? 'translateX(22px)' : 'translateX(0)';
   if(checked) setTTDateToToday();
 }
@@ -3034,7 +3036,7 @@ async function searchTT(){
   const toName   = toLbl.classList.contains('placeholder')   ? '' : toLbl.textContent;
 
   if (!fromName || !toName) {
-    el.innerHTML = `<div style="background:var(--accent-lt);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:14px 16px;text-align:center;">
+    el.innerHTML = `<div style="background:var(--accent-lt);border:1px solid var(--accent);border-radius:var(--radius-input);padding:14px 16px;text-align:center;">
       <div style="font-size:15px;font-weight:600;color:var(--accent);margin-bottom:4px;">請先選擇車站</div>
       <div style="font-size:13px;color:var(--text2);">點上方「出發站」和「到達站」選擇查詢區間</div>
     </div>`;
@@ -3086,7 +3088,7 @@ async function searchTT(){
       renderTTList(list, false);
       return;
     } catch(e) {
-      el.innerHTML = `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-sm);padding:14px;color:var(--red);font-size:14px;">⚠️ 查詢失敗：${e.message}</div>`;
+      el.innerHTML = `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-input);padding:14px;color:var(--red);font-size:14px;">⚠️ 查詢失敗：${e.message}</div>`;
       return;
     }
   }
@@ -3101,7 +3103,7 @@ function renderTTList(list, isMock) {
   const el=document.getElementById('tt-results');
   setResetBtnActive('tt-reset-btn', list.length > 0);
 
-  const mockBanner = isMock ? `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;">
+  const mockBanner = isMock ? `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:var(--radius-input);padding:10px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" fill="#f9a825"/></svg>
     <div style="font-size:12px;color:#7a5500;line-height:1.5;">目前為<strong>示範資料</strong>，請設定 API_BASE 後重新部署以顯示真實班次。</div>
   </div>` : '';
@@ -3533,7 +3535,7 @@ async function doBetweenSearch(){
     setResetBtnActive('shoot-reset-btn', true);
   } catch(e) {
     document.getElementById('between-list').innerHTML =
-      `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-sm);padding:14px;color:var(--red);font-size:14px;">⚠️ 載入失敗：${e.message}</div>`;
+      `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-input);padding:14px;color:var(--red);font-size:14px;">⚠️ 載入失敗：${e.message}</div>`;
   }
 }
 
