@@ -496,7 +496,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <!-- HEADER -->
 <div class="header">
   <div class="header-inner">
-    <div class="logo-text">Railshot</div>
+    <div class="logo-text" id="header-title">時刻表</div>
     <button onclick="resetTTForm()" id="tt-reset-btn" title="重設查詢" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
       <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M204-318q-22-38-33-78t-11-82q0-134 93-228t227-94h7l-64-64 56-56 160 160-160 160-56-56 64-64h-7q-100 0-170 70.5T240-478q0 26 6 51t18 49l-60 60ZM481-40 321-200l160-160 56 56-64 64h7q100 0 170-70.5T720-482q0-26-6-51t-18-49l60-60q22 38 33 78t11 82q0 134-93 228t-227 94h-7l64 64-56 56Z"/></svg>
     </button>
@@ -676,8 +676,8 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div class="tab-active-bar"></div>
   </div>
   <div class="tab-item" onclick="switchTab('shoot',this)" id="tbtn-shoot">
-    <svg class="tab-icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M480-260q75 0 127.5-52.5T660-440q0-75-52.5-127.5T480-620q-75 0-127.5 52.5T300-440q0 75 52.5 127.5T480-260Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM160-120q-33 0-56.5-23.5T80-200v-480q0-33 23.5-56.5T160-760h126l74-80h240l74 80h126q33 0 56.5 23.5T880-680v480q0 33-23.5 56.5T800-120H160Zm0-80h640v-480H638l-73-80H395l-73 80H160v480Zm320-240Z"/></svg>
-    <div class="tab-label">拍車</div>
+    <svg class="tab-icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M536.5-503.5Q560-527 560-560t-23.5-56.5Q513-640 480-640t-56.5 23.5Q400-593 400-560t23.5 56.5Q447-480 480-480t56.5-23.5ZM480-186q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg>
+    <div class="tab-label">定點</div>
     <div class="tab-active-bar"></div>
   </div>
   <div class="tab-item" onclick="switchTab('fav',this)" id="tbtn-fav">
@@ -995,6 +995,10 @@ function updateBell(){const b=document.getElementById('bell-badge');if(b)b.style
 
 // ===== TABS =====
 function switchTab(name,el){
+  const TAB_TITLES = { tt: '時刻表', shoot: '定點', fav: '收藏' };
+  const titleEl = document.getElementById('header-title');
+  if(titleEl) titleEl.textContent = TAB_TITLES[name] || '';
+
   const currentActive = document.querySelector('.tab-item.active')?.id;
   const isSameTab = currentActive === el.id;
 
