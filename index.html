@@ -703,59 +703,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 </div>
 </div>
 
-<!-- TAB 4: 規劃 -->
-<div class="screen" id="tab-plan">
-<div class="sc">
-  <div class="tt-form">
-
-    <!-- 起點站 -->
-    <div style="margin-bottom:14px;">
-      <div class="sec" style="margin-bottom:6px;">起點站</div>
-      <button class="stn-display-btn" onclick="openStnPicker('plan-from')">
-        <span id="plan-from-lbl" class="placeholder">選擇車站</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5z" fill="#8a9db8"/></svg>
-      </button>
-    </div>
-
-    <!-- 出發時間 -->
-    <div style="margin-bottom:14px;">
-      <div class="sec" style="margin-bottom:6px;">出發時間</div>
-      <input type="time" id="plan-time-start" value="08:00" style="width:100%;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:14px 12px;font-size:18px;font-weight:700;color:var(--text);font-family:inherit;outline:none;"/>
-    </div>
-
-    <!-- 目標車種 -->
-    <div style="margin-bottom:14px;">
-      <div class="sec" style="margin-bottom:6px;">目標車種（至少選一）</div>
-      <div class="chips-row" id="plan-type-chips">
-        <div class="chip" data-val="exp3" onclick="planChipToggle(this)">自強3000</div>
-        <div class="chip" data-val="puy" onclick="planChipToggle(this)">普悠瑪</div>
-        <div class="chip" data-val="tze" onclick="planChipToggle(this)">太魯閣</div>
-        <div class="chip" data-val="exp" onclick="planChipToggle(this)">自強</div>
-        <div class="chip" data-val="moc" onclick="planChipToggle(this)">莒光</div>
-        <div class="chip" data-val="localx" onclick="planChipToggle(this)">區間快</div>
-        <div class="chip" data-val="local" onclick="planChipToggle(this)">區間</div>
-      </div>
-    </div>
-
-    <!-- 想經過的站（選填） -->
-    <div style="margin-bottom:4px;">
-      <div class="sec" style="margin-bottom:6px;">想經過的站 <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3);">選填，最多3個</span></div>
-      <div id="plan-via-slots" style="display:flex;flex-direction:column;gap:8px;">
-        <button class="stn-display-btn" id="plan-via-0-btn" onclick="openStnPicker('plan-via-0')" style="font-size:16px;">
-          <span id="plan-via-0-lbl" class="placeholder" style="font-size:16px;">＋ 新增車站</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5z" fill="#8a9db8"/></svg>
-        </button>
-      </div>
-    </div>
-
-  </div><!-- /tt-form -->
-
-  <button class="srch-btn" onclick="runPlan()" style="margin-top:4px;">開始規劃</button>
-
-  <div id="plan-results" style="margin-top:16px;"></div>
-</div>
-</div>
-
 <!-- TAB 3: 收藏 -->
 <div class="screen" id="tab-fav">
   <!-- Sub-tab switcher — 不走 .sc，讓下方兩欄能撐滿 -->
@@ -808,11 +755,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   <div class="tab-item" onclick="switchTab('between',this)" id="tbtn-between">
     <svg class="tab-icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M280-280 80-480l200-200 56 56-103 104h494L624-624l56-56 200 200-200 200-56-56 103-104H233l103 104-56 56Z"/></svg>
     <div class="tab-label">區間</div>
-    <div class="tab-active-bar"></div>
-  </div>
-  <div class="tab-item" onclick="switchTab('plan',this)" id="tbtn-plan">
-    <svg class="tab-icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm80 240h400v-80H280v80Zm0 160h280v-80H280v80Z"/></svg>
-    <div class="tab-label">規劃</div>
     <div class="tab-active-bar"></div>
   </div>
   <div class="tab-item" onclick="switchTab('fav',this)" id="tbtn-fav">
@@ -1154,7 +1096,7 @@ function updateBell(){const b=document.getElementById('bell-badge');if(b)b.style
 
 // ===== TABS =====
 function switchTab(name,el){
-  const TAB_TITLES = { tt: '時刻表', single: '單點', between: '區間', plan: '規劃', fav: '收藏' };
+  const TAB_TITLES = { tt: '時刻表', single: '單點', between: '區間', fav: '收藏' };
   const titleEl = document.getElementById('header-title');
   if(titleEl) titleEl.textContent = TAB_TITLES[name] || '';
 
@@ -3431,9 +3373,7 @@ setLocMode('single');
 updateShootResetBtn();
 // 如果已有拍攝點設定，refresh 顯示深藍
 function updateShootResetBtn(){
-  const _locEl = document.getElementById('loc-display');
-  const hasLoc = _locEl && _locEl.textContent.trim() !== '選擇車站';
-  setResetBtnActive('shoot-reset-btn', hasLoc);
+  setResetBtnActive('shoot-reset-btn', !!(locState.applied && locState.applied.s1));
 }
 updateBell();
 setInterval(checkReminders,30000);
@@ -3552,7 +3492,8 @@ function getBetweenSelectedTypes(){
 }
 
 function filterBetween(){
-  if(document.getElementById('between-results').style.display === 'none') return;
+  const hasStn = !!(betweenState.applied.s1 && betweenState.applied.s2);
+  if(!hasStn) return;
   doBetweenSearch();
 }
 
