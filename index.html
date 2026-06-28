@@ -540,7 +540,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <div style="display:flex;gap:10px;align-items:center;">
         <input type="date" class="tt-date" id="tt-date" style="flex:1;min-width:0;"/>
         <label style="position:relative;display:inline-block;width:52px;height:30px;cursor:pointer;flex-shrink:0;">
-          <input type="checkbox" id="tt-now-toggle" onchange="onNowToggle(this.checked)" style="opacity:0;width:0;height:0;position:absolute;" checked/>
+          <input type="checkbox" id="tt-now-toggle" onchange="onNowToggle(this.checked)" style="opacity:0;width:0;height:0;position:absolute;"/>
           <span id="tt-now-track" style="position:absolute;inset:0;border-radius:15px;background:var(--accent);transition:background .2s;"></span>
           <span id="tt-now-thumb" style="position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:white;transition:transform .2s;transform:translateX(22px);box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
         </label>
@@ -706,7 +706,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   <div class="sheet">
     <div class="sh-handle"></div>
     <div class="sh-hdr">
-      <div class="sh-title">選擇拍攝點</div>
+      <div class="sh-title">選擇定點</div>
     </div>
     <div class="sh-body">
       <!-- Mode selector -->
@@ -730,7 +730,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
             </div>
             <div>
               <div class="loc-stn-big-label">選擇車站</div>
-              <div class="loc-stn-big-name" id="lc-single-stn-lbl">尚未選擇</div>
+              <div class="loc-stn-big-name" id="lc-single-stn-lbl"></div>
             </div>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
           </button>
@@ -751,7 +751,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
             </div>
             <div>
               <div class="loc-stn-big-label">選擇車站</div>
-              <div class="loc-stn-big-name" id="lc-b1-lbl">尚未選擇</div>
+              <div class="loc-stn-big-name" id="lc-b1-lbl"></div>
             </div>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="margin-left:auto;color:#8a9db8;"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/></svg>
           </button>
@@ -1391,7 +1391,7 @@ function initLocSheet(){
   const setLbl = (id, val) => {
     const el = document.getElementById(id); if(!el) return;
     if(val){ el.textContent=val; el.classList.remove('placeholder-name'); }
-    else{ el.textContent='尚未選擇'; el.classList.add('placeholder-name'); }
+    else{ el.textContent=''; el.classList.add('placeholder-name'); }
   };
   if(locState.mode === 'single'){
     setLbl('lc-single-stn-lbl', locState.s1);
@@ -1406,7 +1406,7 @@ function openLocStnPage(slot){
   const setStnLbl = (id, val) => {
     const el = document.getElementById(id); if(!el) return;
     if(val){ el.textContent=val; el.classList.remove('placeholder-name'); }
-    else{ el.textContent='尚未選擇'; el.classList.add('placeholder-name'); }
+    else{ el.textContent=''; el.classList.add('placeholder-name'); }
   };
   if(slot==='single'){
     // 只選單一站，用 from slot，選完自動關閉
@@ -1465,11 +1465,11 @@ function resetSearchState() {
 
   // 直接操作 DOM — 單站選站按鈕
   const singleLbl = document.getElementById('lc-single-stn-lbl');
-  if(singleLbl){ singleLbl.textContent = '尚未選擇'; singleLbl.className = 'loc-stn-big-name placeholder-name'; }
+  if(singleLbl){ singleLbl.textContent = ''; singleLbl.className = 'loc-stn-big-name placeholder-name'; }
 
   // 兩站之間 — 第一站
   const b1Lbl = document.getElementById('lc-b1-lbl');
-  if(b1Lbl){ b1Lbl.textContent = '尚未選擇'; b1Lbl.className = 'loc-stn-big-name placeholder-name'; }
+  if(b1Lbl){ b1Lbl.textContent = ''; b1Lbl.className = 'loc-stn-big-name placeholder-name'; }
 
   // 兩站之間 — 重置為初始狀態（顯示選站按鈕，隱藏區間選項）
   const step1 = document.getElementById('lc-between-step1');
@@ -1541,10 +1541,10 @@ function resetTTForm(){
   setResetBtnActive('tt-reset-btn', false);
   // 重設日期為今天、開啟現在時刻模式
   setTTDateToToday();
-  ttNowMode = true;
+  ttNowMode = false;
   const tog = document.getElementById('tt-now-toggle');
-  if(tog) tog.checked = true;
-  onNowToggle(true);
+  if(tog) tog.checked = false;
+  onNowToggle(false);
   // 重設車種為全部
   const chips = document.querySelectorAll('#tt-type-chips .chip');
   chips.forEach(c => c.classList.remove('on'));
@@ -1595,8 +1595,8 @@ function swapLocBetween(){
   const tmp = locState.s1;
   locState.s1 = locState.s2;
   locState.s2 = tmp;
-  document.getElementById('lc-b1-lbl').textContent = locState.s1 || '尚未選擇';
-  document.getElementById('lc-b2-lbl').textContent = locState.s2 || '尚未選擇';
+  document.getElementById('lc-b1-lbl').textContent = locState.s1 || '';
+  document.getElementById('lc-b2-lbl').textContent = locState.s2 || '';
   document.getElementById('lc-b1-lbl').className = 'loc-stn-big-name' + (locState.s1 ? '' : ' placeholder-name');
   document.getElementById('lc-b2-lbl').className = 'loc-stn-big-name' + (locState.s2 ? '' : ' placeholder-name');
 }
@@ -2708,7 +2708,7 @@ function setReminderByTrain(trainNo, station, passTime) {
 }
 
 // ===== TIMETABLE =====
-let ttNowMode = true;
+let ttNowMode = false;
 function localDateStr(d){ d=d||new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function setTTDateToToday(){ document.getElementById('tt-date').value = localDateStr(); }
 function onNowToggle(checked){
