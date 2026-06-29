@@ -124,6 +124,14 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .chips-row::-webkit-scrollbar{display:none;}
 .chip{padding:9px 15px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--border2);background:white;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;box-shadow:var(--shadow);}
 .chip.on{background:var(--accent);color:white;border-color:var(--accent);box-shadow:0 2px 8px rgba(26,37,64,0.25);}
+.chip.on[data-val="all"]{background:#1a2540;border-color:#1a2540;}
+.chip.on[data-val="exp3"]{background:#222;border-color:#222;}
+.chip.on[data-val="puy"]{background:#c0392b;border-color:#c0392b;}
+.chip.on[data-val="exp"]{background:#DDA705;border-color:#DDA705;}
+.chip.on[data-val="moc"]{background:#c4651a;border-color:#c4651a;}
+.chip.on[data-val="localx"]{background:#3CAE67;border-color:#3CAE67;}
+.chip.on[data-val="local"]{background:#34AFBF;border-color:#34AFBF;}
+.chip.on[data-val="tze"]{background:#6b7280;border-color:#6b7280;}
 
 /* ── CARDS ── */
 .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);}
