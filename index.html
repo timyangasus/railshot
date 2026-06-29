@@ -1104,23 +1104,23 @@ function switchTab(name,el){
   const isSameTab = currentActive === el.id;
 
   // 離開單點 tab 時清除結果
-  if(currentActive === 'tbtn-single' && name !== 'single') clearShootResults();
-  // 離開兩站 tab 時清除結果
-  if(currentActive === 'tbtn-between' && name !== 'between') clearBetweenResults();
-  // 離開時刻表 tab 時清除結果
-  if(currentActive === 'tbtn-tt' && name !== 'tt') clearTTResults();
+  if(currentActive === 'tbtn-single' && name !== 'single') {}  // 保留狀態
+  if(currentActive === 'tbtn-between' && name !== 'between') {} // 保留狀態
+  if(currentActive === 'tbtn-tt' && name !== 'tt') {}           // 保留狀態
 
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
-  if(name==='single') updateShootResetBtn();
-  if(name==='between') setResetBtnActive('shoot-reset-btn', !!(betweenState.applied.s1 && betweenState.applied.s2));
+  if(name==='single') { updateShootResetBtn(); if(locState.applied.s1){ isTabRefresh=true; setTimeout(doSearch, 50); } }
+  if(name==='between') { setResetBtnActive('shoot-reset-btn', !!(betweenState.applied.s1 && betweenState.applied.s2)); if(betweenState.applied.s1 && betweenState.applied.s2){ isTabRefresh=true; setTimeout(doBetweenSearch, 50); } }
   if(name==='tt'){
     const fl = document.getElementById('tt-from-lbl');
     const tl = document.getElementById('tt-to-lbl');
     const hasStation = (fl && !fl.classList.contains('placeholder')) || (tl && !tl.classList.contains('placeholder'));
     setResetBtnActive('tt-reset-btn', hasStation);
+    if(hasStation){ isTabRefresh=true; }
+    autoSearchTT();
   }
   if(name==='fav'){
     renderTTFavs();
@@ -1552,6 +1552,7 @@ function updSlider(){
 // ── 拍車日期 ──────────────────────────────────────────
 let shootDate = new Date();
 let betweenDate = new Date();
+let isTabRefresh = false;
 function updateShootDateLbl(){
   const el = document.getElementById('shoot-date-lbl');
   if(!el) return;
@@ -2524,6 +2525,7 @@ async function doSearch() {
       const results = queryStation(stn, nowMins, endMins, dv, tv);
       document.getElementById('res-count').textContent = results.length + ' 班';
       renderStationResults(results, stn, liveMap);
+      if(isTabRefresh){ showToast('已更新最新時刻'); isTabRefresh=false; }
       setResetBtnActive('shoot-reset-btn', results.length > 0);
     }
     return;
@@ -3113,6 +3115,7 @@ async function searchTT(){
 function renderTTList(list, isMock) {
   const el=document.getElementById('tt-results');
   setResetBtnActive('tt-reset-btn', list.length > 0);
+  if(isTabRefresh){ showToast('已更新最新時刻'); isTabRefresh=false; }
 
   const mockBanner = isMock ? `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:var(--radius-input);padding:10px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" fill="#f9a825"/></svg>
@@ -3540,6 +3543,7 @@ async function doBetweenSearch(){
     const results = queryBetween(s1, s2, nowMins, endMins, dv, tv);
     document.getElementById('bres-count').textContent = results.length + ' 班';
     renderBetweenResultsTo('between-list', results, s1, s2, liveMap);
+    if(isTabRefresh){ showToast('已更新最新時刻'); isTabRefresh=false; }
     setResetBtnActive('shoot-reset-btn', true);
   } catch(e) {
     document.getElementById('between-list').innerHTML =
