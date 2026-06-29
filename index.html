@@ -482,6 +482,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 /* Frequent station chips in picker */
 .sp-freq-chip{display:inline-flex;align-items:center;background:var(--bg);border:1.5px solid rgba(26,37,64,0.25);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;margin-right:8px;white-space:nowrap;transition:background .12s;}
 .sp-freq-chip:active{background:var(--accent);color:white;}
+.sp-freq-chip-on{background:var(--accent)!important;color:white!important;border-color:var(--accent)!important;}
 
 /* ── ANIMATIONS ── */
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -1425,6 +1426,7 @@ function spSelectStation(s){
   const wasFrom = spState.active === 'from';
   if(wasFrom) spState.from = s;
   else spState.to = s;
+  renderFreqStns(); // 更新膠囊亮起狀態
 
   // 拍攝點模式
   if(spState.caller && spState.caller.startsWith('loc-')){
@@ -3006,9 +3008,12 @@ function spRenderFreqRow(){
     return;
   }
   row.style.display = 'block';
-  row.innerHTML = sortedFreqStns().map(name =>
-    `<span class="sp-freq-chip" onclick="spSelectStation('${name}')">${name}</span>`
-  ).join('');
+  const activeFrom = spState.from;
+  const activeTo   = spState.to;
+  row.innerHTML = sortedFreqStns().map(name => {
+    const isActive = name === activeFrom || name === activeTo;
+    return `<span class="sp-freq-chip${isActive?' sp-freq-chip-on':''}" onclick="spSelectStation('${name}')">${name}</span>`;
+  }).join('');
 }
 
 let ttFavs = JSON.parse(localStorage.getItem('rs_ttfavs') || '[]');
