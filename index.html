@@ -1426,7 +1426,7 @@ function spSelectStation(s){
   const wasFrom = spState.active === 'from';
   if(wasFrom) spState.from = s;
   else spState.to = s;
-  renderFreqStns(); // 更新膠囊亮起狀態
+  spRenderFreqRow(); // 更新膠囊亮起狀態
 
   // 拍攝點模式
   if(spState.caller && spState.caller.startsWith('loc-')){
