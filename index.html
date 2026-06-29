@@ -1118,7 +1118,15 @@ function switchTab(name,el){
     const tl = document.getElementById('tt-to-lbl');
     const hasStation = (fl && !fl.classList.contains('placeholder')) || (tl && !tl.classList.contains('placeholder'));
     setResetBtnActive('tt-reset-btn', hasStation);
-    autoSearchTT();
+    if(hasStation){ isLocalRefresh=true; autoSearchTT(); isLocalRefresh=false; }
+  }
+  if(name==='single'){
+    updateShootResetBtn();
+    if(locState.applied.s1){ isLocalRefresh=true; setTimeout(()=>doSearch().finally(()=>{isLocalRefresh=false;}),50); }
+  }
+  if(name==='between'){
+    setResetBtnActive('shoot-reset-btn', !!(betweenState.applied.s1 && betweenState.applied.s2));
+    if(betweenState.applied.s1 && betweenState.applied.s2){ isLocalRefresh=true; setTimeout(()=>doBetweenSearch().finally(()=>{isLocalRefresh=false;}),50); }
   }
   if(name==='fav'){
     renderTTFavs();
@@ -1493,6 +1501,8 @@ function confirmStnPick(){ confirmStnPage(); }
 // s1/s2: 暫存選擇（sheet 內）  applied: 已套用的真實值
 let locState={mode:'single', s1:'', s2:'', applied:{s1:'', s2:''}, pos:50};
 let betweenState={s1:'', s2:'', applied:{s1:'', s2:''}};
+let cachedLiveMap = {};
+let isLocalRefresh = false; // true = 用快取，不打 live API
 function initLocSheet(){
   // 從已套用狀態恢復 sheet 的暫存選擇
   locState.s1 = locState.applied.s1;
@@ -2503,11 +2513,16 @@ async function doSearch() {
 
     // 取即時誤點
     let liveMap = {};
-    try {
-      const lr = await fetch(`${API_BASE}/api/live`);
-      const ld = await lr.json();
-      (ld.TrainLiveBoards || []).forEach(t => { liveMap[t.TrainNo] = t.DelayTime || 0; });
-    } catch(e) {}
+    if(isLocalRefresh){
+      liveMap = cachedLiveMap;
+    } else {
+      try {
+        const lr = await fetch(`${API_BASE}/api/live`);
+        const ld = await lr.json();
+        (ld.TrainLiveBoards || []).forEach(t => { liveMap[t.TrainNo] = t.DelayTime || 0; });
+        cachedLiveMap = liveMap;
+      } catch(e) { liveMap = cachedLiveMap; }
+    }
 
     if (isBetween) {
       const parts = loc.replace(/間$/, '').split('－');
@@ -3064,11 +3079,16 @@ async function searchTT(){
     try {
       await ensureGTT();
       let liveMap = {};
-      try {
-        const lr = await fetch(`${API_BASE}/api/live`);
-        const ld = await lr.json();
-        (ld.TrainLiveBoards || []).forEach(t => { liveMap[t.TrainNo] = t.DelayTime || 0; });
-      } catch(e) {}
+      if(isLocalRefresh){
+        liveMap = cachedLiveMap;
+      } else {
+        try {
+          const lr = await fetch(`${API_BASE}/api/live`);
+          const ld = await lr.json();
+          (ld.TrainLiveBoards || []).forEach(t => { liveMap[t.TrainNo] = t.DelayTime || 0; });
+          cachedLiveMap = liveMap;
+        } catch(e) { liveMap = cachedLiveMap; }
+      }
 
       const alt = n => n.replace(/台/g,'臺').replace(/臺/g,'台');
       let list = [];
@@ -3531,11 +3551,16 @@ async function doBetweenSearch(){
   try {
     await ensureGTT();
     let liveMap = {};
-    try {
-      const lr = await fetch(`${API_BASE}/api/live`);
-      const ld = await lr.json();
-      (ld.TrainLiveBoards || []).forEach(t => { liveMap[t.TrainNo] = t.DelayTime || 0; });
-    } catch(e) {}
+    if(isLocalRefresh){
+      liveMap = cachedLiveMap;
+    } else {
+      try {
+        const lr = await fetch(`${API_BASE}/api/live`);
+        const ld = await lr.json();
+        (ld.TrainLiveBoards || []).forEach(t => { liveMap[t.TrainNo] = t.DelayTime || 0; });
+        cachedLiveMap = liveMap;
+      } catch(e) { liveMap = cachedLiveMap; }
+    }
 
     const results = queryBetween(s1, s2, nowMins, endMins, dv, tv);
     document.getElementById('bres-count').textContent = results.length + ' 班';
