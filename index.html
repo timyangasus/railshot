@@ -1044,6 +1044,20 @@ const TYPE_INFO={
   local:{label:'區間車',cls:'b-local'},
 };
 
+// Detail page banner 漸層色（對應車種色，略深以維持白字可讀性）
+const TYPE_BANNER_GRADIENT={
+  exp3:   'linear-gradient(135deg,#161616 0%,#2b2b2b 100%)',
+  puy:    'linear-gradient(135deg,#8e261c 0%,#c0392b 100%)',
+  exp:    'linear-gradient(135deg,#9c7704 0%,#DDA705 100%)',
+  moc:    'linear-gradient(135deg,#94481a 0%,#c4651a 100%)',
+  localx: 'linear-gradient(135deg,#2c8552 0%,#3CAE67 100%)',
+  local:  'linear-gradient(135deg,#27828f 0%,#34AFBF 100%)',
+  tze:    'linear-gradient(135deg,#4a5158 0%,#6b7280 100%)',
+};
+function getDetailBannerGradient(type){
+  return TYPE_BANNER_GRADIENT[type] || 'linear-gradient(135deg, #1a2d5a 0%, #2d4a8a 100%)';
+}
+
 const FAVS=[];
 
 const NOW=new Date();
@@ -2790,7 +2804,7 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
 
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
     document.getElementById('det-body').innerHTML = `
-      <div style="background:linear-gradient(135deg,#1a2d5a 0%,#2d4a8a 100%);margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
+      <div style="background:${getDetailBannerGradient(train.type)};margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
         <div style="position:absolute;top:16px;right:16px;">
           <span style="background:${displayDir==='up'?'rgba(57,146,255,0.2)':'rgba(39,201,122,0.2)'};color:${displayDir==='up'?'#99C8FF':'#80FFB0'};font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${displayDir==='up'?'↑ 上行':'↓ 下行'}</span>
         </div>
@@ -3254,7 +3268,7 @@ async function openTTDetailObj(t){
     const dirLabel = tDir === 'up' ? '↑ 上行' : '↓ 下行';
 
     document.getElementById('det-body').innerHTML=`
-      <div style="background:linear-gradient(135deg,#1a2d5a 0%,#2d4a8a 100%);margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
+      <div style="background:${getDetailBannerGradient(t.type)};margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
         <div style="position:absolute;top:16px;right:16px;">
           <span style="background:${dirBg};color:${dirColor};font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${dirLabel}</span>
         </div>
