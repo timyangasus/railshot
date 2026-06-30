@@ -524,12 +524,12 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 </div>
 
 <!-- Inline train search bar -->
-<div id="train-search-overlay" onclick="closeTrainSearch()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:98;"></div>
-<div id="train-search-bar" style="display:none;position:fixed;top:calc(var(--header-h) + var(--safe-top));left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;z-index:99;">
-  <div style="display:flex;gap:8px;align-items:center;">
+<div id="train-search-overlay" onclick="closeTrainSearch()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:98;"></div>
+<div id="train-search-bar" style="display:none;position:fixed;top:0;left:0;right:0;padding-top:calc(var(--safe-top) + var(--header-h));background:var(--bg);padding-left:16px;padding-right:16px;padding-bottom:12px;z-index:99;">
+  <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
     <div style="flex:1;position:relative;">
-      <input type="text" id="train-no-input" placeholder="輸入車次號碼" inputmode="numeric" pattern="[0-9]*"
-        style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:12px 40px 12px 14px;font-size:17px;font-weight:700;color:var(--text);font-family:inherit;outline:none;letter-spacing:2px;"
+      <input type="text" id="train-no-input" placeholder="輸入車次" inputmode="numeric" pattern="[0-9]*"
+        style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:20px 40px 20px 14px;font-size:17px;font-weight:400;color:var(--text);font-family:inherit;outline:none;letter-spacing:1px;"
         oninput="document.getElementById('train-no-clear').style.display=this.value?'flex':'none'"
         onkeydown="if(event.key==='Enter') searchTrainNo()"/>
       <button id="train-no-clear" onclick="document.getElementById('train-no-input').value='';this.style.display='none';document.getElementById('train-no-input').focus();"
@@ -537,7 +537,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="white"/></svg>
       </button>
     </div>
-    <button onclick="searchTrainNo()" style="background:var(--accent);color:white;border:none;border-radius:var(--radius-input);padding:12px 18px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">查詢</button>
+    <button onclick="searchTrainNo()" style="background:var(--accent);color:white;border:none;border-radius:var(--radius-input);padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">查詢</button>
   </div>
   <div id="train-search-error" style="display:none;margin-top:8px;font-size:13px;color:var(--red);"></div>
 </div>
@@ -2791,11 +2791,11 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
           <span style="background:${displayDir==='up'?'rgba(57,146,255,0.2)':'rgba(39,201,122,0.2)'};color:${displayDir==='up'?'#99C8FF':'#80FFB0'};font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${displayDir==='up'?'↑ 上行':'↓ 下行'}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-right:90px;">
-          <span style="font-size:44px;font-weight:700;color:white;letter-spacing:-1px;">${trainNo}</span>
-          <span style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:26px;padding:5px 14px;border-radius:20px;font-weight:500;">${ti.label}</span>
+          <span style="font-size:22px;font-weight:700;color:white;letter-spacing:-1px;">${trainNo}</span>
+          <span style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:13px;padding:5px 14px;border-radius:20px;font-weight:500;">${ti.label}</span>
         </div>
-        <div style="font-size:20px;color:rgba(255,255,255,0.75);margin-bottom:14px;">${train.from} → ${train.to}</div>
-        ${timeSection}
+        <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:14px;">${train.from} → ${train.to}</div>
+        ${atStation ? `<div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:6px;">${atStation}站</div>` : ''}
       </div>
       <div style="margin-top:16px;" class="sec">停靠站時刻</div>
       <div class="stop-list">
@@ -3964,13 +3964,13 @@ setTimeout(() => {
 
 // ===== 車次查詢 =====
 function openTrainSearch(){
-  const bar = document.getElementById('train-search-bar');
-  const ov  = document.getElementById('train-search-overlay');
   const inp = document.getElementById('train-no-input');
   const err = document.getElementById('train-search-error');
+  const clr = document.getElementById('train-no-clear');
+  const bar = document.getElementById('train-search-bar');
+  const ov  = document.getElementById('train-search-overlay');
   if(err) err.style.display = 'none';
   if(inp) inp.value = '';
-  const clr = document.getElementById('train-no-clear');
   if(clr) clr.style.display = 'none';
   if(ov)  ov.style.display = 'block';
   if(bar) bar.style.display = 'block';
