@@ -2782,31 +2782,13 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
     const passTime = s1TimeOverride || (atStop ? (atStop.dep || atStop.arr) : '');
     const displayDir = calculateDisplayDir(train);
 
-    // 兩站之間模式：顯示 s1→s2 時間
-    const timeSection = isBetween && s2Station && s2TimeOverride
-      ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <div>
-            <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.8);margin-bottom:2px;">${atStation}</div>
-            <span style="font-size:34px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-1.5px;line-height:1;">${passTime || '--'}</span>
-          </div>
-          <span style="font-size:24px;color:rgba(255,255,255,0.4);margin:0 4px;padding-top:18px;">→</span>
-          <div>
-            <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.8);margin-bottom:2px;">${s2Station}</div>
-            <span style="font-size:34px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-1.5px;line-height:1;">${s2TimeOverride}</span>
-          </div>
-          ${delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;padding-top:18px;">+${delay}分</span>` : ''}
-        </div>`
-      : `<div style="display:flex;align-items:baseline;gap:12px;">
-          <span style="font-size:40px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-2px;line-height:1;">${passTime || '--'}</span>
-          ${delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;">+${delay}分</span>` : ''}
-        </div>
-        ${atStation ? `<div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:6px;">${atStation}站</div>` : ''}`;
+    // (passTime / timeSection 已不再顯示於 banner，相關計算保留供未來擴充)
 
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
     document.getElementById('det-body').innerHTML = `
       <div style="background:${getDetailBannerGradient(train.type)};margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
         <div style="position:absolute;top:16px;right:16px;">
-          <span style="background:${displayDir==='up'?'rgba(57,146,255,0.2)':'rgba(39,201,122,0.2)'};color:${displayDir==='up'?'#99C8FF':'#80FFB0'};font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${displayDir==='up'?'↑ 上行':'↓ 下行'}</span>
+          <span style="background:rgba(255,255,255,0.18);color:white;font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${displayDir==='up'?'↑ 上行':'↓ 下行'}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-right:90px;">
           <span style="font-size:22px;font-weight:700;color:white;letter-spacing:-1px;">${trainNo}</span>
@@ -3263,23 +3245,21 @@ async function openTTDetailObj(t){
     }).join('');
 
     const tDir = calcDirFromFromTo(t.from, t.to, t.dir);
-    const dirBg    = tDir === 'up' ? 'rgba(57,146,255,0.2)'  : 'rgba(39,201,122,0.2)';
-    const dirColor = tDir === 'up' ? '#99C8FF' : '#80FFB0';
     const dirLabel = tDir === 'up' ? '↑ 上行' : '↓ 下行';
 
     document.getElementById('det-body').innerHTML=`
       <div style="background:${getDetailBannerGradient(t.type)};margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
         <div style="position:absolute;top:16px;right:16px;">
-          <span style="background:${dirBg};color:${dirColor};font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${dirLabel}</span>
+          <span style="background:rgba(255,255,255,0.18);color:white;font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${dirLabel}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-right:90px;">
           <span style="font-size:22px;font-weight:700;color:white;">${t.no}</span>
           <span style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:13px;padding:3px 10px;border-radius:20px;font-weight:500;">${ti.label}</span>
         </div>
         <div style="font-size:15px;color:rgba(255,255,255,0.65);margin-bottom:12px;">${t.from} → ${t.to}</div>
-        <div style="display:flex;align-items:baseline;gap:12px;">
-          <span style="font-size:34px;font-weight:700;color:${t.delay>0?'#FF9966':'#80FFB0'};letter-spacing:-1.5px;line-height:1;">${t.dep} → ${t.arr}</span>
-          ${t.delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;">+${t.delay}分</span>` : ''}
+        <div style="display:flex;align-items:baseline;gap:8px;">
+          <span style="font-size:34px;font-weight:700;color:white;letter-spacing:-1.5px;line-height:1;">${t.dep} → ${t.arr}</span>
+          ${t.delay > 0 ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:white;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:20px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2L1 21h22L12 2zm-1 7h2v6h-2V9zm0 8h2v2h-2v-2z"/></svg>+${t.delay}分</span>` : ''}
         </div>
         <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);margin-top:5px;">行駛時間：${t.dur}</div>
       </div>
