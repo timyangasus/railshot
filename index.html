@@ -525,7 +525,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 
 <!-- Inline train search bar -->
 <div id="train-search-overlay" onclick="closeTrainSearch()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:98;"></div>
-<div id="train-search-bar" style="display:none;position:fixed;top:calc(var(--header-h) + var(--safe-top));left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;z-index:99;box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+<div id="train-search-bar" style="display:none;position:fixed;top:calc(var(--header-h) + var(--safe-top));left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;z-index:99;">
   <div style="display:flex;gap:8px;align-items:center;">
     <div style="flex:1;position:relative;">
       <input type="text" id="train-no-input" placeholder="輸入車次號碼" inputmode="numeric" pattern="[0-9]*"
@@ -2782,7 +2782,7 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
           <span style="font-size:40px;font-weight:700;color:${delay>0?'#FF9966':'#80FFB0'};letter-spacing:-2px;line-height:1;">${passTime || '--'}</span>
           ${delay > 0 ? `<span style="font-size:15px;font-weight:600;color:#FF9966;">+${delay}分</span>` : ''}
         </div>
-        <div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:6px;">${atStation}站</div>`;
+        ${atStation ? `<div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:6px;">${atStation}站</div>` : ''}`;
 
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
     document.getElementById('det-body').innerHTML = `
@@ -2791,10 +2791,10 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
           <span style="background:${displayDir==='up'?'rgba(57,146,255,0.2)':'rgba(39,201,122,0.2)'};color:${displayDir==='up'?'#99C8FF':'#80FFB0'};font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${displayDir==='up'?'↑ 上行':'↓ 下行'}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-right:90px;">
-          <span style="font-size:22px;font-weight:700;color:white;">${trainNo}</span>
-          <span style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:13px;padding:3px 10px;border-radius:20px;font-weight:500;">${ti.label}</span>
+          <span style="font-size:44px;font-weight:700;color:white;letter-spacing:-1px;">${trainNo}</span>
+          <span style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:26px;padding:5px 14px;border-radius:20px;font-weight:500;">${ti.label}</span>
         </div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:14px;">${train.from} → ${train.to}</div>
+        <div style="font-size:20px;color:rgba(255,255,255,0.75);margin-bottom:14px;">${train.from} → ${train.to}</div>
         ${timeSection}
       </div>
       <div style="margin-top:16px;" class="sec">停靠站時刻</div>
