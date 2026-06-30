@@ -491,6 +491,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .sp-freq-chip{display:inline-flex;align-items:center;background:var(--bg);border:1.5px solid rgba(26,37,64,0.25);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;margin-right:8px;white-space:nowrap;transition:background .12s;}
 .sp-freq-chip:active{background:var(--accent);color:white;}
 .sp-freq-chip-on{background:var(--accent)!important;color:white!important;border-color:var(--accent)!important;}
+#train-no-input::placeholder{font-size:17px;font-weight:400;letter-spacing:0;color:#a0aec0;}
 
 /* ── ANIMATIONS ── */
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -529,7 +530,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
     <div style="flex:1;position:relative;">
       <input type="text" id="train-no-input" placeholder="輸入車次" inputmode="numeric" pattern="[0-9]*"
-        style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:20px 40px 20px 14px;font-size:17px;font-weight:400;color:var(--text);font-family:inherit;outline:none;letter-spacing:1px;"
+        style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:20px 40px 20px 14px;font-size:26px;font-weight:700;color:var(--text);font-family:inherit;outline:none;letter-spacing:2px;"
         oninput="document.getElementById('train-no-clear').style.display=this.value?'flex':'none'"
         onkeydown="if(event.key==='Enter') searchTrainNo()"/>
       <button id="train-no-clear" onclick="document.getElementById('train-no-input').value='';this.style.display='none';document.getElementById('train-no-input').focus();"
