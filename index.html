@@ -527,13 +527,17 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <div id="train-search-overlay" onclick="closeTrainSearch()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:98;"></div>
 <div id="train-search-bar" style="display:none;position:fixed;top:calc(var(--header-h) + var(--safe-top));left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;z-index:99;box-shadow:0 4px 16px rgba(0,0,0,0.12);">
   <div style="display:flex;gap:8px;align-items:center;">
-    <input type="number" id="train-no-input" placeholder="輸入車次號碼" inputmode="numeric"
-      style="flex:1;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:12px 14px;font-size:17px;font-weight:700;color:var(--text);font-family:inherit;outline:none;letter-spacing:2px;"
-      onkeydown="if(event.key==='Enter') searchTrainNo()"/>
+    <div style="flex:1;position:relative;">
+      <input type="text" id="train-no-input" placeholder="輸入車次號碼" inputmode="numeric" pattern="[0-9]*"
+        style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:12px 40px 12px 14px;font-size:17px;font-weight:700;color:var(--text);font-family:inherit;outline:none;letter-spacing:2px;"
+        oninput="document.getElementById('train-no-clear').style.display=this.value?'flex':'none'"
+        onkeydown="if(event.key==='Enter') searchTrainNo()"/>
+      <button id="train-no-clear" onclick="document.getElementById('train-no-input').value='';this.style.display='none';document.getElementById('train-no-input').focus();"
+        style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;background:#c0c8d4;border:none;cursor:pointer;align-items:center;justify-content:center;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="white"/></svg>
+      </button>
+    </div>
     <button onclick="searchTrainNo()" style="background:var(--accent);color:white;border:none;border-radius:var(--radius-input);padding:12px 18px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">查詢</button>
-    <button onclick="closeTrainSearch()" style="background:none;border:none;padding:8px;cursor:pointer;color:var(--text3);">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
-    </button>
   </div>
   <div id="train-search-error" style="display:none;margin-top:8px;font-size:13px;color:var(--red);"></div>
 </div>
@@ -3966,6 +3970,8 @@ function openTrainSearch(){
   const err = document.getElementById('train-search-error');
   if(err) err.style.display = 'none';
   if(inp) inp.value = '';
+  const clr = document.getElementById('train-no-clear');
+  if(clr) clr.style.display = 'none';
   if(ov)  ov.style.display = 'block';
   if(bar) bar.style.display = 'block';
   setTimeout(()=>{ if(inp) inp.focus(); }, 50);
