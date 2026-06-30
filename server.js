@@ -69,42 +69,54 @@ function getTrainType(info) {
   return map[code] || 'exp';
 }
 
-// ── Timetable cache & index ──────────────────────────
-let gttCache = null;
-let trainIndex = null;
-let stationIndex = null;
-let cacheBuiltAt = 0;
-let cacheDate = '';
+// ── Timetable cache & index (多日期快取) ───────────────
+// gttCacheMap: { '2026-07-01': { trains, trainIndex, stationIndex, builtAt, source } }
+const gttCacheMap = {};
 const CACHE_TTL = 20 * 60 * 60 * 1000; // 20hr
+const MAX_CACHED_DATES = 5; // 最多同時快取幾天，避免記憶體無限增長
 
 function todayStr() {
   return new Date().toISOString().split('T')[0];
 }
 
-async function buildIndex() {
-  const today = todayStr();
-  if (gttCache && cacheDate === today && Date.now() - cacheBuiltAt < CACHE_TTL) return;
-  console.log(`Building timetable index for ${today}...`);
+function isValidDateStr(d) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(d);
+}
+
+function pruneCacheIfNeeded() {
+  const keys = Object.keys(gttCacheMap);
+  if (keys.length <= MAX_CACHED_DATES) return;
+  // 移除最舊建立的快取
+  keys.sort((a, b) => gttCacheMap[a].builtAt - gttCacheMap[b].builtAt);
+  delete gttCacheMap[keys[0]];
+}
+
+async function buildIndex(dateStr) {
+  const date = isValidDateStr(dateStr) ? dateStr : todayStr();
+  const cached = gttCacheMap[date];
+  if (cached && Date.now() - cached.builtAt < CACHE_TTL) return cached;
+
+  console.log(`Building timetable index for ${date}...`);
 
   let timetables = [];
   let source = '';
   try {
     const data = await tdxFetch(
-      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainDate/${today}?$format=JSON`
+      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainDate/${date}?$format=JSON`
     );
     timetables = data.TrainTimetables || data || [];
     source = 'DailyTrainTimetable';
-    console.log(`DailyTrainTimetable: ${timetables.length} trains`);
+    console.log(`DailyTrainTimetable[${date}]: ${timetables.length} trains`);
   } catch(e) {
-    console.warn(`DailyTrainTimetable failed (${e.message}), fallback to GeneralTrainTimetable`);
+    console.warn(`DailyTrainTimetable[${date}] failed (${e.message}), fallback to GeneralTrainTimetable`);
     const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON');
     timetables = data.TrainTimetables || data || [];
     source = 'GeneralTrainTimetable(fallback)';
     console.log(`GeneralTrainTimetable fallback: ${timetables.length} trains`);
   }
 
-  trainIndex = {};
-  stationIndex = {};
+  const trainIndex = {};
+  const stationIndex = {};
   const trains = [];
 
   for (const tt of timetables) {
@@ -145,26 +157,12 @@ async function buildIndex() {
     trainData.stopSet = new Set(stops.map(s => s.stn).filter(Boolean));
   }
 
-  // 驗證方向：用大湖→路竹（下行）& 路竹→大湖（上行）測試
-  const downSample = (stationIndex['大湖'] || []).find(t => {
-    const train = trainIndex[t.no];
-    const i1 = train.stops.findIndex(s => s.stn === '大湖');
-    const i2 = train.stops.findIndex(s => s.stn === '路竹');
-    return i2 > i1;
-  });
-  const upSample = (stationIndex['路竹'] || []).find(t => {
-    const train = trainIndex[t.no];
-    const i1 = train.stops.findIndex(s => s.stn === '路竹');
-    const i2 = train.stops.findIndex(s => s.stn === '大湖');
-    return i2 > i1;
-  });
-  console.log(`Direction check 大湖→路竹(down): ${downSample ? downSample.no + ' dir=' + downSample.dir : 'none'}`);
-  console.log(`Direction check 路竹→大湖(up):   ${upSample  ? upSample.no  + ' dir=' + upSample.dir  : 'none'}`);
+  console.log(`Index built [${source}] for ${date}: ${trains.length} trains, ${Object.keys(stationIndex).length} stations`);
 
-  gttCache = { trains, builtAt: Date.now(), date: today, source };
-  cacheBuiltAt = Date.now();
-  cacheDate = today;
-  console.log(`Index built [${source}]: ${trains.length} trains, ${Object.keys(stationIndex).length} stations`);
+  const entry = { trains, trainIndex, stationIndex, builtAt: Date.now(), date, source };
+  gttCacheMap[date] = entry;
+  pruneCacheIfNeeded();
+  return entry;
 }
 
 // ── Live cache (60s) ──────────────────────────────────
@@ -190,22 +188,27 @@ async function getLiveMap() {
 
 // ── Health ────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
+  const dates = Object.keys(gttCacheMap);
+  const today = todayStr();
+  const todayEntry = gttCacheMap[today];
   res.json({
     ok: true,
-    indexed: !!gttCache,
-    source: gttCache?.source || null,
-    date: gttCache?.date || null,
-    trains: gttCache ? gttCache.trains.length : 0,
-    stations: stationIndex ? Object.keys(stationIndex).length : 0,
-    builtAt: cacheBuiltAt ? new Date(cacheBuiltAt).toISOString() : null,
+    today,
+    indexed: !!todayEntry,
+    cachedDates: dates,
+    source: todayEntry?.source || null,
+    trains: todayEntry ? todayEntry.trains.length : 0,
+    stations: todayEntry ? Object.keys(todayEntry.stationIndex).length : 0,
+    builtAt: todayEntry ? new Date(todayEntry.builtAt).toISOString() : null,
   });
 });
 
 // ── 全量時刻資料（前端用）────────────────────────────
 app.get('/api/timetable', async (req, res) => {
   try {
-    await buildIndex();
-    res.json(gttCache);
+    const date = req.query.date; // 可選，預設今天
+    const entry = await buildIndex(date);
+    res.json({ trains: entry.trains, date: entry.date, source: entry.source, builtAt: entry.builtAt });
   } catch(e) {
     console.error('timetable error:', e.message);
     res.status(500).json({ error: e.message });
@@ -215,10 +218,11 @@ app.get('/api/timetable', async (req, res) => {
 // ── 單站查詢（server 側過濾，備用）──────────────────
 app.get('/api/station/:name', async (req, res) => {
   try {
-    await buildIndex();
+    const date = req.query.date;
+    const entry = await buildIndex(date);
     const name = decodeURIComponent(req.params.name);
-    const list = stationIndex[name] || stationIndex[name.replace(/台/g,'臺')] || [];
-    res.json({ station: name, trains: list });
+    const list = entry.stationIndex[name] || entry.stationIndex[name.replace(/台/g,'臺')] || [];
+    res.json({ station: name, date: entry.date, trains: list });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
@@ -227,13 +231,28 @@ app.get('/api/station/:name', async (req, res) => {
 // ── 列車詳細（by trainNo）────────────────────────────
 app.get('/api/train/:no', async (req, res) => {
   try {
-    await buildIndex();
+    const date = req.query.date;
+    const entry = await buildIndex(date);
     const no = req.params.no;
-    const train = trainIndex[no];
+    const train = entry.trainIndex[no];
     if (!train) return res.status(404).json({ error: 'Train not found' });
     // 疊加誤點
     const liveMap = await getLiveMap();
-    res.json({ ...train, delay: liveMap[no] || 0 });
+    res.json({ ...train, date: entry.date, delay: liveMap[no] || 0 });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── 列車詳細（by trainNo + 指定日期，路徑版）─────────
+app.get('/api/train/:no/:date', async (req, res) => {
+  try {
+    const { no, date } = req.params;
+    const entry = await buildIndex(date);
+    const train = entry.trainIndex[no];
+    if (!train) return res.status(404).json({ error: 'Train not found' });
+    const liveMap = await getLiveMap();
+    res.json({ ...train, date: entry.date, delay: liveMap[no] || 0 });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
@@ -244,12 +263,12 @@ app.get('/api/od/:from/:to/:date', async (req, res) => {
   try {
     const { from, to, date } = req.params;
 
-    await buildIndex();
+    const entry = await buildIndex(date);
     const fromName = decodeURIComponent(from);
     const toName   = decodeURIComponent(to);
 
     const results = [];
-    for (const train of gttCache.trains) {
+    for (const train of entry.trains) {
       const i1 = train.stops.findIndex(s => s.stn === fromName || s.stn === fromName.replace(/台/g,'臺'));
       const i2 = train.stops.findIndex(s => s.stn === toName   || s.stn === toName.replace(/台/g,'臺'));
       if (i1 < 0 || i2 < 0 || i2 <= i1) continue;
@@ -268,7 +287,7 @@ app.get('/api/od/:from/:to/:date', async (req, res) => {
     const liveMap = await getLiveMap();
     results.forEach(r => { r.delay = liveMap[r.no] || 0; });
 
-    res.json({ from: fromName, to: toName, date, trains: results });
+    res.json({ from: fromName, to: toName, date: entry.date, trains: results });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
@@ -287,8 +306,9 @@ app.get('/api/live', async (req, res) => {
 // ── Stations list ─────────────────────────────────────
 app.get('/api/stations', async (req, res) => {
   try {
-    await buildIndex();
-    res.json(Object.keys(stationIndex).sort());
+    const date = req.query.date;
+    const entry = await buildIndex(date);
+    res.json(Object.keys(entry.stationIndex).sort());
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
@@ -297,11 +317,12 @@ app.get('/api/stations', async (req, res) => {
 // ── Start ─────────────────────────────────────────────
 app.get('/api/debug/train/:no', async (req, res) => {
   try {
-    await buildIndex();
+    const date = req.query.date;
+    const entry = await buildIndex(date);
     const no = req.params.no;
-    const train = trainIndex[no];
-    if (!train) return res.json({ found: false, no, source: gttCache?.source });
-    res.json({ found: true, source: gttCache?.source, date: gttCache?.date, train });
+    const train = entry.trainIndex[no];
+    if (!train) return res.json({ found: false, no, source: entry.source, date: entry.date });
+    res.json({ found: true, source: entry.source, date: entry.date, train });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
@@ -310,7 +331,8 @@ app.get('/api/debug/train/:no', async (req, res) => {
 // ── Debug: 竹北通過列車清單（含估算細節）─────────────
 app.get('/api/debug/zhubei', async (req, res) => {
   try {
-    await buildIndex();
+    const date = req.query.date;
+    const entry = await buildIndex(date);
     const TARGET = '竹北';
     const TARGET_KM = 77.6;
     const STATION_KM_SERVER = {
@@ -323,7 +345,7 @@ app.get('/api/debug/zhubei', async (req, res) => {
     };
 
     const results = [];
-    for (const train of gttCache.trains) {
+    for (const train of entry.trains) {
       // 找前後站
       let prev = null, next = null;
       for (const stop of train.stops) {
@@ -371,7 +393,7 @@ app.get('/api/debug/zhubei', async (req, res) => {
     }
 
     results.sort((a, b) => a.estimatedPassTime.localeCompare(b.estimatedPassTime));
-    res.json({ source: gttCache?.source, date: gttCache?.date, target: TARGET, count: results.length, results });
+    res.json({ source: entry.source, date: entry.date, target: TARGET, count: results.length, results });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }

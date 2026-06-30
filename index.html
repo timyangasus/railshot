@@ -1988,8 +1988,9 @@ const GTT_TTL = 20 * 60 * 60 * 1000; // 20hr
 let gttData = null;
 let gttStationIdx = null;
 
-function gttCacheKey() {
-  return `railshot_gtt_${new Date().toISOString().split('T')[0]}`;
+function gttCacheKey(dateStr) {
+  const d = dateStr || new Date().toISOString().split('T')[0];
+  return `railshot_gtt_${d}`;
 }
 
 function buildFrontendIndex(trains) {
@@ -2015,9 +2016,12 @@ function buildFrontendIndex(trains) {
   }
 }
 
-async function ensureGTT() {
-  if (gttData && gttStationIdx) return gttData;
-  const key = gttCacheKey();
+async function ensureGTT(dateStr) {
+  const targetDate = dateStr || new Date().toISOString().split('T')[0];
+  // 若已有資料且日期相符，直接用
+  if (gttData && gttStationIdx && gttData.date === targetDate) return gttData;
+
+  const key = gttCacheKey(targetDate);
   try {
     for (const k of Object.keys(localStorage)) {
       if (k.startsWith('railshot_gtt_') && k !== key) localStorage.removeItem(k);
@@ -2027,12 +2031,11 @@ async function ensureGTT() {
     const raw = localStorage.getItem(key);
     if (raw) {
       const parsed = JSON.parse(raw);
-      const today = new Date().toISOString().split('T')[0];
       // 日期一致 且 TTL 未過期 才使用 cache
-      if (parsed.date === today && Date.now() - parsed.builtAt < GTT_TTL) {
+      if (parsed.date === targetDate && Date.now() - parsed.builtAt < GTT_TTL) {
         gttData = parsed;
         buildFrontendIndex(gttData.trains);
-        console.log(`GTT loaded from cache [${parsed.source}]: ${gttData.trains.length} trains`);
+        console.log(`GTT loaded from cache [${parsed.source}] for ${targetDate}: ${gttData.trains.length} trains`);
         return gttData;
       } else {
         localStorage.removeItem(key); // 日期不符或過期，主動清除
@@ -2048,15 +2051,15 @@ async function ensureGTT() {
         <circle cx="20" cy="20" r="16" fill="none" stroke="#e0e0e0" stroke-width="4"/>
         <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="60 44" stroke-linecap="round"/>
       </svg>
-      <div style="font-size:14px;">載入當日時刻資料中...<br><span style="font-size:12px;color:var(--text3);">首次需要約 10 秒</span></div>
+      <div style="font-size:14px;">載入時刻資料中...<br><span style="font-size:12px;color:var(--text3);">首次需要約 10 秒</span></div>
     </div>`;
 
-  const resp = await fetch(`${API_BASE}/api/timetable`);
+  const resp = await fetch(`${API_BASE}/api/timetable?date=${targetDate}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   gttData = await resp.json();
   buildFrontendIndex(gttData.trains);
   try { localStorage.setItem(key, JSON.stringify(gttData)); } catch(e) {}
-  console.log(`GTT fetched [${gttData.source}]: ${gttData.trains.length} trains`);
+  console.log(`GTT fetched [${gttData.source}] for ${targetDate}: ${gttData.trains.length} trains`);
   return gttData;
 }
 
@@ -2540,7 +2543,7 @@ async function doSearch() {
       </div>`;
     }
     try {
-      await ensureGTT();
+      await ensureGTT(localDateStr(shootDate));
     } catch(e) {
       document.getElementById('train-list').innerHTML =
         `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-input);padding:14px;color:var(--red);font-size:14px;">
@@ -3120,7 +3123,7 @@ async function searchTT(){
     </div>`;
     }
     try {
-      await ensureGTT();
+      await ensureGTT(dateVal);
       let liveMap = {};
       if(isLocalRefresh){
         liveMap = cachedLiveMap;
@@ -3594,7 +3597,7 @@ async function doBetweenSearch(){
   }
 
   try {
-    await ensureGTT();
+    await ensureGTT(localDateStr(betweenDate));
     let liveMap = {};
     if(isLocalRefresh){
       liveMap = cachedLiveMap;
