@@ -509,13 +509,33 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <div class="header">
   <div class="header-inner">
     <div class="logo-text" id="header-title">時刻表</div>
-    <button onclick="resetTTForm()" id="tt-reset-btn" title="清除資料" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
-      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
-    </button>
-    <button onclick="resetShootForm()" id="shoot-reset-btn" title="清除資料" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
-      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button onclick="openTrainSearch()" id="train-search-btn" title="查詢車次" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:color .2s;">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
+      </button>
+      <button onclick="resetTTForm()" id="tt-reset-btn" title="清除資料" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+      </button>
+      <button onclick="resetShootForm()" id="shoot-reset-btn" title="清除資料" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Inline train search bar -->
+<div id="train-search-overlay" onclick="closeTrainSearch()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:98;"></div>
+<div id="train-search-bar" style="display:none;position:fixed;top:calc(var(--header-h) + var(--safe-top));left:0;right:0;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 16px;z-index:99;box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+  <div style="display:flex;gap:8px;align-items:center;">
+    <input type="number" id="train-no-input" placeholder="輸入車次號碼" inputmode="numeric"
+      style="flex:1;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:12px 14px;font-size:17px;font-weight:700;color:var(--text);font-family:inherit;outline:none;letter-spacing:2px;"
+      onkeydown="if(event.key==='Enter') searchTrainNo()"/>
+    <button onclick="searchTrainNo()" style="background:var(--accent);color:white;border:none;border-radius:var(--radius-input);padding:12px 18px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">查詢</button>
+    <button onclick="closeTrainSearch()" style="background:none;border:none;padding:8px;cursor:pointer;color:var(--text3);">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
     </button>
   </div>
+  <div id="train-search-error" style="display:none;margin-top:8px;font-size:13px;color:var(--red);"></div>
 </div>
 
 <!-- PAGE CONTAINER -->
@@ -787,6 +807,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div class="sh-body" id="bell-body"></div>
   </div>
 </div>
+
 
 <!-- SHEET: 選擇區間 -->
 <div class="sheet-ov" id="between-section-sheet" onclick="closeOv(event,'between-section-sheet')">
@@ -3936,6 +3957,43 @@ setTimeout(() => {
   initSilentPTR('tab-single', doSearch, () => !!(locState.applied && locState.applied.s1));
   initSilentPTR('tab-between', doBetweenSearch, () => !!(betweenState.applied.s1 && betweenState.applied.s2));
 }, 300);
+
+// ===== 車次查詢 =====
+function openTrainSearch(){
+  const bar = document.getElementById('train-search-bar');
+  const ov  = document.getElementById('train-search-overlay');
+  const inp = document.getElementById('train-no-input');
+  const err = document.getElementById('train-search-error');
+  if(err) err.style.display = 'none';
+  if(inp) inp.value = '';
+  if(ov)  ov.style.display = 'block';
+  if(bar) bar.style.display = 'block';
+  setTimeout(()=>{ if(inp) inp.focus(); }, 50);
+}
+
+function closeTrainSearch(){
+  document.getElementById('train-search-bar').style.display = 'none';
+  document.getElementById('train-search-overlay').style.display = 'none';
+}
+
+async function searchTrainNo(){
+  const inp = document.getElementById('train-no-input');
+  const err = document.getElementById('train-search-error');
+  const no = inp?.value.trim();
+  if(!no){ if(err){ err.textContent='請輸入車次號碼'; err.style.display='block'; } return; }
+  if(err) err.style.display = 'none';
+
+  await ensureGTT();
+
+  const train = gttData?.trains.find(t => t.no === no);
+  if(!train){
+    if(err){ err.textContent=`找不到車次 ${no}`; err.style.display='block'; }
+    return;
+  }
+
+  closeTrainSearch();
+  openDetailByNo(no, '', '', '', '');
+}
 
 let _toastTimer;
 function showToast(msg){
