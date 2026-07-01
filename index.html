@@ -1106,7 +1106,7 @@ function findTransferStation(fromName, toName, trains) {
 // 轉乘查詢：回傳前5組組合
 function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) {
   const alt = n => n.replace(/台/g,'臺').replace(/臺/g,'台');
-  const TRANSFER_BUFFER = 15; // 分鐘
+  const TRANSFER_BUFFER = 10; // 分鐘
   const bigSet = new Set(BIG_STATIONS);
 
   // 找中轉站：從有停 fromName 的班車停靠站中，
@@ -3413,36 +3413,36 @@ function renderTransferList(transfer) {
   el.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="var(--accent)"/></svg>
-      <span style="font-size:13px;color:var(--text2);">查無直達班次，以下為轉乘方案（經 <strong style="color:var(--accent);">${transfer.transferStn}</strong>）</span>
+      <span style="font-size:14px;color:var(--text2);">查無直達班次，以下為轉乘方案（經 <strong style="color:var(--accent);">${transfer.transferStn}</strong>）</span>
     </div>
     ${transfer.results.map((r, idx) => `
     <div class="tt-card" style="padding:14px 15px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <span style="font-size:13px;font-weight:700;color:var(--text3);letter-spacing:0.5px;">方案 ${idx+1}</span>
-        <span style="font-size:15px;font-weight:700;color:var(--accent);">抵達 ${r.totalArr}・共 ${r.totalDur}</span>
+        <span style="font-size:14px;font-weight:700;color:var(--text3);letter-spacing:0.5px;">方案 ${idx+1}</span>
+        <span style="font-size:17px;font-weight:700;color:var(--accent);">抵達 ${r.totalArr}・共 ${r.totalDur}</span>
       </div>
       <div style="border-left:2px solid var(--border);padding-left:12px;display:flex;flex-direction:column;gap:10px;">
         <div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
             <span class="badge ${ti1(r).cls}" style="font-size:10px;padding:2px 8px;">${ti1(r).label}</span>
-            <span style="font-size:14px;font-weight:600;color:var(--text2);">${r.leg1.no}</span>
+            <span style="font-size:16px;font-weight:600;color:var(--text2);">${r.leg1.no}</span>
             ${r.leg1.delay>0 ? `<span style="font-size:11px;color:var(--orange);">+${r.leg1.delay}分</span>` : ''}
           </div>
-          <div style="font-size:20px;font-weight:800;color:var(--text);">${r.leg1.dep} <span style="color:var(--text3);font-weight:400;font-size:15px;">→</span> ${r.leg1.arr}</div>
-          <div style="font-size:13px;color:var(--text2);">${r.leg1.from} → ${r.leg1.to}</div>
+          <div style="font-size:22px;font-weight:800;color:var(--text);">${r.leg1.dep} <span style="color:var(--text3);font-weight:400;font-size:17px;">→</span> ${r.leg1.arr}</div>
+          <div style="font-size:14px;color:var(--text2);">${r.leg1.from} → ${r.leg1.to}</div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);padding-left:2px;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z" fill="#8a9db8"/></svg>
-          <span style="font-size:13px;">轉乘 ${r.transferStn}・等候 ${calcDurStr(r.leg1.arr, r.leg2.dep)}</span>
+          <span style="font-size:14px;">轉乘 ${r.transferStn}・等候 ${calcDurStr(r.leg1.arr, r.leg2.dep)}</span>
         </div>
         <div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
             <span class="badge ${ti2(r).cls}" style="font-size:10px;padding:2px 8px;">${ti2(r).label}</span>
-            <span style="font-size:14px;font-weight:600;color:var(--text2);">${r.leg2.no}</span>
+            <span style="font-size:16px;font-weight:600;color:var(--text2);">${r.leg2.no}</span>
             ${r.leg2.delay>0 ? `<span style="font-size:11px;color:var(--orange);">+${r.leg2.delay}分</span>` : ''}
           </div>
-          <div style="font-size:20px;font-weight:800;color:var(--text);">${r.leg2.dep} <span style="color:var(--text3);font-weight:400;font-size:15px;">→</span> ${r.leg2.arr}</div>
-          <div style="font-size:13px;color:var(--text2);">${r.leg2.from} → ${r.leg2.to}</div>
+          <div style="font-size:22px;font-weight:800;color:var(--text);">${r.leg2.dep} <span style="color:var(--text3);font-weight:400;font-size:17px;">→</span> ${r.leg2.arr}</div>
+          <div style="font-size:14px;color:var(--text2);">${r.leg2.from} → ${r.leg2.to}</div>
         </div>
       </div>
     </div>`).join('')}
