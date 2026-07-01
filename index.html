@@ -402,7 +402,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .tt-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:13px 15px;margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow);transition:box-shadow .15s;}
 .tt-card:active{background:var(--bg);}
 .tt-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
-.tt-times{font-size:26px;font-weight:800;letter-spacing:-0.5px;color:var(--text);}
+.tt-times{font-size:26px;font-weight:800;letter-spacing:-0.5px;color:#265299;}
 .tt-dur{font-size:12px;color:var(--text3);}
 .tt-mid{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
 .tt-route{font-size:13px;color:var(--text2);font-weight:600;}
@@ -490,8 +490,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 /* Frequent station chips in picker */
 .sp-freq-chip{display:inline-flex;align-items:center;background:var(--bg);border:1.5px solid rgba(26,37,64,0.25);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;margin-right:8px;white-space:nowrap;transition:background .12s;}
 .sp-freq-chip:active{background:var(--accent);color:white;}
-.sp-freq-chip-on{background:var(--accent)!important;color:white!important;border-color:var(--accent)!important;}
-#train-no-input::placeholder{font-size:17px;font-weight:400;letter-spacing:0;color:#a0aec0;}
+#trip-name-input::placeholder, #trip-note-input::placeholder{color:rgba(26,37,64,0.4);}
 
 /* ── ANIMATIONS ── */
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -3251,10 +3250,10 @@ function renderTTList(list, isMock) {
     return `<div class="tt-card" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
       <button class="tt-heart-btn${faved?' liked':''}" onclick="toggleTTFavObj(${JSON.stringify(t).replace(/"/g,'&quot;')},event)">${faved?HEART_FULL:HEART_EMPTY}</button>
       <div style="padding-right:36px;">
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
           <div class="tt-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:20px;">→</span> ${t.arr}</div>
           ${isFastest
-            ? `<span style="font-size:14px;font-weight:700;color:#7a5500;background:#FFE066;padding:2px 10px;border-radius:20px;letter-spacing:0;">${t.dur}</span>`
+            ? `<span style="font-size:14px;font-weight:700;color:#555;background:#FFE066;padding:2px 10px;border-radius:20px;letter-spacing:0;">${t.dur}</span>`
             : `<span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur}</span>`
           }
         </div>
