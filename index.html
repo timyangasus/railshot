@@ -2842,7 +2842,7 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-right:90px;">
           <span style="font-size:22px;font-weight:700;color:white;letter-spacing:-1px;">${trainNo}</span>
-          <span style="background:${train.type==='tze'?'#EC802D':'rgba(255,255,255,0.15)'};color:rgba(255,255,255,0.9);font-size:13px;padding:5px 14px;border-radius:20px;font-weight:500;">${ti.label}</span>
+          <span style="background:${train.type==='tze'?'#EC802D':'rgba(255,255,255,0.15)'};color:white;font-size:13px;padding:5px 14px;border-radius:20px;font-weight:500;">${ti.label}</span>
         </div>
         <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:14px;">${train.from} → ${train.to}</div>
         ${atStation ? `<div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:6px;">${atStation}站</div>` : ''}
@@ -3319,7 +3319,7 @@ async function openTTDetailObj(t){
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-right:90px;">
           <span style="font-size:22px;font-weight:700;color:white;">${t.no}</span>
-          <span style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:13px;padding:3px 10px;border-radius:20px;font-weight:500;">${ti.label}</span>
+          <span style="background:${t.type==='tze'?'#EC802D':'rgba(255,255,255,0.15)'};color:white;font-size:13px;padding:3px 10px;border-radius:20px;font-weight:500;">${ti.label}</span>
         </div>
         <div style="font-size:15px;color:rgba(255,255,255,0.65);margin-bottom:12px;">${t.from} → ${t.to}</div>
         <div style="display:flex;align-items:baseline;gap:8px;">
