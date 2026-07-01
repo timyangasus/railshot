@@ -4233,6 +4233,7 @@ function saveTripFromSheet(){
     trips.push({ id: Date.now().toString(), name, note, trainNos, createdAt: Date.now() });
   }
   saveTrips();
+  renderTTFavs();
   closeSheet('trip-sheet');
   if(editId){
     openTripDetail(editId);
@@ -4248,6 +4249,7 @@ function deleteTrip(id, event){
   if(!confirm(`刪除「${trip.name}」行程？`)) return;
   trips = trips.filter(t => t.id !== id);
   saveTrips();
+  renderTTFavs();
   renderTripList();
 }
 
@@ -4315,6 +4317,7 @@ function removeTripTrain(tripId, trainNo, event){
   if(!trip) return;
   trip.trainNos = (trip.trainNos||[]).filter(no => no !== trainNo);
   saveTrips();
+  renderTTFavs();
   openTripDetail(tripId); // 重新渲染
 }
 
