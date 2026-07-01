@@ -1075,6 +1075,105 @@ const BRANCH_LINES = {
 // Major stations (粗體顯示)
 const MAJOR = new Set(['基隆','臺北','板橋','桃園','中壢','新竹','苗栗','臺中','彰化','斗六','嘉義','臺南','高雄','左營','新左營','屏東','潮州','枋寮','花蓮','臺東','宜蘭','羅東','花蓮','豐原','員林','嘉北']);
 
+// 中轉大站清單（南北幹線順序）
+const BIG_STATIONS = [
+  '基隆','八堵','汐止','南港','松山','臺北','板橋','樹林','桃園','中壢','新竹','竹南',
+  '苗栗','豐原','臺中','彰化','員林','雲林','嘉義','臺南','高雄','鳳山','屏東','潮州',
+  '花蓮','玉里','臺東','宜蘭','羅東'
+];
+
+// 找中轉站：從出發站沿停靠站方向找第一個大站
+function findTransferStation(fromName, toName, trains) {
+  const alt = n => n.replace(/台/g,'臺').replace(/臺/g,'台');
+  for (const train of trains) {
+    const stops = train.stops;
+    const i1 = stops.findIndex(s => s.stn===fromName || s.stn===alt(fromName));
+    const i2 = stops.findIndex(s => s.stn===toName   || s.stn===alt(toName));
+    if (i1 < 0) continue;
+    // 如果這班車也停目的地，表示有直達，不需轉乘
+    if (i2 > i1) return null;
+    // 從出發站往後找第一個大站
+    for (let i = i1+1; i < stops.length; i++) {
+      const stn = stops[i].stn;
+      if (BIG_STATIONS.includes(stn) || BIG_STATIONS.includes(alt(stn))) {
+        return stn;
+      }
+    }
+  }
+  return null;
+}
+
+// 轉乘查詢：回傳前5組組合
+function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) {
+  const alt = n => n.replace(/台/g,'臺').replace(/臺/g,'台');
+  const TRANSFER_BUFFER = 15; // 分鐘
+
+  // 找中轉站
+  let transferStn = null;
+  for (const bigStn of BIG_STATIONS) {
+    // 找有停 fromName 且有停 bigStn 的車
+    const leg1Trains = trains.filter(tr => {
+      const i1 = tr.stops.findIndex(s => s.stn===fromName || s.stn===alt(fromName));
+      const ib = tr.stops.findIndex(s => s.stn===bigStn || s.stn===alt(bigStn));
+      return i1 >= 0 && ib > i1;
+    });
+    // 找有停 bigStn 且有停 toName 的車
+    const leg2Trains = trains.filter(tr => {
+      const ib = tr.stops.findIndex(s => s.stn===bigStn || s.stn===alt(bigStn));
+      const i2 = tr.stops.findIndex(s => s.stn===toName || s.stn===alt(toName));
+      return ib >= 0 && i2 > ib;
+    });
+    if (leg1Trains.length > 0 && leg2Trains.length > 0) {
+      transferStn = bigStn;
+      break;
+    }
+  }
+  if (!transferStn) return null;
+
+  // 組合
+  const results = [];
+  const leg1List = [];
+  for (const tr of trains) {
+    const i1 = tr.stops.findIndex(s => s.stn===fromName || s.stn===alt(fromName));
+    const ib = tr.stops.findIndex(s => s.stn===transferStn || s.stn===alt(transferStn));
+    if (i1 < 0 || ib <= i1) continue;
+    const dep = tr.stops[i1].dep || tr.stops[i1].arr;
+    const arr = tr.stops[ib].arr || tr.stops[ib].dep;
+    if (filterTime && isToday && dep < filterTime) continue;
+    leg1List.push({ train: tr, dep, arr, transferStn });
+  }
+  leg1List.sort((a,b) => a.dep.localeCompare(b.dep));
+
+  for (const l1 of leg1List) {
+    if (results.length >= 5) break;
+    // 轉乘站抵達時間 + buffer
+    const [h, m] = l1.arr.split(':').map(Number);
+    const bufMin = h*60 + m + TRANSFER_BUFFER;
+    const bufTime = String(Math.floor(bufMin/60)).padStart(2,'0') + ':' + String(bufMin%60).padStart(2,'0');
+
+    // 找第二段
+    for (const tr of trains) {
+      const ib = tr.stops.findIndex(s => s.stn===transferStn || s.stn===alt(transferStn));
+      const i2 = tr.stops.findIndex(s => s.stn===toName || s.stn===alt(toName));
+      if (ib < 0 || i2 <= ib) continue;
+      const dep2 = tr.stops[ib].dep || tr.stops[ib].arr;
+      const arr2 = tr.stops[i2].arr || tr.stops[i2].dep;
+      if (dep2 < bufTime) continue;
+      results.push({
+        transferStn,
+        leg1: { no: l1.train.no, type: l1.train.type, dep: l1.dep, arr: l1.arr,
+                from: fromName, to: transferStn, delay: liveMap[l1.train.no]||0 },
+        leg2: { no: tr.no, type: tr.type, dep: dep2, arr: arr2,
+                from: transferStn, to: toName, delay: liveMap[tr.no]||0 },
+        totalArr: arr2,
+        totalDur: calcDurStr(l1.dep, arr2),
+      });
+      break; // 每個 leg1 只取最快的 leg2
+    }
+  }
+  return results.length ? { transferStn, results } : null;
+}
+
 const TYPE_INFO={
   exp3:{label:'自強3000',cls:'b-exp3'},
   puy:{label:'普悠瑪',cls:'b-puy'},
@@ -3271,6 +3370,14 @@ async function searchTT(){
         });
       }
       list.sort((a, b) => a.dep.localeCompare(b.dep));
+      if(!list.length){
+        // 查無直達，嘗試轉乘
+        const transfer = searchTransfer(fromName, toName, gttData.trains, filterTime, isToday, liveMap);
+        if(transfer){
+          renderTransferList(transfer);
+          return;
+        }
+      }
       renderTTList(list, false);
       return;
     } catch(e) {
@@ -3283,6 +3390,50 @@ async function searchTT(){
   let list = TT_TRAINS.filter(t => selectedTypes === 'all' || selectedTypes.includes(t.type));
   if (filterTime) { const fut = list.filter(t => t.dep >= filterTime); if(fut.length) list = fut; }
   renderTTList(list, true);
+}
+
+function renderTransferList(transfer) {
+  const el = document.getElementById('tt-results');
+  const ti1 = r => TYPE_INFO[r.leg1.type] || {label:'其他',cls:'b-exp'};
+  const ti2 = r => TYPE_INFO[r.leg2.type] || {label:'其他',cls:'b-exp'};
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="var(--accent)"/></svg>
+      <span style="font-size:13px;color:var(--text2);">查無直達班次，以下為轉乘方案（經 <strong style="color:var(--accent);">${transfer.transferStn}</strong>）</span>
+    </div>
+    ${transfer.results.map((r, idx) => `
+    <div class="tt-card" style="padding:14px 15px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.5px;">方案 ${idx+1}</span>
+        <span style="font-size:13px;font-weight:700;color:var(--accent);">抵達 ${r.totalArr}・共 ${r.totalDur}</span>
+      </div>
+      <div style="border-left:2px solid var(--border);padding-left:12px;display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+            <span class="badge ${ti1(r).cls}" style="font-size:10px;padding:2px 8px;">${ti1(r).label}</span>
+            <span style="font-size:12px;font-weight:600;color:var(--text2);">${r.leg1.no}</span>
+            ${r.leg1.delay>0 ? `<span style="font-size:11px;color:var(--orange);">+${r.leg1.delay}分</span>` : ''}
+          </div>
+          <div style="font-size:16px;font-weight:700;color:var(--text);">${r.leg1.dep} <span style="color:var(--text3);font-weight:400;font-size:13px;">→</span> ${r.leg1.arr}</div>
+          <div style="font-size:12px;color:var(--text3);">${r.leg1.from} → ${r.leg1.to}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);padding-left:2px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z" fill="#8a9db8"/></svg>
+          轉乘 ${r.transferStn}・等候 ${calcDurStr(r.leg1.arr, r.leg2.dep)}
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+            <span class="badge ${ti2(r).cls}" style="font-size:10px;padding:2px 8px;">${ti2(r).label}</span>
+            <span style="font-size:12px;font-weight:600;color:var(--text2);">${r.leg2.no}</span>
+            ${r.leg2.delay>0 ? `<span style="font-size:11px;color:var(--orange);">+${r.leg2.delay}分</span>` : ''}
+          </div>
+          <div style="font-size:16px;font-weight:700;color:var(--text);">${r.leg2.dep} <span style="color:var(--text3);font-weight:400;font-size:13px;">→</span> ${r.leg2.arr}</div>
+          <div style="font-size:12px;color:var(--text3);">${r.leg2.from} → ${r.leg2.to}</div>
+        </div>
+      </div>
+    </div>`).join('')}
+  `;
 }
 
 function renderTTList(list, isMock) {
