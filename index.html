@@ -575,17 +575,12 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       </div>
     </div>
     <div style="margin-bottom:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">
-        <div class="sec" style="margin:0;">日期</div>
-        <span class="sec" style="margin:0;">現在時刻</span>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center;">
+      <div style="display:flex;gap:8px;align-items:stretch;">
         <input type="date" class="tt-date" id="tt-date" style="flex:1;min-width:0;"/>
-        <label style="position:relative;display:inline-block;width:52px;height:30px;cursor:pointer;flex-shrink:0;">
-          <input type="checkbox" id="tt-now-toggle" onchange="onNowToggle(this.checked)" style="opacity:0;width:0;height:0;position:absolute;"/>
-          <span id="tt-now-track" style="position:absolute;inset:0;border-radius:15px;background:#eef0f5;transition:background .2s;"></span>
-          <span id="tt-now-thumb" style="position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:white;transition:transform .2s;transform:translateX(0);box-shadow:0 1px 3px rgba(0,0,0,0.2);"></span>
-        </label>
+        <div style="flex:1;min-width:0;position:relative;display:flex;gap:6px;">
+          <input type="time" class="tt-date" id="tt-time" style="flex:1;min-width:0;" placeholder="--:--"/>
+          <button id="tt-allday-btn" onclick="setTTAllDay()" style="flex-shrink:0;height:100%;padding:0 12px;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);color:var(--text2);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;">全天</button>
+        </div>
       </div>
     </div>
     <div class="chips-row" id="tt-type-chips" style="margin-bottom:11px;">
@@ -2953,15 +2948,58 @@ function setReminderByTrain(trainNo, station, passTime) {
 // ===== TIMETABLE =====
 let ttNowMode = false;
 function localDateStr(d){ d=d||new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-function setTTDateToToday(){ document.getElementById('tt-date').value = localDateStr(); }
+function setTTDateToToday(){
+  document.getElementById('tt-date').value = localDateStr();
+  initTTTimeToNow();
+}
+// 時間欄位變更時自動更新全天按鈕
+document.addEventListener('DOMContentLoaded', ()=>{
+  const timeEl = document.getElementById('tt-time');
+  if(timeEl){
+    timeEl.addEventListener('change', ()=>{
+      ttAllDay = false;
+      updateAlldayBtn();
+      autoSearchTT();
+    });
+    timeEl.addEventListener('focus', ()=>{
+      ttAllDay = false;
+      updateAlldayBtn();
+    });
+  }
+  initTTTimeToNow();
+  updateAlldayBtn();
+});
 function onNowToggle(checked){
-  ttNowMode = checked;
-  const track = document.getElementById('tt-now-track');
-  const thumb = document.getElementById('tt-now-thumb');
-  if(track) track.style.background = checked ? 'var(--accent)' : '#eef0f5';
-  if(thumb) thumb.style.transform = checked ? 'translateX(22px)' : 'translateX(0)';
-  if(checked) setTTDateToToday();
+  // legacy: kept for compatibility
+  if(checked) initTTTimeToNow();
   autoSearchTT();
+}
+function initTTTimeToNow(){
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const timeEl = document.getElementById('tt-time');
+  if(timeEl) timeEl.value = h+':'+m;
+  updateAlldayBtn();
+}
+let ttAllDay = false;
+function setTTAllDay(){
+  ttAllDay = true;
+  updateAlldayBtn();
+  autoSearchTT();
+}
+function updateAlldayBtn(){
+  const timeEl = document.getElementById('tt-time');
+  const btn = document.getElementById('tt-allday-btn');
+  if(!btn) return;
+  btn.style.background = ttAllDay ? 'var(--accent)' : '#eef0f5';
+  btn.style.color = ttAllDay ? 'white' : 'var(--text2)';
+  btn.style.border = ttAllDay ? '1px solid var(--accent)' : '1px solid var(--border)';
+  if(timeEl){
+    timeEl.style.opacity = '1';
+    timeEl.style.pointerEvents = 'auto';
+    timeEl.style.color = ttAllDay ? 'var(--text3)' : 'var(--text)';
+  }
 }
 function swapTT(){
   const a=document.getElementById('tt-from-lbl'),b=document.getElementById('tt-to-lbl');
@@ -3166,6 +3204,8 @@ async function searchTT(){
   const _now = new Date();
   const nowStr = tStr(_now.getHours(), _now.getMinutes());
   const dateVal = document.getElementById('tt-date').value;
+  const timeVal = (document.getElementById('tt-time')?.value || '').trim();
+  const filterTime = (!ttAllDay && timeVal) ? timeVal : null;
   const _nowDateStr = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}-${String(_now.getDate()).padStart(2,'0')}`;
   const isToday = dateVal === _nowDateStr;
 
@@ -3217,7 +3257,7 @@ async function searchTT(){
         const arrStop = train.stops[i2];
         const dep = depStop.dep || depStop.arr;
         const arr = arrStop.arr || arrStop.dep;
-        if (ttNowMode && isToday && dep < nowStr) continue;
+        if (filterTime && isToday && dep < filterTime) continue;
         list.push({
           no: train.no, type: train.type,
           dep, arr, dur: calcDurStr(dep, arr),
@@ -3241,7 +3281,7 @@ async function searchTT(){
 
   // 假資料
   let list = TT_TRAINS.filter(t => selectedTypes === 'all' || selectedTypes.includes(t.type));
-  if (ttNowMode) { const fut = list.filter(t => t.dep >= nowStr); if(fut.length) list = fut; }
+  if (filterTime) { const fut = list.filter(t => t.dep >= filterTime); if(fut.length) list = fut; }
   renderTTList(list, true);
 }
 
