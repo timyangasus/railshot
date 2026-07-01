@@ -1151,7 +1151,8 @@ function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) 
     const ib = tr.stops.findIndex(s => s.stn===transferStn || s.stn===alt(transferStn));
     if (i1 < 0 || ib <= i1) continue;
     const dep = tr.stops[i1].dep || tr.stops[i1].arr;
-    const arr = tr.stops[ib].arr || tr.stops[ib].dep;
+    const arr = tr.stops[ib].dep || tr.stops[ib].arr; // 中途站優先用 dep
+    if (!dep || !arr) continue;
     if (filterTime && dep < filterTime) continue;
     leg1List.push({ train: tr, dep, arr, transferStn });
   }
@@ -1165,6 +1166,7 @@ function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) 
     const bufTime = String(Math.floor(bufMin/60)).padStart(2,'0') + ':' + String(bufMin%60).padStart(2,'0');
 
     // 找第二段：收集所有可搭的班次，取最快抵達的
+    const toMins = t => { const [hh,mm] = t.split(':').map(Number); return hh*60+mm; };
     const leg2Candidates = [];
     for (const tr of trains) {
       const ib = tr.stops.findIndex(s => s.stn===transferStn || s.stn===alt(transferStn));
@@ -1172,12 +1174,17 @@ function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) 
       if (ib < 0 || i2 <= ib) continue;
       const dep2 = tr.stops[ib].dep || tr.stops[ib].arr;
       const arr2 = tr.stops[i2].arr || tr.stops[i2].dep;
+      if (!dep2 || !arr2) continue; // 跳過時間不完整的站
       if (dep2 <= bufTime) continue;
+      // 排除等候超過 3 小時的班次（避免跨日誤配）
+      const waitMins = toMins(dep2) - bufMin;
+      if (waitMins > 120) continue; // 等候超過 2 小時不列出
       leg2Candidates.push({ tr, dep2, arr2 });
     }
     if (!leg2Candidates.length) continue;
-    // 取最早抵達目的地的班次
-    leg2Candidates.sort((a,b) => a.arr2.localeCompare(b.arr2));
+    // 取最早抵達目的地的班次（用分鐘數比較，避免字串比較跨日問題）
+    const toMins2 = t => { const [hh,mm] = t.split(':').map(Number); return hh*60+mm; };
+    leg2Candidates.sort((a,b) => toMins2(a.arr2) - toMins2(b.arr2));
     const best = leg2Candidates[0];
     results.push({
       transferStn,
@@ -1190,7 +1197,8 @@ function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) 
     });
   }
   // 按總抵達時間排序，去除重複 leg2
-  results.sort((a,b) => a.totalArr.localeCompare(b.totalArr));
+  const toMinsF = t => { const [hh,mm] = t.split(':').map(Number); return hh*60+mm; };
+  results.sort((a,b) => toMinsF(a.totalArr) - toMinsF(b.totalArr));
   const seen = new Set();
   const deduped = results.filter(r => {
     const key = r.leg2.no;
