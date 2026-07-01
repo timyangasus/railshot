@@ -1107,25 +1107,38 @@ function findTransferStation(fromName, toName, trains) {
 function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) {
   const alt = n => n.replace(/台/g,'臺').replace(/臺/g,'台');
   const TRANSFER_BUFFER = 15; // 分鐘
+  const bigSet = new Set(BIG_STATIONS);
 
-  // 找中轉站
+  // 找中轉站：從有停 fromName 的班車停靠站中，
+  // 找「往 toName 方向」最近的大站
   let transferStn = null;
-  for (const bigStn of BIG_STATIONS) {
-    // 找有停 fromName 且有停 bigStn 的車
-    const leg1Trains = trains.filter(tr => {
-      const i1 = tr.stops.findIndex(s => s.stn===fromName || s.stn===alt(fromName));
-      const ib = tr.stops.findIndex(s => s.stn===bigStn || s.stn===alt(bigStn));
-      return i1 >= 0 && ib > i1;
-    });
-    // 找有停 bigStn 且有停 toName 的車
-    const leg2Trains = trains.filter(tr => {
-      const ib = tr.stops.findIndex(s => s.stn===bigStn || s.stn===alt(bigStn));
-      const i2 = tr.stops.findIndex(s => s.stn===toName || s.stn===alt(toName));
-      return ib >= 0 && i2 > ib;
-    });
-    if (leg1Trains.length > 0 && leg2Trains.length > 0) {
-      transferStn = bigStn;
-      break;
+  let minStops = Infinity;
+
+  for (const tr of trains) {
+    const i1 = tr.stops.findIndex(s => s.stn===fromName || s.stn===alt(fromName));
+    const i2 = tr.stops.findIndex(s => s.stn===toName   || s.stn===alt(toName));
+    if (i1 < 0) continue;
+    // 如果這班有直達，不需轉乘
+    if (i2 > i1) return null;
+
+    // 往 toName 方向走（如果 i2<0，則找往後的大站；否則不應出現直達）
+    // 從 fromName 往後，找到第一個大站
+    for (let i = i1 + 1; i < tr.stops.length; i++) {
+      const stn = tr.stops[i].stn;
+      if (bigSet.has(stn) || bigSet.has(alt(stn))) {
+        const normStn = bigSet.has(stn) ? stn : alt(stn);
+        // 確認這個大站有班車可以到 toName
+        const leg2ok = trains.some(tr2 => {
+          const ib2 = tr2.stops.findIndex(s => s.stn===normStn || s.stn===alt(normStn));
+          const i22 = tr2.stops.findIndex(s => s.stn===toName || s.stn===alt(toName));
+          return ib2 >= 0 && i22 > ib2;
+        });
+        if (leg2ok && i - i1 < minStops) {
+          minStops = i - i1;
+          transferStn = normStn;
+        }
+        break; // 只取每班車的第一個大站
+      }
     }
   }
   if (!transferStn) return null;
@@ -1139,7 +1152,7 @@ function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) 
     if (i1 < 0 || ib <= i1) continue;
     const dep = tr.stops[i1].dep || tr.stops[i1].arr;
     const arr = tr.stops[ib].arr || tr.stops[ib].dep;
-    if (filterTime && isToday && dep < filterTime) continue;
+    if (filterTime && dep < filterTime) continue;
     leg1List.push({ train: tr, dep, arr, transferStn });
   }
   leg1List.sort((a,b) => a.dep.localeCompare(b.dep));
@@ -3356,7 +3369,7 @@ async function searchTT(){
         const arrStop = train.stops[i2];
         const dep = depStop.dep || depStop.arr;
         const arr = arrStop.arr || arrStop.dep;
-        if (filterTime && isToday && dep < filterTime) continue;
+        if (filterTime && dep < filterTime) continue;
         list.push({
           no: train.no, type: train.type,
           dep, arr, dur: calcDurStr(dep, arr),
@@ -3388,7 +3401,7 @@ async function searchTT(){
 
   // 假資料
   let list = TT_TRAINS.filter(t => selectedTypes === 'all' || selectedTypes.includes(t.type));
-  if (filterTime) { const fut = list.filter(t => t.dep >= filterTime); if(fut.length) list = fut; }
+  if (filterTime) { list = list.filter(t => t.dep >= filterTime); }
   renderTTList(list, true);
 }
 
@@ -3405,31 +3418,31 @@ function renderTransferList(transfer) {
     ${transfer.results.map((r, idx) => `
     <div class="tt-card" style="padding:14px 15px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <span style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.5px;">方案 ${idx+1}</span>
-        <span style="font-size:13px;font-weight:700;color:var(--accent);">抵達 ${r.totalArr}・共 ${r.totalDur}</span>
+        <span style="font-size:13px;font-weight:700;color:var(--text3);letter-spacing:0.5px;">方案 ${idx+1}</span>
+        <span style="font-size:15px;font-weight:700;color:var(--accent);">抵達 ${r.totalArr}・共 ${r.totalDur}</span>
       </div>
       <div style="border-left:2px solid var(--border);padding-left:12px;display:flex;flex-direction:column;gap:10px;">
         <div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
             <span class="badge ${ti1(r).cls}" style="font-size:10px;padding:2px 8px;">${ti1(r).label}</span>
-            <span style="font-size:12px;font-weight:600;color:var(--text2);">${r.leg1.no}</span>
+            <span style="font-size:14px;font-weight:600;color:var(--text2);">${r.leg1.no}</span>
             ${r.leg1.delay>0 ? `<span style="font-size:11px;color:var(--orange);">+${r.leg1.delay}分</span>` : ''}
           </div>
-          <div style="font-size:16px;font-weight:700;color:var(--text);">${r.leg1.dep} <span style="color:var(--text3);font-weight:400;font-size:13px;">→</span> ${r.leg1.arr}</div>
-          <div style="font-size:12px;color:var(--text3);">${r.leg1.from} → ${r.leg1.to}</div>
+          <div style="font-size:20px;font-weight:800;color:var(--text);">${r.leg1.dep} <span style="color:var(--text3);font-weight:400;font-size:15px;">→</span> ${r.leg1.arr}</div>
+          <div style="font-size:13px;color:var(--text2);">${r.leg1.from} → ${r.leg1.to}</div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3);padding-left:2px;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z" fill="#8a9db8"/></svg>
-          轉乘 ${r.transferStn}・等候 ${calcDurStr(r.leg1.arr, r.leg2.dep)}
+          <span style="font-size:13px;">轉乘 ${r.transferStn}・等候 ${calcDurStr(r.leg1.arr, r.leg2.dep)}</span>
         </div>
         <div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
             <span class="badge ${ti2(r).cls}" style="font-size:10px;padding:2px 8px;">${ti2(r).label}</span>
-            <span style="font-size:12px;font-weight:600;color:var(--text2);">${r.leg2.no}</span>
+            <span style="font-size:14px;font-weight:600;color:var(--text2);">${r.leg2.no}</span>
             ${r.leg2.delay>0 ? `<span style="font-size:11px;color:var(--orange);">+${r.leg2.delay}分</span>` : ''}
           </div>
-          <div style="font-size:16px;font-weight:700;color:var(--text);">${r.leg2.dep} <span style="color:var(--text3);font-weight:400;font-size:13px;">→</span> ${r.leg2.arr}</div>
-          <div style="font-size:12px;color:var(--text3);">${r.leg2.from} → ${r.leg2.to}</div>
+          <div style="font-size:20px;font-weight:800;color:var(--text);">${r.leg2.dep} <span style="color:var(--text3);font-weight:400;font-size:15px;">→</span> ${r.leg2.arr}</div>
+          <div style="font-size:13px;color:var(--text2);">${r.leg2.from} → ${r.leg2.to}</div>
         </div>
       </div>
     </div>`).join('')}
