@@ -127,10 +127,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .chip.on[data-val="all"]{background:#1a2540;border-color:#1a2540;}
 .chip.on[data-val="exp3"]{background:#222;border-color:#222;}
 .chip.on[data-val="puy"]{background:#c0392b;border-color:#c0392b;}
-.chip.on[data-val="exp"]{background:#DDA705;border-color:#DDA705;}
-.chip.on[data-val="moc"]{background:#c4651a;border-color:#c4651a;}
-.chip.on[data-val="localx"]{background:#3CAE67;border-color:#3CAE67;}
-.chip.on[data-val="local"]{background:#34AFBF;border-color:#34AFBF;}
+.chip.on[data-val="exp"]{background:#FF8000;border-color:#FF8000;}
+.chip.on[data-val="moc"]{background:#DB5C42;border-color:#DB5C42;}
+.chip.on[data-val="localx"]{background:#6CB31F;border-color:#6CB31F;}
+.chip.on[data-val="local"]{background:#3350CD;border-color:#3350CD;}
 .chip.on[data-val="tze"]{background:#6b7280;border-color:#6b7280;}
 
 /* ── CARDS ── */
@@ -740,12 +740,16 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 
 <!-- TAB 3: 收藏 -->
 <div class="screen" id="tab-fav">
-  <!-- Sub-tab switcher — 不走 .sc，讓下方兩欄能撐滿 -->
+  <!-- Sub-tab switcher -->
   <div style="padding:12px 16px 0;">
     <div class="fav-subtabs">
       <button class="fav-subtab active" id="fst-tt" onclick="switchFavSubTab('tt',this)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/></svg>
         時刻表
+      </button>
+      <button class="fav-subtab" id="fst-trip" onclick="switchFavSubTab('trip',this)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z" fill="currentColor"/></svg>
+        行程
       </button>
       <button class="fav-subtab" id="fst-stn" onclick="switchFavSubTab('stn',this)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
@@ -757,7 +761,11 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   <div id="fav-tt-panel" style="flex:1;overflow-y:auto;padding:12px 16px;">
     <div id="fav-tt-list"></div>
   </div>
-  <!-- 常用車站：兩欄管理器，複用選站頁同款 CSS -->
+  <!-- 行程 -->
+  <div id="fav-trip-panel" style="display:none;flex:1;overflow-y:auto;padding:12px 16px;">
+    <div id="trip-list"></div>
+  </div>
+  <!-- 常用車站 -->
   <div id="fav-stn-panel" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
     <!-- 已加入的車站 chip row -->
     <div id="fstn-freq-row" style="display:none;flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--border);padding:18px 14px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch;"></div>
@@ -813,6 +821,40 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   </div>
 </div>
 
+
+<!-- SHEET: 建立/編輯行程 -->
+<div class="sheet-ov" id="trip-sheet" onclick="closeOv(event,'trip-sheet')">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-hdr">
+      <div class="sh-title" id="trip-sheet-title">建立行程</div>
+      <div class="sh-close" onclick="closeSheet('trip-sheet')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+      </div>
+    </div>
+    <div class="sh-body">
+      <input type="hidden" id="trip-edit-id"/>
+      <!-- 行程名稱 -->
+      <div style="margin-bottom:14px;">
+        <div class="sec" style="margin-bottom:6px;">行程名稱</div>
+        <input type="text" id="trip-name-input" placeholder="輸入行程名稱"
+          style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:14px;font-size:16px;color:var(--text);font-family:inherit;outline:none;"/>
+      </div>
+      <!-- 備註 -->
+      <div style="margin-bottom:14px;">
+        <div class="sec" style="margin-bottom:6px;">備註</div>
+        <input type="text" id="trip-note-input" placeholder="輸入備註"
+          style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:14px;font-size:16px;color:var(--text);font-family:inherit;outline:none;"/>
+      </div>
+      <!-- 選時刻 -->
+      <div style="margin-bottom:18px;">
+        <div class="sec" style="margin-bottom:8px;">選時刻</div>
+        <div id="trip-tt-select-list"></div>
+      </div>
+      <button onclick="saveTripFromSheet()" style="width:100%;background:var(--accent);color:white;border:none;border-radius:var(--radius-input);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;">完成</button>
+    </div>
+  </div>
+</div>
 
 <!-- SHEET: 選擇區間 -->
 <div class="sheet-ov" id="between-section-sheet" onclick="closeOv(event,'between-section-sheet')">
@@ -1048,10 +1090,10 @@ const TYPE_INFO={
 const TYPE_BANNER_GRADIENT={
   exp3:   'linear-gradient(135deg,#161616 0%,#2b2b2b 100%)',
   puy:    'linear-gradient(135deg,#8e261c 0%,#c0392b 100%)',
-  exp:    'linear-gradient(135deg,#9c7704 0%,#DDA705 100%)',
-  moc:    'linear-gradient(135deg,#94481a 0%,#c4651a 100%)',
-  localx: 'linear-gradient(135deg,#2c8552 0%,#3CAE67 100%)',
-  local:  'linear-gradient(135deg,#27828f 0%,#34AFBF 100%)',
+  exp:    'linear-gradient(135deg,#b35a00 0%,#FF8000 100%)',
+  moc:    'linear-gradient(135deg,#a33d28 0%,#DB5C42 100%)',
+  localx: 'linear-gradient(135deg,#4e8016 0%,#6CB31F 100%)',
+  local:  'linear-gradient(135deg,#2438a0 0%,#3350CD 100%)',
   tze:    'linear-gradient(135deg,#4a5158 0%,#6b7280 100%)',
 };
 function getDetailBannerGradient(type){
@@ -1249,14 +1291,21 @@ function autoSearchTT(){
 function switchFavSubTab(sub, btn){
   document.querySelectorAll('.fav-subtab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  const ttPanel  = document.getElementById('fav-tt-panel');
-  const stnPanel = document.getElementById('fav-stn-panel');
+  const ttPanel   = document.getElementById('fav-tt-panel');
+  const tripPanel = document.getElementById('fav-trip-panel');
+  const stnPanel  = document.getElementById('fav-stn-panel');
+
+  ttPanel.style.display   = 'none';
+  tripPanel.style.display = 'none';
+  stnPanel.style.display  = 'none';
+  stnPanel.classList.remove('visible');
+
   if(sub === 'tt'){
-    ttPanel.style.display  = '';
-    stnPanel.classList.remove('visible');
-    stnPanel.style.display = 'none';
+    ttPanel.style.display = '';
+  } else if(sub === 'trip'){
+    tripPanel.style.display = '';
+    renderTripList();
   } else {
-    ttPanel.style.display  = 'none';
     stnPanel.style.display = '';
     stnPanel.classList.add('visible');
     initFavStnManager();
@@ -3085,6 +3134,14 @@ function calcDurStr(dep, arr) {
   if(h===0) return `${m}分`;
   return `${h}h${String(m).padStart(2,'0')}`;
 }
+function calcDurMins(dep, arr) {
+  if(!dep || !arr) return 9999;
+  const [dh,dm]=dep.split(':').map(Number);
+  const [ah,am]=arr.split(':').map(Number);
+  let mins=(ah*60+am)-(dh*60+dm);
+  if(mins<0) mins+=1440;
+  return mins;
+}
 
 async function searchTT(){
   const selectedTypes = getTTSelectedTypes();
@@ -3176,6 +3233,9 @@ function renderTTList(list, isMock) {
   setResetBtnActive('tt-reset-btn', list.length > 0);
   
 
+  // 找最短行駛時間（分鐘）
+  const minDur = Math.min(...list.map(t => calcDurMins(t.dep, t.arr)));
+
   const mockBanner = isMock ? `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:var(--radius-input);padding:10px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:8px;">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" fill="#f9a825"/></svg>
     <div style="font-size:12px;color:#7a5500;line-height:1.5;">目前為<strong>示範資料</strong>，請設定 API_BASE 後重新部署以顯示真實班次。</div>
@@ -3186,12 +3246,14 @@ function renderTTList(list, isMock) {
   el.innerHTML=mockBanner+list.map((t,idx)=>{
     const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
     const faved=isTTFaved(t.no);
+    const isFastest = calcDurMins(t.dep, t.arr) === minDur;
     return `<div class="tt-card" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
       <button class="tt-heart-btn${faved?' liked':''}" onclick="toggleTTFavObj(${JSON.stringify(t).replace(/"/g,'&quot;')},event)">${faved?HEART_FULL:HEART_EMPTY}</button>
       <div style="padding-right:36px;">
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
           <div class="tt-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:20px;">→</span> ${t.arr}</div>
           <span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur}</span>
+          ${isFastest ? `<span style="font-size:11px;font-weight:700;color:white;background:#E8A000;padding:2px 7px;border-radius:10px;letter-spacing:0.3px;">最快</span>` : ''}
         </div>
       </div>
       <div class="tt-mid" style="margin-bottom:3px;">
@@ -3997,6 +4059,184 @@ async function searchTrainNo(){
 
   closeTrainSearch();
   openDetailByNo(no, '', '', '', '');
+}
+
+// ===== 行程管理 =====
+let trips = JSON.parse(localStorage.getItem('rs_trips') || '[]');
+function saveTrips(){ localStorage.setItem('rs_trips', JSON.stringify(trips)); }
+
+function renderTripList(){
+  const el = document.getElementById('trip-list');
+  if(!el) return;
+  if(!trips.length){
+    el.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:16px;">
+        <button onclick="openCreateTripSheet()" style="width:64px;height:64px;border-radius:50%;background:var(--bg);border:2px dashed var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="var(--text3)"/></svg>
+        </button>
+        <div style="font-size:15px;color:var(--text3);">點擊建立行程</div>
+      </div>`;
+    return;
+  }
+  el.innerHTML = trips.map(trip => {
+    const count = trip.trainNos ? trip.trainNos.length : 0;
+    return `<div class="tt-card" style="position:relative;" onclick="openTripDetail('${trip.id}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:${trip.note?'4px':'0'}">${trip.name}</div>
+          ${trip.note ? `<div style="font-size:13px;color:var(--text3);margin-bottom:6px;">${trip.note}</div>` : ''}
+          <div style="font-size:13px;color:var(--text2);">${count} 個時刻</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;margin-left:12px;">
+          <button onclick="openEditTripSheet('${trip.id}',event)" style="width:32px;height:32px;border-radius:50%;background:none;border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="var(--text2)"/></svg>
+          </button>
+          <button onclick="deleteTrip('${trip.id}',event)" style="width:32px;height:32px;border-radius:50%;background:none;border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="var(--red)"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openCreateTripSheet(){
+  document.getElementById('trip-sheet-title').textContent = '建立行程';
+  document.getElementById('trip-edit-id').value = '';
+  document.getElementById('trip-name-input').value = '';
+  document.getElementById('trip-note-input').value = '';
+  renderTripTTSelectList([]);
+  openSheet('trip-sheet');
+}
+
+function openEditTripSheet(id, event){
+  if(event) event.stopPropagation();
+  const trip = trips.find(t => t.id === id);
+  if(!trip) return;
+  document.getElementById('trip-sheet-title').textContent = '編輯行程';
+  document.getElementById('trip-edit-id').value = id;
+  document.getElementById('trip-name-input').value = trip.name;
+  document.getElementById('trip-note-input').value = trip.note || '';
+  renderTripTTSelectList(trip.trainNos || []);
+  openSheet('trip-sheet');
+}
+
+function renderTripTTSelectList(selectedNos){
+  const el = document.getElementById('trip-tt-select-list');
+  if(!el) return;
+  const favs = ttFavs || [];
+  if(!favs.length){
+    el.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:12px 0;">無收藏時刻</div>`;
+    return;
+  }
+  // 依出發時間排序
+  const sorted = [...favs].sort((a,b) => (a.dep||'').localeCompare(b.dep||''));
+  el.innerHTML = sorted.map(t => {
+    const ti = TYPE_INFO[t.type] || {label:'列車', cls:'b-exp'};
+    const checked = selectedNos.includes(t.no);
+    return `<div onclick="toggleTripTTSelect('${t.no}',this)" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+      <div id="trip-check-${t.no}" style="width:24px;height:24px;border-radius:50%;border:2px solid ${checked?'var(--accent)':'var(--border2)'};background:${checked?'var(--accent)':'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;">
+        ${checked?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg>':''}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+          <span class="badge ${ti.cls}" style="font-size:11px;">${ti.label}</span>
+          <span style="font-size:14px;font-weight:600;color:var(--text);">${t.no}</span>
+        </div>
+        <div style="font-size:13px;color:var(--text2);">${t.dep} → ${t.arr} · ${t.from}→${t.to}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleTripTTSelect(no, row){
+  const circle = document.getElementById(`trip-check-${no}`);
+  if(!circle) return;
+  const isOn = circle.style.background === 'var(--accent)' || circle.style.background.includes('accent');
+  // more reliable check via innerHTML
+  const checked = circle.innerHTML.trim() !== '';
+  if(checked){
+    circle.style.border = '2px solid var(--border2)';
+    circle.style.background = 'transparent';
+    circle.innerHTML = '';
+  } else {
+    circle.style.border = '2px solid var(--accent)';
+    circle.style.background = 'var(--accent)';
+    circle.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg>';
+  }
+}
+
+function getSelectedTripNos(){
+  return (ttFavs||[])
+    .filter(t => {
+      const el = document.getElementById(`trip-check-${t.no}`);
+      return el && el.innerHTML.trim() !== '';
+    })
+    .map(t => t.no);
+}
+
+function saveTripFromSheet(){
+  const name = document.getElementById('trip-name-input').value.trim();
+  if(!name){ showToast('請輸入行程名稱'); return; }
+  const note = document.getElementById('trip-note-input').value.trim();
+  const trainNos = getSelectedTripNos();
+  const editId = document.getElementById('trip-edit-id').value;
+
+  if(editId){
+    const idx = trips.findIndex(t => t.id === editId);
+    if(idx !== -1){
+      trips[idx] = { ...trips[idx], name, note, trainNos };
+    }
+  } else {
+    trips.push({ id: Date.now().toString(), name, note, trainNos, createdAt: Date.now() });
+  }
+  saveTrips();
+  closeSheet('trip-sheet');
+  renderTripList();
+}
+
+function deleteTrip(id, event){
+  if(event) event.stopPropagation();
+  trips = trips.filter(t => t.id !== id);
+  saveTrips();
+  renderTripList();
+}
+
+// 行程詳細頁（展開看班次，行為同時刻表）
+function openTripDetail(id){
+  const trip = trips.find(t => t.id === id);
+  if(!trip) return;
+  // 從收藏清單找出對應班次資料
+  const favMap = {};
+  (ttFavs||[]).forEach(t => { favMap[t.no] = t; });
+  const list = (trip.trainNos||[])
+    .map(no => favMap[no])
+    .filter(Boolean)
+    .sort((a,b) => (a.dep||'').localeCompare(b.dep||''));
+
+  // 借用時刻表 detail page
+  const detPage = document.getElementById('detail-page');
+  document.getElementById('det-hdr-title').textContent = trip.name;
+  const body = document.getElementById('det-body');
+  if(!list.length){
+    body.innerHTML = `<div class="empty-state"><div class="empty-text">此行程尚無時刻</div></div>`;
+  } else {
+    body.innerHTML = list.map(t => {
+      const ti = TYPE_INFO[t.type]||{label:'列車',cls:'b-exp'};
+      return `<div class="tt-card" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
+          <div class="tt-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:20px;">→</span> ${t.arr}</div>
+          <span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur||''}</span>
+        </div>
+        <div class="tt-mid" style="margin-bottom:3px;">
+          <span class="badge ${ti.cls}">${ti.label}</span>
+          <span class="tt-no">${t.no}</span>
+        </div>
+        <div class="tt-route">${t.from} → ${t.to}</div>
+      </div>`;
+    }).join('');
+  }
+  detPage.classList.add('open');
 }
 
 let _toastTimer;
