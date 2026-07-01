@@ -1158,33 +1158,47 @@ function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) 
   leg1List.sort((a,b) => a.dep.localeCompare(b.dep));
 
   for (const l1 of leg1List) {
-    if (results.length >= 5) break;
+    if (results.length >= 3) break;
     // 轉乘站抵達時間 + buffer
     const [h, m] = l1.arr.split(':').map(Number);
     const bufMin = h*60 + m + TRANSFER_BUFFER;
     const bufTime = String(Math.floor(bufMin/60)).padStart(2,'0') + ':' + String(bufMin%60).padStart(2,'0');
 
-    // 找第二段
+    // 找第二段：收集所有可搭的班次，取最快抵達的
+    const leg2Candidates = [];
     for (const tr of trains) {
       const ib = tr.stops.findIndex(s => s.stn===transferStn || s.stn===alt(transferStn));
       const i2 = tr.stops.findIndex(s => s.stn===toName || s.stn===alt(toName));
       if (ib < 0 || i2 <= ib) continue;
       const dep2 = tr.stops[ib].dep || tr.stops[ib].arr;
       const arr2 = tr.stops[i2].arr || tr.stops[i2].dep;
-      if (dep2 < bufTime) continue;
-      results.push({
-        transferStn,
-        leg1: { no: l1.train.no, type: l1.train.type, dep: l1.dep, arr: l1.arr,
-                from: fromName, to: transferStn, delay: liveMap[l1.train.no]||0 },
-        leg2: { no: tr.no, type: tr.type, dep: dep2, arr: arr2,
-                from: transferStn, to: toName, delay: liveMap[tr.no]||0 },
-        totalArr: arr2,
-        totalDur: calcDurStr(l1.dep, arr2),
-      });
-      break; // 每個 leg1 只取最快的 leg2
+      if (dep2 <= bufTime) continue;
+      leg2Candidates.push({ tr, dep2, arr2 });
     }
+    if (!leg2Candidates.length) continue;
+    // 取最早抵達目的地的班次
+    leg2Candidates.sort((a,b) => a.arr2.localeCompare(b.arr2));
+    const best = leg2Candidates[0];
+    results.push({
+      transferStn,
+      leg1: { no: l1.train.no, type: l1.train.type, dep: l1.dep, arr: l1.arr,
+              from: fromName, to: transferStn, delay: liveMap[l1.train.no]||0 },
+      leg2: { no: best.tr.no, type: best.tr.type, dep: best.dep2, arr: best.arr2,
+              from: transferStn, to: toName, delay: liveMap[best.tr.no]||0 },
+      totalArr: best.arr2,
+      totalDur: calcDurStr(l1.dep, best.arr2),
+    });
   }
-  return results.length ? { transferStn, results } : null;
+  // 按總抵達時間排序，去除重複 leg2
+  results.sort((a,b) => a.totalArr.localeCompare(b.totalArr));
+  const seen = new Set();
+  const deduped = results.filter(r => {
+    const key = r.leg2.no;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return deduped.length ? { transferStn, results: deduped.slice(0,3) } : null;
 }
 
 const TYPE_INFO={
