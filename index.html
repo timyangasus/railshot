@@ -4078,7 +4078,12 @@ function renderTripList(){
       </div>`;
     return;
   }
-  el.innerHTML = trips.map(trip => {
+  el.innerHTML = `<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+    <button onclick="openCreateTripSheet()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:white;color:var(--accent);border:1.5px solid var(--accent);border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="var(--accent)"/></svg>
+      新增行程
+    </button>
+  </div>` + trips.map(trip => {
     const count = trip.trainNos ? trip.trainNos.length : 0;
     return `<div class="tt-card" style="position:relative;" onclick="openTripDetail('${trip.id}')">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;">
@@ -4206,7 +4211,6 @@ function deleteTrip(id, event){
 function openTripDetail(id){
   const trip = trips.find(t => t.id === id);
   if(!trip) return;
-  // 從收藏清單找出對應班次資料
   const favMap = {};
   (ttFavs||[]).forEach(t => { favMap[t.no] = t; });
   const list = (trip.trainNos||[])
@@ -4214,29 +4218,49 @@ function openTripDetail(id){
     .filter(Boolean)
     .sort((a,b) => (a.dep||'').localeCompare(b.dep||''));
 
-  // 借用時刻表 detail page
   const detPage = document.getElementById('detail-page');
   document.getElementById('det-hdr-title').textContent = trip.name;
   const body = document.getElementById('det-body');
+
+  const header = `<div style="padding:16px 0 12px;">
+    <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:${trip.note?'4px':'0'}">${trip.name}</div>
+    ${trip.note ? `<div style="font-size:14px;color:var(--text3);">${trip.note}</div>` : ''}
+  </div>
+  <div class="sec" style="margin-bottom:8px;">時刻表</div>`;
+
   if(!list.length){
-    body.innerHTML = `<div class="empty-state"><div class="empty-text">此行程尚無時刻</div></div>`;
+    body.innerHTML = header + `<div class="empty-state"><div class="empty-text">此行程尚無時刻</div></div>`;
   } else {
-    body.innerHTML = list.map(t => {
+    body.innerHTML = header + list.map(t => {
       const ti = TYPE_INFO[t.type]||{label:'列車',cls:'b-exp'};
-      return `<div class="tt-card" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
-          <div class="tt-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:20px;">→</span> ${t.arr}</div>
-          <span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur||''}</span>
+      return `<div class="tt-card" style="position:relative;" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+        <button onclick="removeTripTrain('${id}','${t.no}',event)" style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="var(--text2)"/></svg>
+        </button>
+        <div style="padding-right:40px;">
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
+            <div class="tt-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:20px;">→</span> ${t.arr}</div>
+            <span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur||''}</span>
+          </div>
+          <div class="tt-mid" style="margin-bottom:3px;">
+            <span class="badge ${ti.cls}">${ti.label}</span>
+            <span class="tt-no">${t.no}</span>
+          </div>
+          <div class="tt-route">${t.from} → ${t.to}</div>
         </div>
-        <div class="tt-mid" style="margin-bottom:3px;">
-          <span class="badge ${ti.cls}">${ti.label}</span>
-          <span class="tt-no">${t.no}</span>
-        </div>
-        <div class="tt-route">${t.from} → ${t.to}</div>
       </div>`;
     }).join('');
   }
   detPage.classList.add('open');
+}
+
+function removeTripTrain(tripId, trainNo, event){
+  if(event) event.stopPropagation();
+  const trip = trips.find(t => t.id === tripId);
+  if(!trip) return;
+  trip.trainNos = (trip.trainNos||[]).filter(no => no !== trainNo);
+  saveTrips();
+  openTripDetail(tripId); // 重新渲染
 }
 
 let _toastTimer;
