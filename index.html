@@ -186,7 +186,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 /* ── SHEET ── */
 .sheet-ov{position:fixed;inset:0;background:rgba(30,50,90,0.35);z-index:200;display:none;align-items:flex-end;backdrop-filter:blur(2px);}
 .sheet-ov.open{display:flex;}
-.sheet{background:white;border-radius:22px 22px 0 0;width:100%;max-height:70vh;overflow-y:auto;padding-bottom:calc(16px + var(--safe-bot));}
+.sheet{background:white;border-radius:22px 22px 0 0;width:100%;max-height:80vh;overflow-y:auto;padding-bottom:calc(16px + var(--safe-bot));}
 .sh-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;}
 .sh-hdr{padding:14px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
 .sh-title{font-size:17px;font-weight:700;color:var(--text);}
@@ -3395,8 +3395,8 @@ function renderTTFavs(){
     const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
     const hasQuery = t.queryFrom && t.queryTo;
     const delKey = JSON.stringify({no:t.no,qFrom:t.queryFrom||'',qTo:t.queryTo||''}).replace(/"/g,'&quot;');
-    return `<div class="tt-fav-card" style="position:relative;" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
-      ${isInAnyTrip(t.no)?`<span title=\"\xe5\xb7\xb2\xe5\x8a\xa0\xe5\x85\xa5\xe8\xa1\x8c\xe7\xa8\x8b\" style=\"position:absolute;top:10px;right:38px;width:18px;height:18px;display:flex;align-items:center;justify-content:center;\"><svg xmlns=\"http://www.w3.org/2000/svg\" height=\"16px\" viewBox=\"0 -960 960 960\" width=\"16px\" fill=\"var(--accent)\"><path d=\"M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Zm80-122 200-86 200 86v-518H280v518Zm0-518h400-400Z\"/></svg></span>`:''}\n      <div class="tt-fav-body">
+    return `<div class="tt-fav-card" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')}">
+      <div class="tt-fav-body">
         ${hasQuery ? `<div class="tt-fav-query">${t.queryFrom} → ${t.queryTo}</div>` : ''}
         <div class="tt-fav-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:15px;">→</span> ${t.arr}
           <span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:6px;">${t.dur}</span>
@@ -3408,10 +3408,13 @@ function renderTTFavs(){
         <div class="tt-fav-route">${t.from} → ${t.to}</div>
         ${t.delay>0?`<div style="font-size:12px;font-weight:600;color:var(--orange);margin-top:4px;">誤點 +${t.delay}分</div>`:''}
       </div>
-      <button class="tt-fav-del" onclick="removeTTFav('${t.no}','${t.queryFrom||''}','${t.queryTo||''}',event)" aria-label="移除收藏">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="#d43030"/></svg>
-      </button>
-    </div>`;
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:space-between;flex-shrink:0;min-height:60px;">
+        ${isInAnyTrip(t.no)?`<span title="已加入行程" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;"><svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="var(--accent)"><path d="M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z"/></svg></span>`:`<span style="width:28px;height:28px;"></span>`}
+        <button class="tt-fav-del" onclick="removeTTFav('${t.no}','${t.queryFrom||''}','${t.queryTo||''}',event)" aria-label="移除收藏">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="#d43030"/></svg>
+        </button>
+      </div>
+    <    </div>`;
   }).join('');
 }
 
@@ -4191,7 +4194,7 @@ function getSelectedTripNos(){
 
 function autoSaveAndCloseTrip(){
   const name = document.getElementById('trip-name-input').value.trim();
-  if(!name){ showToast('請輸入行程名稱'); return; }
+  if(!name){ closeSheet('trip-sheet'); return; }
   saveTripFromSheet();
 }
 
