@@ -511,7 +511,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   <div class="header-inner">
     <div class="logo-text" id="header-title">時刻表</div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button onclick="openTrainSearch()" id="train-search-btn" title="查詢車次" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:color .2s;">
+      <button onclick="openTrainSearch()" id="train-search-btn" title="查詢車次" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);transition:color .2s;">
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
       </button>
       <button onclick="resetTTForm()" id="tt-reset-btn" title="清除資料" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
@@ -530,7 +530,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
     <div style="flex:1;position:relative;">
       <input type="text" id="train-no-input" placeholder="輸入車次" inputmode="numeric" pattern="[0-9]*"
-        style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:20px 40px 20px 14px;font-size:20px;font-weight:400;color:var(--text);font-family:inherit;outline:none;letter-spacing:2px;"
+        style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);height:52px;padding:0 40px 0 14px;font-size:20px;font-weight:400;color:var(--text);font-family:inherit;outline:none;letter-spacing:2px;"
         oninput="document.getElementById('train-no-clear').style.display=this.value?'flex':'none'"
         onkeydown="if(event.key==='Enter') searchTrainNo()"/>
       <button id="train-no-clear" onclick="document.getElementById('train-no-input').value='';this.style.display='none';document.getElementById('train-no-input').focus();"
@@ -538,7 +538,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="white"/></svg>
       </button>
     </div>
-    <button onclick="searchTrainNo()" style="background:var(--accent);color:white;border:none;border-radius:var(--radius-input);padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">查詢</button>
+    <button onclick="searchTrainNo()" style="background:var(--accent);color:white;border:none;border-radius:var(--radius-input);height:52px;padding:0 20px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;">查詢</button>
   </div>
   <div id="train-search-error" style="display:none;margin-top:8px;font-size:13px;color:var(--red);"></div>
 </div>
@@ -3395,7 +3395,7 @@ function renderTTFavs(){
     const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
     const hasQuery = t.queryFrom && t.queryTo;
     const delKey = JSON.stringify({no:t.no,qFrom:t.queryFrom||'',qTo:t.queryTo||''}).replace(/"/g,'&quot;');
-    return `<div class="tt-fav-card" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')}">
+    return `<div class="tt-fav-card" style="position:relative;" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')}">
       <div class="tt-fav-body">
         ${hasQuery ? `<div class="tt-fav-query">${t.queryFrom} → ${t.queryTo}</div>` : ''}
         <div class="tt-fav-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:15px;">→</span> ${t.arr}
@@ -3408,13 +3408,13 @@ function renderTTFavs(){
         <div class="tt-fav-route">${t.from} → ${t.to}</div>
         ${t.delay>0?`<div style="font-size:12px;font-weight:600;color:var(--orange);margin-top:4px;">誤點 +${t.delay}分</div>`:''}
       </div>
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:space-between;flex-shrink:0;min-height:60px;">
-        ${isInAnyTrip(t.no)?`<span title="已加入行程" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;"><svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="var(--accent)"><path d="M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z"/></svg></span>`:`<span style="width:28px;height:28px;"></span>`}
+      <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;flex-shrink:0;align-self:stretch;" onclick="event.stopPropagation()">
+        ${isInAnyTrip(t.no)?`<span title="已加入行程" style="width:28px;height:24px;display:flex;align-items:center;justify-content:center;"><svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="var(--accent)"><path d="M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z"/></svg></span>`:`<span style="width:28px;height:24px;"></span>`}
         <button class="tt-fav-del" onclick="removeTTFav('${t.no}','${t.queryFrom||''}','${t.queryTo||''}',event)" aria-label="移除收藏">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="#d43030"/></svg>
         </button>
       </div>
-    <    </div>`;
+    </div>    </div>`;
   }).join('');
 }
 
