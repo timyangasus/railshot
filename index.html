@@ -397,7 +397,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .stn-display-btn .placeholder{color:var(--text3);font-weight:400;font-size:17px;}
 @keyframes stnHint{0%{background:#eef0f5}40%{background:#ddeeff}100%{background:#eef0f5}}
 .stn-hint{animation:stnHint 1.2s ease-in-out;}
-.swap-btn{width:42px;height:54px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-input);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);flex-shrink:0;}
+.swap-btn{width:42px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-input);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);flex-shrink:0;}
 .tt-date{background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:15px 10px;color:var(--text);font-family:inherit;font-size:18px;font-weight:700;width:100%;outline:none;overflow:hidden;-webkit-appearance:none;min-width:0;}
 .tt-date::-webkit-calendar-picker-indicator{display:none;}
 .tt-now-btn{display:flex;align-items:center;gap:5px;padding:0 14px;background:var(--accent-lt);border:1.5px solid var(--accent);border-radius:var(--radius-input);color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;}
@@ -555,20 +555,21 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <div class="screen active" id="tab-tt">
 <div class="sc">
   <div class="tt-form">
-    <div class="tt-row">
-      <div class="tt-f">
-        <div class="sec" style="margin:0 0 7px;">出發站</div>
-        <button class="stn-display-btn" onclick="openStnPicker('tt-from')">
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <span class="sec" style="margin:0;flex:1;text-align:left;">出發站</span>
+        <span style="width:42px;"></span>
+        <span class="sec" style="margin:0;flex:1;text-align:left;">到達站</span>
+      </div>
+      <div style="display:flex;align-items:stretch;gap:6px;">
+        <button class="stn-display-btn" onclick="openStnPicker('tt-from')" style="flex:1;">
           <span id="tt-from-lbl" class="placeholder">選擇車站</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5z" fill="#8a9db8"/></svg>
         </button>
-      </div>
-      <div class="swap-btn" onclick="swapTT()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" fill="#1a2540"/></svg>
-      </div>
-      <div class="tt-f">
-        <div class="sec" style="margin:0 0 7px;">到達站</div>
-        <button class="stn-display-btn" onclick="openStnPicker('tt-to')">
+        <button class="swap-btn" onclick="swapTT()" style="height:auto;align-self:stretch;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z" fill="#1a2540"/></svg>
+        </button>
+        <button class="stn-display-btn" onclick="openStnPicker('tt-to')" style="flex:1;">
           <span id="tt-to-lbl" class="placeholder">選擇車站</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 10l5 5 5-5z" fill="#8a9db8"/></svg>
         </button>
@@ -1176,9 +1177,9 @@ function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) 
       const arr2 = tr.stops[i2].arr || tr.stops[i2].dep;
       if (!dep2 || !arr2) continue; // 跳過時間不完整的站
       if (dep2 <= bufTime) continue;
-      // 排除等候超過 3 小時的班次（避免跨日誤配）
-      const waitMins = toMins(dep2) - bufMin;
-      if (waitMins > 120) continue; // 等候超過 2 小時不列出
+      // 排除等候超過 2 小時的班次
+      const waitMins = toMins(dep2) - toMins(bufTime);
+      if (waitMins > 120) continue;
       leg2Candidates.push({ tr, dep2, arr2 });
     }
     if (!leg2Candidates.length) continue;
