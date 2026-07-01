@@ -38,7 +38,7 @@
   --orange-lt:#fff3e0;
   /* Train type badge colors */
   --exp3:#3d4a5c;      /* 自強3000: 深灰藍 */
-  --exp3-lt:#3d4a5c;
+  --exp3-lt:#dce4f0;
   --puy:#c0392b;       /* 普悠瑪: 紅色 */
   --puy-lt:#fde8e8;
   --tze:#6b7280;       /* 太魯閣: 灰 */
@@ -125,7 +125,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .chip{padding:9px 15px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--border2);background:white;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;}
 .chip.on{background:var(--accent);color:white;border-color:var(--accent);}
 .chip.on[data-val="all"]{background:#1a2540;border-color:#1a2540;}
-.chip.on[data-val="exp3"]{background:#222;border-color:#222;}
+.chip.on[data-val="exp3"]{background:#3d4a5c;border-color:#3d4a5c;}
 .chip.on[data-val="puy"]{background:#c0392b;border-color:#c0392b;}
 .chip.on[data-val="exp"]{background:#FF8000;border-color:#FF8000;}
 .chip.on[data-val="moc"]{background:#D77C62;border-color:#D77C62;}
@@ -148,7 +148,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 
 /* ── BADGE COLORS ── */
 .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.1px;}
-.b-exp3{background:#3d4a5c;color:white;}
+.b-exp3{background:#dce4f0;color:#3d4a5c;}
 .b-puy{background:var(--puy-lt);color:var(--puy);}
 .b-tze{background:var(--tze-lt);color:var(--tze);}
 .b-exp{background:var(--exp-lt);color:var(--exp);}
@@ -3253,7 +3253,7 @@ function renderTTList(list, isMock) {
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
           <div class="tt-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:20px;">→</span> ${t.arr}</div>
           ${isFastest
-            ? `<span style="font-size:14px;font-weight:700;color:white;background:#E8A000;padding:2px 10px;border-radius:20px;letter-spacing:0;">${t.dur}</span>`
+            ? `<span style="font-size:12px;font-weight:700;color:white;background:#E8A000;padding:2px 8px;border-radius:20px;letter-spacing:0;">${t.dur}</span>`
             : `<span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur}</span>`
           }
         </div>
