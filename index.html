@@ -2970,7 +2970,7 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
 
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
     document.getElementById('det-body').innerHTML = `
-      <div style="background:${getDetailBannerGradient(train.type)};margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
+      <div style="background:${getDetailBannerGradient(train.type)};margin:-20px -16px 0;padding:20px 16px 24px;position:relative;">
         <div style="position:absolute;top:16px;right:16px;">
           <span style="background:rgba(255,255,255,0.18);color:white;font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${displayDir==='up'?'↑ 上行':'↓ 下行'}</span>
         </div>
@@ -3545,7 +3545,7 @@ async function openTTDetailObj(t){
     const dirLabel = tDir === 'up' ? '↑ 上行' : '↓ 下行';
 
     document.getElementById('det-body').innerHTML=`
-      <div style="background:${getDetailBannerGradient(t.type)};margin:-20px -20px 0;padding:20px 20px 24px;position:relative;">
+      <div style="background:${getDetailBannerGradient(t.type)};margin:-20px -16px 0;padding:20px 16px 24px;position:relative;">
         <div style="position:absolute;top:16px;right:16px;">
           <span style="background:rgba(255,255,255,0.18);color:white;font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${dirLabel}</span>
         </div>
