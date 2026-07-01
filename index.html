@@ -111,6 +111,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 #fav-stn-panel{flex:1;overflow:hidden;}
 #fav-stn-panel.visible{display:flex!important;flex-direction:column;}
 .sc{padding:14px 14px 20px;}
+#train-no-input::placeholder{font-size:15px;font-weight:400;color:var(--text3);letter-spacing:0;}
 
 /* ── CHIPS ── */
 .chips-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-right:-14px;padding-right:14px;}
@@ -530,7 +531,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
     <div style="flex:1;position:relative;">
       <input type="text" id="train-no-input" placeholder="輸入車次" inputmode="numeric" pattern="[0-9]*"
-        style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);height:52px;padding:0 40px 0 14px;font-size:20px;font-weight:400;color:var(--text);font-family:inherit;outline:none;letter-spacing:2px;"
+        style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);height:52px;padding:0 40px 0 14px;font-size:24px;font-weight:700;color:var(--text);font-family:inherit;outline:none;letter-spacing:2px;"
         oninput="document.getElementById('train-no-clear').style.display=this.value?'flex':'none'"
         onkeydown="if(event.key==='Enter') searchTrainNo()"/>
       <button id="train-no-clear" onclick="document.getElementById('train-no-input').value='';this.style.display='none';document.getElementById('train-no-input').focus();"
@@ -3397,7 +3398,7 @@ function renderTTFavs(){
     const delKey = JSON.stringify({no:t.no,qFrom:t.queryFrom||'',qTo:t.queryTo||''}).replace(/"/g,'&quot;');
     return `<div class="tt-fav-card" style="position:relative;" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')}">
       <div class="tt-fav-body">
-        ${hasQuery ? `<div class="tt-fav-query">${t.queryFrom} → ${t.queryTo}</div>` : ''}
+                        ${hasQuery ? '<div class=\"tt-fav-query\">' + t.queryFrom + ' → ' + t.queryTo + (isInAnyTrip(t.no) ? '<span style=\"display:inline-flex;vertical-align:middle;margin-left:3px;\"><svg xmlns=\"http://www.w3.org/2000/svg\" height=\"14px\" viewBox=\"0 -960 960 960\" width=\"14px\" fill=\"#258EFF\"><path d=\"m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z\"/></svg></span>' : '') + '</div>' : ''}
         <div class="tt-fav-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:15px;">→</span> ${t.arr}
           <span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:6px;">${t.dur}</span>
         </div>
@@ -3408,13 +3409,12 @@ function renderTTFavs(){
         <div class="tt-fav-route">${t.from} → ${t.to}</div>
         ${t.delay>0?`<div style="font-size:12px;font-weight:600;color:var(--orange);margin-top:4px;">誤點 +${t.delay}分</div>`:''}
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;flex-shrink:0;align-self:stretch;" onclick="event.stopPropagation()">
-        ${isInAnyTrip(t.no)?`<span title="已加入行程" style="width:28px;height:24px;display:flex;align-items:center;justify-content:center;"><svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 -960 960 960" width="18px" fill="var(--accent)"><path d="M200-120v-640q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v640L480-240 200-120Z"/></svg></span>`:`<span style="width:28px;height:24px;"></span>`}
+      <div style="display:flex;align-items:center;flex-shrink:0;" onclick="event.stopPropagation()">
         <button class="tt-fav-del" onclick="removeTTFav('${t.no}','${t.queryFrom||''}','${t.queryTo||''}',event)" aria-label="移除收藏">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="#d43030"/></svg>
         </button>
       </div>
-    </div>    </div>`;
+    </div>`;
   }).join('');
 }
 
