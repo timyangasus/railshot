@@ -1366,28 +1366,16 @@ function switchTab(name,el){
 }
 function ttChipToggle(el, val){
   const chips = document.querySelectorAll('#tt-type-chips .chip');
-  const allChip = document.querySelector('#tt-type-chips .chip[data-val="all"]');
-
-  if(val === 'all'){
-    // 點「全部」→ 清除其他，只選全部
-    chips.forEach(c => c.classList.remove('on'));
-    el.classList.add('on');
-  } else {
-    // 點特定車種
-    allChip.classList.remove('on'); // 取消「全部」
-    el.classList.toggle('on');
-    // 如果全部都沒選，回到「全部」
-    const anyOn = Array.from(chips).some(c => c.classList.contains('on') && c.dataset.val !== 'all');
-    if(!anyOn) allChip.classList.add('on');
-  }
+  // 單選：點哪個選哪個，其他全部取消
+  chips.forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
   autoSearchTT();
 }
 
 function getTTSelectedTypes(){
-  const allChip = document.querySelector('#tt-type-chips .chip[data-val="all"]');
-  if(allChip.classList.contains('on')) return 'all';
-  return Array.from(document.querySelectorAll('#tt-type-chips .chip.on'))
-    .map(c => c.dataset.val);
+  const onChip = document.querySelector('#tt-type-chips .chip.on');
+  if(!onChip || onChip.dataset.val === 'all') return 'all';
+  return [onChip.dataset.val];
 }
 
 function shootChipToggle(el, val){
