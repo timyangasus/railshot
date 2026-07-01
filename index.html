@@ -2856,16 +2856,12 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
         <div style="position:absolute;top:16px;right:16px;">
           <span style="background:rgba(255,255,255,0.18);color:white;font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${displayDir==='up'?'↑ 上行':'↓ 下行'}</span>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:center;">
-          <div style="display:inline-block;text-align:left;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-              <span style="font-size:30px;font-weight:700;color:white;letter-spacing:-1px;">${trainNo}</span>
-              <span style="background:${train.type==='tze'?'#EC802D':'rgba(255,255,255,0.15)'};color:white;font-size:13px;padding:5px 14px;border-radius:20px;font-weight:500;">${ti.label}</span>
-            </div>
-            <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:6px;">${train.from} → ${train.to}</div>
-            ${atStation ? `<div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:4px;">${atStation}站</div>` : ''}
-          </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="font-size:30px;font-weight:700;color:white;letter-spacing:-1px;">${trainNo}</span>
+          <span style="background:${train.type==='tze'?'#EC802D':'rgba(255,255,255,0.15)'};color:white;font-size:13px;padding:5px 14px;border-radius:20px;font-weight:500;">${ti.label}</span>
         </div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:6px;">${train.from} → ${train.to}</div>
+        ${atStation ? `<div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:4px;">${atStation}站</div>` : ''}
       </div>
       <div style="margin-top:16px;" class="sec">停靠站時刻</div>
       <div class="stop-list">
