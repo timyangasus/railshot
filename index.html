@@ -37,20 +37,20 @@
   --orange:#c06010;
   --orange-lt:#fff3e0;
   /* Train type badge colors */
-  --exp3:#0077cc;      /* 自強3000: 藍色 */
-  --exp3-lt:#deeeff;
-  --puy:#cc2020;       /* 普悠瑪: 紅色 */
+  --exp3:#222222;      /* 自強3000: 黑 */
+  --exp3-lt:#e8e8e8;
+  --puy:#c0392b;       /* 普悠瑪: 紅色 */
   --puy-lt:#fde8e8;
-  --tze:#d44a00;       /* 太魯閣: 橘色 */
-  --tze-lt:#fff0e8;
-  --exp:#8a6400;       /* 自強: 深黃 */
-  --exp-lt:#fff8d6;
-  --moc:#c05800;       /* 莒光: 淺橘 */
-  --moc-lt:#fff0e0;
-  --localx:#5a8a00;    /* 區間快: 黃綠 */
+  --tze:#6b7280;       /* 太魯閣: 灰 */
+  --tze-lt:#f0f0f2;
+  --exp:#FF8000;       /* 自強: 橘 */
+  --exp-lt:#fff0dd;
+  --moc:#D77C62;       /* 莒光: 磚橘 */
+  --moc-lt:#faeee9;
+  --localx:#6CB31F;    /* 區間快: 綠 */
   --localx-lt:#edf7d0;
-  --local:#1a9e5c;     /* 區間: 綠色 */
-  --local-lt:#e8f8ef;
+  --local:#3350CD;     /* 區間: 藍 */
+  --local-lt:#e8edff;
   --shadow:0 1px 4px rgba(26,64,128,0.08);
   --shadow-md:0 2px 12px rgba(26,64,128,0.12);
   --tab-h:80px;
@@ -4093,7 +4093,7 @@ function renderTripList(){
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0;margin-left:12px;">
           <button onclick="openEditTripSheet('${trip.id}',event)" style="width:32px;height:32px;border-radius:50%;background:none;border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="var(--text2)"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="var(--text3)"/></svg>
           </button>
           <button onclick="deleteTrip('${trip.id}',event)" style="width:32px;height:32px;border-radius:50%;background:none;border:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="var(--text3)"/></svg>
