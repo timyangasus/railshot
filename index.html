@@ -2973,7 +2973,6 @@ function renderTrainList(list) {
 async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2TimeOverride) {
   const isBetween = !!s2Station;
   const detPage = document.getElementById('detail-page');
-  detailReturnCallback = null;
   document.getElementById('det-hdr-title').textContent = '載入中...';
   document.getElementById('det-body').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);"><svg width="36" height="36" viewBox="0 0 40 40" style="animation:spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="16" fill="none" stroke="#e0e0e0" stroke-width="4"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="60 44" stroke-linecap="round"/></svg></div>`;
   detPage.classList.add('open');
@@ -3560,6 +3559,10 @@ function renderTTList(list, isMock) {
 async function openTTDetailObj(t){
   if(typeof t==='string') t=JSON.parse(t);
   const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
+  // 若不是從 detail-page 內部呼叫（行程內點卡片），清掉 callback
+  if(!document.getElementById('detail-page').classList.contains('open')){
+    detailReturnCallback = null;
+  }
   document.getElementById('detail-page').classList.add('open');
 
   // 查詢起終站：優先用收藏資料裡的 queryFrom/queryTo，再從頁面讀取
