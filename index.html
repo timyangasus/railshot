@@ -1110,25 +1110,22 @@ function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) 
   const TRANSFER_BUFFER = 10; // 分鐘
   const bigSet = new Set(BIG_STATIONS);
 
-  // 找中轉站：從有停 fromName 的班車停靠站中，
-  // 找「往 toName 方向」最近的大站
+  // 找中轉站：雙向搜尋
+  // 方向A（小站→大站）：從 fromName 往後找大站，且該大站有班車到 toName
+  // 方向B（大站→小站）：從 toName 往前找大站，且該大站有班車從 fromName 出發
   let transferStn = null;
   let minStops = Infinity;
 
+  // 方向A：出發站往後找
   for (const tr of trains) {
     const i1 = tr.stops.findIndex(s => s.stn===fromName || s.stn===alt(fromName));
     const i2 = tr.stops.findIndex(s => s.stn===toName   || s.stn===alt(toName));
     if (i1 < 0) continue;
-    // 如果這班有直達，不需轉乘
-    if (i2 > i1) return null;
-
-    // 往 toName 方向走（如果 i2<0，則找往後的大站；否則不應出現直達）
-    // 從 fromName 往後，找到第一個大站
+    if (i2 > i1) return null; // 有直達
     for (let i = i1 + 1; i < tr.stops.length; i++) {
       const stn = tr.stops[i].stn;
       if (bigSet.has(stn) || bigSet.has(alt(stn))) {
         const normStn = bigSet.has(stn) ? stn : alt(stn);
-        // 確認這個大站有班車可以到 toName
         const leg2ok = trains.some(tr2 => {
           const ib2 = tr2.stops.findIndex(s => s.stn===normStn || s.stn===alt(normStn));
           const i22 = tr2.stops.findIndex(s => s.stn===toName || s.stn===alt(toName));
@@ -1138,7 +1135,33 @@ function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) 
           minStops = i - i1;
           transferStn = normStn;
         }
-        break; // 只取每班車的第一個大站
+        break;
+      }
+    }
+  }
+
+  // 方向B：從目的地往前找大站（處理大站→小站的情況）
+  if (!transferStn) {
+    for (const tr of trains) {
+      const i2 = tr.stops.findIndex(s => s.stn===toName || s.stn===alt(toName));
+      if (i2 < 0) continue;
+      // 往前找大站
+      for (let i = i2 - 1; i >= 0; i--) {
+        const stn = tr.stops[i].stn;
+        if (bigSet.has(stn) || bigSet.has(alt(stn))) {
+          const normStn = bigSet.has(stn) ? stn : alt(stn);
+          // 確認 fromName 有班車到這個大站
+          const leg1ok = trains.some(tr2 => {
+            const if2 = tr2.stops.findIndex(s => s.stn===fromName || s.stn===alt(fromName));
+            const ib2 = tr2.stops.findIndex(s => s.stn===normStn || s.stn===alt(normStn));
+            return if2 >= 0 && ib2 > if2;
+          });
+          if (leg1ok && i2 - i < minStops) {
+            minStops = i2 - i;
+            transferStn = normStn;
+          }
+          break;
+        }
       }
     }
   }
