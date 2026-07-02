@@ -4629,24 +4629,19 @@ function openTripDetail(id){
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="var(--text2)"/></svg>
         </button>
         <div style="padding-right:40px;">
-          <!-- 起站 → 迄站 大字粗體 -->
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <span style="font-size:17px;font-weight:800;color:var(--text);">${(t.queryFrom||t.from)}</span>
-            <span style="font-size:13px;color:var(--text3);">—</span>
-            <span style="font-size:17px;font-weight:800;color:var(--text);">${(t.queryTo||t.to)}</span>
-          </div>
+          <!-- 查詢起訖站 -->
+          ${(t.queryFrom || t.queryTo) ? `<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>` : ''}
           <!-- 時間 行駛時間 -->
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-            <span style="font-size:22px;font-weight:700;color:#265299;letter-spacing:-0.5px;">${t.dep}</span>
-            <span style="font-size:14px;color:var(--text3);">—</span>
-            <span style="font-size:22px;font-weight:700;color:#265299;letter-spacing:-0.5px;">${t.arr}</span>
-            <span style="font-size:13px;font-weight:500;color:var(--text3);margin-left:2px;">${t.dur||''}</span>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
+            <div class="tt-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:20px;">→</span> ${t.arr}</div>
+            <span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur||''}</span>
           </div>
           <!-- 車種 車號 -->
-          <div style="display:flex;align-items:center;gap:8px;">
+          <div class="tt-mid" style="margin-bottom:3px;">
             <span class="badge ${ti.cls}">${ti.label}</span>
-            <span style="font-size:14px;font-weight:600;color:var(--text2);">${t.no}</span>
+            <span class="tt-no">${t.no}</span>
           </div>
+          <div class="tt-route">${t.from} → ${t.to}</div>
         </div>
       </div>`;
     }).join('');
