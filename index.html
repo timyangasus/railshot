@@ -3067,14 +3067,17 @@ function openDetail(id) {
         <span class="dir-tag ${t.dir}">${t.dir === 'up' ? '↑ 上行' : '↓ 下行'}</span>
       </div>
       <div class="det-no">${t.no}</div>
-      <div class="det-route">${t.from} → ${t.to}</div>
+      <div class="det-route">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
     </div>
     <div class="det-time">${t.passTime}</div>
     <div class="det-lbl">預估通過 ${loc}</div>
     <div class="card" style="margin-bottom:16px;">
       <div class="info-row"><span class="ik">誤點</span><span class="iv">${t.delay > 0 ? '+' + t.delay + ' 分' : '準點'}</span></div>
       <div class="info-row"><span class="ik">方向</span><span class="iv">${t.dir === 'up' ? '上行（往北）' : '下行（往南）'}</span></div>
-      <div class="info-row"><span class="ik">起終站</span><span class="iv">${t.from} → ${t.to}</span></div>
+      ${(t.queryFrom && t.queryFrom !== t.from) || (t.queryTo && t.queryTo !== t.to) ? `
+      <div class="info-row"><span class="ik">查詢區間</span><span class="iv">${t.queryFrom||t.from} → ${t.queryTo||t.to}</span></div>
+      <div class="info-row"><span class="ik">全程起終</span><span class="iv">${t.from} → ${t.to}</span></div>` : `
+      <div class="info-row"><span class="ik">起終站</span><span class="iv">${t.from} → ${t.to}</span></div>`}
     </div>
     <div class="sec">停靠站時刻</div>
     <div class="stop-list">
@@ -3536,7 +3539,7 @@ function renderTTList(list, isMock) {
         <span style="font-size:13px;font-weight:600;color:var(--text);">${t.no}</span>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;">
-        <div class="tt-route">${t.from} → ${t.to}</div>
+        <div class="tt-route">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
         ${t.delay>0
           ? `<div style="font-size:12px;font-weight:600;color:var(--orange);">誤點 +${t.delay}分</div>`
           : `<div style="font-size:12px;color:var(--green);font-weight:500;">✓ 準點</div>`}
@@ -3593,7 +3596,7 @@ async function openTTDetailObj(t){
           <span style="font-size:30px;font-weight:700;color:white;letter-spacing:-1px;">${t.no}</span>
           <span style="background:${t.type==='tze'?'#EC802D':'rgba(255,255,255,0.15)'};color:white;font-size:13px;padding:3px 10px;border-radius:20px;font-weight:500;">${ti.label}</span>
         </div>
-        <div style="font-size:15px;color:rgba(255,255,255,0.65);margin-bottom:12px;">${t.from} → ${t.to}</div>
+        <div style="font-size:15px;color:rgba(255,255,255,0.65);margin-bottom:12px;">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
         <div style="display:flex;align-items:baseline;gap:8px;">
           <span style="font-size:34px;font-weight:700;color:white;letter-spacing:-1.5px;line-height:1;">${t.dep} → ${t.arr}</span>
           ${t.delay > 0 ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:white;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:20px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2L1 21h22L12 2zm-1 7h2v6h-2V9zm0 8h2v2h-2v-2z"/></svg>+${t.delay}分</span>` : ''}
@@ -3675,7 +3678,7 @@ function renderTTFavs(){
           <span class="badge ${ti.cls}">${ti.label}</span>
           <span style="font-size:13px;font-weight:600;color:var(--text);">${t.no}</span>
         </div>
-        <div class="tt-fav-route">${t.from} → ${t.to}</div>
+        <div class="tt-fav-route">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
         ${t.delay>0?`<div style="font-size:12px;font-weight:600;color:var(--orange);margin-top:4px;">誤點 +${t.delay}分</div>`:''}
       </div>
       <div style="display:flex;align-items:center;flex-shrink:0;" onclick="event.stopPropagation()">
@@ -3702,7 +3705,7 @@ function openTTDetail(no){
     <div style="margin-bottom:8px;">
       <span class="badge ${ti.cls}" style="font-size:12px;padding:4px 11px;margin-bottom:10px;display:inline-block;">${ti.label}</span>
       <div class="det-no">${no}</div>
-      <div class="det-route">${t.from} → ${t.to}</div>
+      <div class="det-route">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
     </div>
     <div class="det-time">${t.dep}</div>
     <div class="det-lbl">出發 · 抵達 ${t.arr}</div>
@@ -4450,7 +4453,7 @@ function renderTripTTSelectList(selectedNos){
           <span class="badge ${ti.cls}" style="font-size:11px;">${ti.label}</span>
           <span style="font-size:14px;font-weight:600;color:var(--text);">${t.no}</span>
         </div>
-        <div style="font-size:13px;color:var(--text2);">${t.dep} → ${t.arr} · ${t.from}→${t.to}</div>
+        <div style="font-size:13px;color:var(--text2);">${t.dep} → ${t.arr} · ${(t.queryFrom||t.from)}→${(t.queryTo||t.to)}</div>
       </div>
     </div>`;
   }
@@ -4634,7 +4637,7 @@ function openTripDetail(id){
             <span class="badge ${ti.cls}">${ti.label}</span>
             <span class="tt-no">${t.no}</span>
           </div>
-          <div class="tt-route">${t.from} → ${t.to}</div>
+          <div class="tt-route">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
         </div>
       </div>`;
     }).join('');
