@@ -1382,6 +1382,7 @@ function switchTab(name,el){
     const tl = document.getElementById('tt-to-lbl');
     const hasStation = (fl && !fl.classList.contains('placeholder')) || (tl && !tl.classList.contains('placeholder'));
     setResetBtnActive('tt-reset-btn', hasStation);
+    syncTTDateToNow();
     if(hasStation){ isLocalRefresh=true; autoSearchTT(); isLocalRefresh=false; }
   }
   if(name==='single'){
