@@ -1107,7 +1107,13 @@ function findTransferStation(fromName, toName, trains) {
 // 轉乘查詢：回傳前5組組合
 function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) {
   const alt = n => n.replace(/台/g,'臺').replace(/臺/g,'台');
-  const TRANSFER_BUFFER = 10; // 分鐘
+  // 各站轉乘緩衝時間（分鐘）
+  const TRANSFER_BUFFER_MAP = {
+    '臺北': 15, '板橋': 12, '高雄': 15, '新左營': 12, '左營': 12,
+    '臺中': 12, '花蓮': 12, '台北': 15, '台中': 12, '台東': 12, '臺東': 12,
+    '嘉義': 10, '臺南': 10, '台南': 10, '新竹': 10, '桃園': 10,
+  };
+  const getBuffer = stn => TRANSFER_BUFFER_MAP[stn] || 8; // 預設 8 分鐘（台鐵標準）
   const bigSet = new Set(BIG_STATIONS);
 
   // 找中轉站：雙向搜尋
@@ -1186,7 +1192,7 @@ function searchTransfer(fromName, toName, trains, filterTime, isToday, liveMap) 
     if (results.length >= 3) break;
     // 轉乘站抵達時間 + buffer
     const [h, m] = l1.arr.split(':').map(Number);
-    const bufMin = h*60 + m + TRANSFER_BUFFER;
+    const bufMin = h*60 + m + getBuffer(transferStn);
     const bufTime = String(Math.floor(bufMin/60)).padStart(2,'0') + ':' + String(bufMin%60).padStart(2,'0');
 
     // 找第二段：收集所有可搭的班次，取最快抵達的
