@@ -2973,6 +2973,7 @@ function renderTrainList(list) {
 async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2TimeOverride) {
   const isBetween = !!s2Station;
   const detPage = document.getElementById('detail-page');
+  detailNavStack = [];
   document.getElementById('det-hdr-title').textContent = '載入中...';
   document.getElementById('det-body').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);"><svg width="36" height="36" viewBox="0 0 40 40" style="animation:spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="16" fill="none" stroke="#e0e0e0" stroke-width="4"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="60 44" stroke-linecap="round"/></svg></div>`;
   detPage.classList.add('open');
@@ -3085,10 +3086,17 @@ function openDetail(id) {
     </div>`;
   document.getElementById('detail-page').classList.add('open');
 }
-let detailReturnCallback = null;
+let detailNavStack = []; // 每層 push 一個 callback，返回時 pop
+function openDetailPage() {
+  document.getElementById('detail-page').classList.add('open');
+}
 function closeDetail() {
   document.getElementById('detail-page').classList.remove('open');
-  if(detailReturnCallback){ detailReturnCallback(); detailReturnCallback = null; }
+  const cb = detailNavStack.pop();
+  if(cb) cb();
+}
+function pushDetailNav(cb) {
+  detailNavStack.push(cb);
 }
 
 // ── 提醒（by trainNo + station + time）───────────────
@@ -3556,13 +3564,20 @@ function renderTTList(list, isMock) {
   }).join('');
 }
 
+function openTTDetailFromTrip(t, tripId){
+  if(typeof t==='string') t=JSON.parse(t);
+  detailNavStack = [() => openTripDetail(tripId)];
+  _openTTDetailObj(t);
+}
+
 async function openTTDetailObj(t){
   if(typeof t==='string') t=JSON.parse(t);
+  detailNavStack = [];
+  _openTTDetailObj(t);
+}
+
+async function _openTTDetailObj(t){
   const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
-  // 若不是從 detail-page 內部呼叫（行程內點卡片），清掉 callback
-  if(!document.getElementById('detail-page').classList.contains('open')){
-    detailReturnCallback = null;
-  }
   document.getElementById('detail-page').classList.add('open');
 
   // 查詢起終站：優先用收藏資料裡的 queryFrom/queryTo，再從頁面讀取
@@ -4636,8 +4651,7 @@ function openTripDetail(id){
   } else {
     body.innerHTML = header + list.map(t => {
       const ti = TYPE_INFO[t.type]||{label:'列車',cls:'b-exp'};
-      return `<div class="tt-card" style="position:relative;" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
-        <button onclick="removeTripTrain('${id}','${t.no}',event)" style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      return `<div class="tt-card" style="position:relative;" onclick="openTTDetailFromTrip(${JSON.stringify(t).replace(/"/g,'&quot;')},'${id}')">\n        <button onclick="removeTripTrain('${id}','${t.no}',event)" style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="var(--text2)"/></svg>
         </button>
         <div style="padding-right:40px;">
@@ -4654,8 +4668,8 @@ function openTripDetail(id){
       </div>`;
     }).join('');
   }
-  detailReturnCallback = () => openTripDetail(id);
-  detPage.classList.add('open');
+  detailNavStack = [() => openTripDetail(id)];
+  document.getElementById('detail-page').classList.add('open');
 }
 
 function removeTripTrain(tripId, trainNo, event){
