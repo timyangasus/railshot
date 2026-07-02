@@ -4625,23 +4625,25 @@ function openTripDetail(id){
     .filter(Boolean)
     .sort((a,b) => (a.dep||'').localeCompare(b.dep||''));
 
-  const detPage = document.getElementById('detail-page');
-  document.getElementById('det-hdr-title').textContent = trip.name;
-  const body = document.getElementById('det-body');
+  const panel = document.getElementById('fav-trip-panel');
 
-  const header = `<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:16px 0 12px;">
-    <div style="flex:1;min-width:0;">
-      <div style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:${trip.note?'4px':'0'}">${trip.name}</div>
-      ${trip.note ? `<div style="font-size:14px;color:var(--text3);">${trip.note}</div>` : ''}
-    </div>
-    <button onclick="openEditTripSheet('${id}',null)" style="width:36px;height:36px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text3);">
-      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M440-280h80v-160h160v-80H520v-160h-80v160H280v80h160v160Zm40 200q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
-    </button>
-  </div>
-  <div class="sec" style="margin-bottom:8px;">時刻表</div>`;
+  const header = `
+    <div style="display:flex;align-items:center;gap:8px;padding:0 0 14px;border-bottom:1px solid var(--border);margin-bottom:14px;">
+      <button onclick="renderTripList()" style="width:32px;height:32px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor"/></svg>
+      </button>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:18px;font-weight:700;color:var(--text);">${trip.name}</div>
+        ${trip.note ? `<div style="font-size:13px;color:var(--text3);">${trip.note}</div>` : ''}
+      </div>
+      <button onclick="openEditTripSheet('${id}',null)" style="width:36px;height:36px;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M440-280h80v-160h160v-80H520v-160h-80v160H280v80h160v160Zm40 200q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+      </button>
+    </div>`;
 
+  let body_html = '';
   if(!list.length){
-    body.innerHTML = header + `<div style="display:flex;flex-direction:column;align-items:center;padding:32px 0;gap:14px;">
+    body_html = `<div style="display:flex;flex-direction:column;align-items:center;padding:32px 0;gap:14px;">
       <div style="font-size:14px;color:var(--text3);">此行程尚無時刻</div>
       <button onclick="openEditTripSheet('${id}',null)" style="display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:var(--accent);color:white;border:none;border-radius:20px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="white"/></svg>
@@ -4649,13 +4651,14 @@ function openTripDetail(id){
       </button>
     </div>`;
   } else {
-    body.innerHTML = header + list.map(t => {
+    body_html = list.map(t => {
       const ti = TYPE_INFO[t.type]||{label:'列車',cls:'b-exp'};
-      return `<div class="tt-card" style="position:relative;" onclick="openTTDetailFromTrip(${JSON.stringify(t).replace(/"/g,'&quot;')},'${id}')">\n        <button onclick="removeTripTrain('${id}','${t.no}',event)" style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      return `<div class="tt-card" style="position:relative;" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+        <button onclick="removeTripTrain('${id}','${t.no}',event)" style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="var(--text2)"/></svg>
         </button>
         <div style="padding-right:40px;">
-          ${(t.queryFrom || t.queryTo) ? `<div style="font-size:17px;font-weight:700;color:#265299!important;margin-bottom:6px;">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>` : ''}
+          ${(t.queryFrom || t.queryTo) ? `<div style="font-size:17px;font-weight:700;color:#265299;margin-bottom:6px;">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>` : ''}
           <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
             <div class="tt-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:20px;">→</span> ${t.arr}</div>
             <span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur||''}</span>
@@ -4668,8 +4671,9 @@ function openTripDetail(id){
       </div>`;
     }).join('');
   }
-  detailNavStack = [() => openTripDetail(id)];
-  document.getElementById('detail-page').classList.add('open');
+
+  panel.innerHTML = header + body_html;
+  panel.scrollTop = 0;
 }
 
 function removeTripTrain(tripId, trainNo, event){
@@ -4678,9 +4682,9 @@ function removeTripTrain(tripId, trainNo, event){
   if(!trip) return;
   trip.trainNos = (trip.trainNos||[]).filter(no => no !== trainNo);
   saveTrips();
-  renderTTFavs();
-  openTripDetail(tripId); // 重新渲染
+  openTripDetail(tripId);
 }
+
 
 let _toastTimer;
 function showToast(msg){
