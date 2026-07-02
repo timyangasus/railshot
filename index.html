@@ -3152,6 +3152,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
   initTTTimeToNow();
   updateAlldayBtn();
 });
+
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible'){
+    syncTTDateToNow();
+  }
+});
 function onNowToggle(checked){
   // legacy: kept for compatibility
   if(checked) initTTTimeToNow();
