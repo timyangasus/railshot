@@ -4426,9 +4426,19 @@ function renderTripTTSelectList(selectedNos){
     el.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:12px 0;">無收藏時刻</div>`;
     return;
   }
-  // 依出發時間排序
+
+  // 找出所有已加入過任何行程的車次號
+  const usedNos = new Set();
+  (trips||[]).forEach(trip => {
+    (trip.trainNos||[]).forEach(no => usedNos.add(no));
+  });
+
+  // 依出發時間排序後分組
   const sorted = [...favs].sort((a,b) => (a.dep||'').localeCompare(b.dep||''));
-  el.innerHTML = sorted.map(t => {
+  const unused = sorted.filter(t => !usedNos.has(t.no));
+  const used   = sorted.filter(t =>  usedNos.has(t.no));
+
+  function renderRow(t){
     const ti = TYPE_INFO[t.type] || {label:'列車', cls:'b-exp'};
     const checked = selectedNos.includes(t.no);
     return `<div onclick="toggleTripTTSelect('${t.no}',this)" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;">
@@ -4443,7 +4453,20 @@ function renderTripTTSelectList(selectedNos){
         <div style="font-size:13px;color:var(--text2);">${t.dep} → ${t.arr} · ${t.from}→${t.to}</div>
       </div>
     </div>`;
-  }).join('');
+  }
+
+  let html = '';
+
+  if(unused.length){
+    html += unused.map(renderRow).join('');
+  }
+
+  if(used.length){
+    html += `<div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:0.5px;padding:14px 0 6px;border-top:${unused.length?'1.5px solid var(--border2)':'none'};">已加入過行程</div>`;
+    html += used.map(renderRow).join('');
+  }
+
+  el.innerHTML = html;
 }
 
 function toggleTripTTSelect(no, row){
