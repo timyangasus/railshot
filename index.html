@@ -395,8 +395,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .tt-f{flex:1;min-width:0;}
 .stn-display-btn{width:100%;padding:15px 14px;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);text-align:left;font-size:21px;font-weight:700;color:var(--text);cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;overflow:hidden;}
 .stn-display-btn .placeholder{color:var(--text3);font-weight:400;font-size:17px;}
-@keyframes stnHint{0%{background:#eef0f5}40%{background:#ddeeff}100%{background:#eef0f5}}
-.stn-hint{animation:stnHint 1.2s ease-in-out;}
+
 .swap-btn{width:42px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-input);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);flex-shrink:0;}
 .tt-date{background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:15px 10px;color:var(--text);font-family:inherit;font-size:18px;font-weight:700;width:100%;outline:none;overflow:hidden;-webkit-appearance:none;min-width:0;}
 .tt-date::-webkit-calendar-picker-indicator{display:none;}
@@ -1735,9 +1734,6 @@ function spSelectStation(s){
     if(col) col.scrollTop = 0;
     // 立即把出發站回傳給 callback
     if(spState.callerCb) spState.callerCb(spState.from, spState.to);
-    // 抵達欄輕微 highlight 提示
-    const toBtn = document.querySelector('button[onclick="openStnPicker(\'tt-to\')"]');
-    if(toBtn){ toBtn.classList.remove('stn-hint'); void toBtn.offsetWidth; toBtn.classList.add('stn-hint'); }
   } else {
     // 選完抵達站 → 只更新畫面，等使用者按確定
     spRenderHeader();
