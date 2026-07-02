@@ -4490,9 +4490,45 @@ function deleteTrip(id, event){
   if(event) event.stopPropagation();
   const trip = trips.find(t => t.id === id);
   if(!trip) return;
-  if(!confirm(`刪除「${trip.name}」行程？`)) return;
+  const trainNos = trip.trainNos || [];
+  // 預先計算會被刪除的收藏數（不在其他行程中的）
+  const otherTrips = trips.filter(t => t.id !== id);
+  const toDelete = trainNos.filter(no => !otherTrips.some(t => (t.trainNos||[]).includes(no)));
+  const toKeep = trainNos.filter(no => otherTrips.some(t => (t.trainNos||[]).includes(no)));
+
+  let msg = `刪除「${trip.name}」行程？`;
+  if (toDelete.length > 0 && toKeep.length === 0) {
+    msg += `\n將一併從收藏刪除 ${toDelete.length} 則時刻表。`;
+  } else if (toDelete.length > 0 && toKeep.length > 0) {
+    msg += `\n將從收藏刪除 ${toDelete.length} 則時刻表，保留 ${toKeep.length} 則共用時刻表。`;
+  }
+  if(!confirm(msg)) return;
+  // 刪除此行程
   trips = trips.filter(t => t.id !== id);
   saveTrips();
+
+  // 檢查每個班次是否還在其他行程中
+  let deleted = 0, kept = 0;
+  for (const no of trainNos) {
+    const usedElsewhere = trips.some(t => (t.trainNos||[]).includes(no));
+    if (usedElsewhere) {
+      kept++;
+    } else {
+      // 從收藏移除
+      const before = ttFavs.length;
+      ttFavs = ttFavs.filter(f => f.no !== no);
+      if (ttFavs.length < before) deleted++;
+    }
+  }
+  saveTTFavs();
+
+  // Toast 提示
+  if (deleted > 0 && kept > 0) {
+    showToast(`刪除 ${deleted} 則時刻表，保留 ${kept} 則共用`);
+  } else if (deleted > 0) {
+    showToast(`已刪除 ${deleted} 則時刻表`);
+  }
+
   renderTTFavs();
   renderTripList();
 }
