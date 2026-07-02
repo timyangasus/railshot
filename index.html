@@ -785,6 +785,17 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 </div><!-- /page-container -->
 
 <!-- TAB BAR -->
+<div class="alert-ov" id="confirm-ov">
+  <div class="alert-box" style="max-width:320px;">
+    <div id="confirm-title" style="font-size:17px;font-weight:700;color:#1a2540;margin-bottom:8px;text-align:center;"></div>
+    <div id="confirm-msg" style="font-size:14px;font-weight:400;color:#6b7280;line-height:1.5;text-align:center;margin-bottom:22px;"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button id="confirm-ok-btn" style="width:100%;padding:14px;background:#d43030;color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;"></button>
+      <button onclick="closeConfirm()" style="width:100%;padding:14px;background:#f2f4f7;color:#4a6080;border:none;border-radius:12px;font-size:16px;font-weight:500;font-family:inherit;cursor:pointer;">取消</button>
+    </div>
+  </div>
+</div>
+
 <div class="tab-bar">
   <div class="tab-item active" onclick="switchTab('tt',this)" id="tbtn-tt">
     <svg class="tab-icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="m612-292 56-56-148-148v-184h-80v216l172 172ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg>
@@ -3750,6 +3761,18 @@ function showNextAlert(){
     return;
   }
 }
+function showConfirm(title, msg, okLabel, onOk){
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  const btn = document.getElementById('confirm-ok-btn');
+  btn.textContent = okLabel || '確認';
+  btn.onclick = () => { closeConfirm(); onOk(); };
+  document.getElementById('confirm-ov').classList.add('open');
+}
+function closeConfirm(){
+  document.getElementById('confirm-ov').classList.remove('open');
+}
+
 function dismissAlert(){document.getElementById('alert-ov').classList.remove('open');currentAlert=null;setTimeout(()=>{if(alertQueue.length)showNextAlert();},300);}
 function alertDetail(){document.getElementById('alert-ov').classList.remove('open');if(currentAlert)openDetail(currentAlert.tid);currentAlert=null;}
 
@@ -4496,13 +4519,17 @@ function deleteTrip(id, event){
   const toDelete = trainNos.filter(no => !otherTrips.some(t => (t.trainNos||[]).includes(no)));
   const toKeep = trainNos.filter(no => otherTrips.some(t => (t.trainNos||[]).includes(no)));
 
-  let msg = `刪除「${trip.name}」行程？`;
+  let confirmMsg = '';
   if (toDelete.length > 0 && toKeep.length === 0) {
-    msg += `\n將一併從收藏刪除 ${toDelete.length} 則時刻表。`;
+    confirmMsg = `將一併從收藏刪除 ${toDelete.length} 則時刻表。`;
   } else if (toDelete.length > 0 && toKeep.length > 0) {
-    msg += `\n將從收藏刪除 ${toDelete.length} 則時刻表，保留 ${toKeep.length} 則共用時刻表。`;
+    confirmMsg = `將從收藏刪除 ${toDelete.length} 則時刻表，保留 ${toKeep.length} 則共用時刻表。`;
   }
-  if(!confirm(msg)) return;
+  showConfirm(
+    `刪除「${trip.name}」`,
+    confirmMsg || '此操作無法復原。',
+    '刪除行程',
+    () => {
   // 刪除此行程
   trips = trips.filter(t => t.id !== id);
   saveTrips();
@@ -4529,8 +4556,9 @@ function deleteTrip(id, event){
     showToast(`已刪除 ${deleted} 則時刻表`);
   }
 
-  renderTTFavs();
-  renderTripList();
+    renderTTFavs();
+    renderTripList();
+  });
 }
 
 // 行程詳細頁（展開看班次，行為同時刻表）
