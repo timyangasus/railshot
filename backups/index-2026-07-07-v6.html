@@ -3530,11 +3530,8 @@ function renderTransferList(transfer) {
 
 function renderTTList(list, isMock) {
   const el=document.getElementById('tt-results');
-  const fromLbl = document.getElementById('tt-from-lbl');
-  const toLbl = document.getElementById('tt-to-lbl');
-  const hasStation = !!fromLbl && !!toLbl && (!fromLbl.classList.contains('placeholder') || !toLbl.classList.contains('placeholder'));
-  setResetBtnActive('tt-reset-btn', hasStation);
-
+  setResetBtnActive('tt-reset-btn', list.length > 0);
+  
 
   // 找最短行駛時間（分鐘）
   const minDur = Math.min(...list.map(t => calcDurMins(t.dep, t.arr)));
