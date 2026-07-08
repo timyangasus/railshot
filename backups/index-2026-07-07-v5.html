@@ -4727,7 +4727,6 @@ function removeTripTrain(tripId, key, event){
   if(!trip) return;
   trip.trainNos = (trip.trainNos||[]).filter(v => v !== key);
   saveTrips();
-  renderTTFavs();
   openTripDetail(tripId);
 }
 
