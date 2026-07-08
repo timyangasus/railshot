@@ -975,8 +975,8 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div class="stn-page-sel-row" id="sp-sel-row">
       <!-- 單框模式（拍車單一車站 / GPS） -->
       <div id="sp-single-mode" style="display:none;width:100%;">
-        <div class="stn-sel-wrap active" id="sp-single-wrap" style="width:100%;">
-          <div class="stn-sel-box" style="width:100%;" onclick="spFlashWrap(document.getElementById('sp-single-wrap'))">
+        <div class="stn-sel-wrap active" style="width:100%;">
+          <div class="stn-sel-box" style="width:100%;">
             <div id="sp-single-inner"><span class="stn-sel-placeholder">請選擇車站</span></div>
           </div>
         </div>
@@ -1571,12 +1571,6 @@ function confirmStnPage(){
   if(spState.caller === 'loc-single') applyLocSingle();
   if(spState.caller === 'loc-b1' && betweenState.s1) showTabBetweenOptions(betweenState.s1);
 }
-function spFlashWrap(wrap){
-  if(!wrap) return;
-  wrap.classList.remove('active');
-  void wrap.offsetWidth;
-  setTimeout(()=> wrap.classList.add('active'), 120);
-}
 function spSetActive(slot){
   const wasAlreadyActive = spState.active === slot;
   spState.active = slot;
@@ -1586,7 +1580,12 @@ function spSetActive(slot){
   spRenderHeader();
   // 點的框本來就是作用中：灰一下再變亮，提示使用者目前作用在此輸入框
   if(wasAlreadyActive){
-    spFlashWrap(document.getElementById(slot === 'from' ? 'sp-from-wrap' : 'sp-to-wrap'));
+    const wrap = document.getElementById(slot === 'from' ? 'sp-from-wrap' : 'sp-to-wrap');
+    if(wrap){
+      wrap.classList.remove('active');
+      void wrap.offsetWidth;
+      setTimeout(()=> wrap.classList.add('active'), 120);
+    }
   }
   spRenderCountyCol();
   spRenderStnCol();
