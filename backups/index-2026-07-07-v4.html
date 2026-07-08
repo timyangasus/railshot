@@ -3706,7 +3706,7 @@ function renderTTFavs(){
     const delKey = JSON.stringify({no:t.no,qFrom:t.queryFrom||'',qTo:t.queryTo||''}).replace(/"/g,'&quot;');
     return `<div class="tt-fav-card" style="position:relative;" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
       <div class="tt-fav-body">
-                        ${hasQuery ? '<div class=\"tt-fav-query\">' + t.queryFrom + ' → ' + t.queryTo + (isInAnyTrip(t) ? '<span style=\"display:inline-flex;vertical-align:middle;margin-left:3px;\"><svg xmlns=\"http://www.w3.org/2000/svg\" height=\"14px\" viewBox=\"0 -960 960 960\" width=\"14px\" fill=\"#258EFF\"><path d=\"m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z\"/></svg></span>' : '') + '</div>' : ''}
+                        ${hasQuery ? '<div class=\"tt-fav-query\">' + t.queryFrom + ' → ' + t.queryTo + (isInAnyTrip(t.no) ? '<span style=\"display:inline-flex;vertical-align:middle;margin-left:3px;\"><svg xmlns=\"http://www.w3.org/2000/svg\" height=\"14px\" viewBox=\"0 -960 960 960\" width=\"14px\" fill=\"#258EFF\"><path d=\"m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z\"/></svg></span>' : '') + '</div>' : ''}
         <div class="tt-fav-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:15px;">→</span> ${t.arr}
           <span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:6px;">${t.dur}</span>
         </div>
@@ -4392,15 +4392,8 @@ async function searchTrainNo(){
 // ===== 行程管理 =====
 let trips = JSON.parse(localStorage.getItem('rs_trips') || '[]');
 function saveTrips(){ localStorage.setItem('rs_trips', JSON.stringify(trips)); }
-// 同一車次可能被收藏多個不同區間（例如 218 次同時有「樹林→宜蘭」和「台北→花蓮」兩筆），
-// 光用車次號無法區分，所以行程內部改用「車次+起訖」複合鍵識別每一筆收藏。
-function favKey(t){
-  return `${t.no}|${t.queryFrom||t.from||''}|${t.queryTo||t.to||''}`;
-}
-// 舊資料裡 trainNos 存的是純車次號字串，這裡相容判斷：新格式用複合鍵完全比對，舊格式用車次號比對
-function isInAnyTrip(fav){
-  const key = favKey(fav);
-  return trips.some(trip => (trip.trainNos||[]).some(v => v === key || v === fav.no));
+function isInAnyTrip(no){
+  return trips.some(trip => (trip.trainNos||[]).includes(no));
 }
 
 
@@ -4482,7 +4475,7 @@ function updateTripSheetCloseBtn(){
   }
 }
 
-function renderTripTTSelectList(selectedKeys){
+function renderTripTTSelectList(selectedNos){
   const el = document.getElementById('trip-tt-select-list');
   if(!el) return;
   const favs = ttFavs || [];
@@ -4491,21 +4484,22 @@ function renderTripTTSelectList(selectedKeys){
     return;
   }
 
-  // 逐筆收藏判斷是否已加入過某個行程（同車次不同區間要分開判斷，見 isInAnyTrip）
-  const isUsedElsewhere = (t) => trips.some(trip => (trip.trainNos||[]).some(v => v === favKey(t) || v === t.no));
+  // 找出所有已加入過任何行程的車次號
+  const usedNos = new Set();
+  (trips||[]).forEach(trip => {
+    (trip.trainNos||[]).forEach(no => usedNos.add(no));
+  });
 
   // 依出發時間排序後分組
   const sorted = [...favs].sort((a,b) => (a.dep||'').localeCompare(b.dep||''));
-  const unused = sorted.filter(t => !isUsedElsewhere(t));
-  const used   = sorted.filter(t =>  isUsedElsewhere(t));
+  const unused = sorted.filter(t => !usedNos.has(t.no));
+  const used   = sorted.filter(t =>  usedNos.has(t.no));
 
   function renderRow(t){
-    const key = favKey(t);
     const ti = TYPE_INFO[t.type] || {label:'列車', cls:'b-exp'};
-    // selectedKeys 可能含舊資料的純車次號，兩種格式都比對
-    const checked = selectedKeys.includes(key) || selectedKeys.includes(t.no);
-    return `<div onclick="toggleTripTTSelect('${key}',this)" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;">
-      <div id="trip-check-${key}" style="width:24px;height:24px;border-radius:50%;border:2px solid ${checked?'var(--accent)':'var(--border2)'};background:${checked?'var(--accent)':'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;">
+    const checked = selectedNos.includes(t.no);
+    return `<div onclick="toggleTripTTSelect('${t.no}',this)" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+      <div id="trip-check-${t.no}" style="width:24px;height:24px;border-radius:50%;border:2px solid ${checked?'var(--accent)':'var(--border2)'};background:${checked?'var(--accent)':'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;">
         ${checked?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg>':''}
       </div>
       <div style="flex:1;min-width:0;">
@@ -4532,8 +4526,8 @@ function renderTripTTSelectList(selectedKeys){
   el.innerHTML = html;
 }
 
-function toggleTripTTSelect(key, row){
-  const circle = document.getElementById(`trip-check-${key}`);
+function toggleTripTTSelect(no, row){
+  const circle = document.getElementById(`trip-check-${no}`);
   if(!circle) return;
   const isOn = circle.style.background === 'var(--accent)' || circle.style.background.includes('accent');
   // more reliable check via innerHTML
@@ -4553,10 +4547,10 @@ function toggleTripTTSelect(key, row){
 function getSelectedTripNos(){
   return (ttFavs||[])
     .filter(t => {
-      const el = document.getElementById(`trip-check-${favKey(t)}`);
+      const el = document.getElementById(`trip-check-${t.no}`);
       return el && el.innerHTML.trim() !== '';
     })
-    .map(t => favKey(t));
+    .map(t => t.no);
 }
 
 
@@ -4628,10 +4622,9 @@ function deleteTrip(id, event){
     if (usedElsewhere) {
       kept++;
     } else {
-      // 從收藏移除：新格式（車次+起訖複合鍵）只刪對應那一筆，舊格式（純車次號）維持刪同車次號全部
+      // 從收藏移除
       const before = ttFavs.length;
-      const isLegacy = !String(no).includes('|');
-      ttFavs = isLegacy ? ttFavs.filter(f => f.no !== no) : ttFavs.filter(f => favKey(f) !== no);
+      ttFavs = ttFavs.filter(f => f.no !== no);
       if (ttFavs.length < before) deleted++;
     }
   }
@@ -4653,20 +4646,12 @@ function deleteTrip(id, event){
 function openTripDetail(id){
   const trip = trips.find(t => t.id === id);
   if(!trip) return;
-  // 新格式（複合鍵）精準比對；favMapByNo 是舊格式（純車次號）資料的相容備援
   const favMap = {};
-  const favMapByNo = {};
-  (ttFavs||[]).forEach(t => {
-    favMap[favKey(t)] = t;
-    if(!(t.no in favMapByNo)) favMapByNo[t.no] = t;
-  });
+  (ttFavs||[]).forEach(t => { favMap[t.no] = t; });
   const list = (trip.trainNos||[])
-    .map(key => {
-      const fav = favMap[key] || favMapByNo[key];
-      return fav ? { fav, key } : null;
-    })
+    .map(no => favMap[no])
     .filter(Boolean)
-    .sort((a,b) => (a.fav.dep||'').localeCompare(b.fav.dep||''));
+    .sort((a,b) => (a.dep||'').localeCompare(b.dep||''));
 
   const panel = document.getElementById('fav-trip-panel');
 
@@ -4694,10 +4679,10 @@ function openTripDetail(id){
       </button>
     </div>`;
   } else {
-    body_html = list.map(({fav:t, key}) => {
+    body_html = list.map(t => {
       const ti = TYPE_INFO[t.type]||{label:'列車',cls:'b-exp'};
       return `<div class="tt-card" style="position:relative;" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
-        <button onclick="removeTripTrain('${id}','${key}',event)" style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <button onclick="removeTripTrain('${id}','${t.no}',event)" style="position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="var(--text2)"/></svg>
         </button>
         <div style="padding-right:40px;">
@@ -4719,11 +4704,11 @@ function openTripDetail(id){
   panel.scrollTop = 0;
 }
 
-function removeTripTrain(tripId, key, event){
+function removeTripTrain(tripId, trainNo, event){
   if(event) event.stopPropagation();
   const trip = trips.find(t => t.id === tripId);
   if(!trip) return;
-  trip.trainNos = (trip.trainNos||[]).filter(v => v !== key);
+  trip.trainNos = (trip.trainNos||[]).filter(no => no !== trainNo);
   saveTrips();
   openTripDetail(tripId);
 }
