@@ -2809,14 +2809,14 @@ async function doSearch() {
       const results = queryBetween(s1, s2, nowMins, endMins, dv, tv);
       document.getElementById('res-count').textContent = results.length + ' 班';
       renderBetweenResults(results, s1, s2, liveMap);
-      setResetBtnActive('shoot-reset-btn', !isEmpty);
+      setResetBtnActive('shoot-reset-btn', results.length > 0);
     } else {
       const stn = loc.replace(/站$/, '').trim();
       const results = queryStation(stn, nowMins, endMins, dv, tv);
       document.getElementById('res-count').textContent = results.length + ' 班';
       renderStationResults(results, stn, liveMap);
-
-      setResetBtnActive('shoot-reset-btn', !isEmpty);
+      
+      setResetBtnActive('shoot-reset-btn', results.length > 0);
     }
     return;
   }
