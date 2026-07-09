@@ -3707,12 +3707,10 @@ function renderTTFavs(){
     const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
     const hasQuery = t.queryFrom && t.queryTo;
     const delKey = JSON.stringify({no:t.no,qFrom:t.queryFrom||'',qTo:t.queryTo||''}).replace(/"/g,'&quot;');
-    const tripNames = tripNamesForFav(t);
-    const tripNameRows = tripNames.map(n => `<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;">（${n}）</div>`).join('');
+    const tripName = tripNameForFav(t);
     return `<div class="tt-fav-card" style="position:relative;" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
       <div class="tt-fav-body">
-                        ${hasQuery ? '<div class=\"tt-fav-query\">' + t.queryFrom + ' → ' + t.queryTo + '</div>' : ''}
-        ${tripNameRows}
+                        ${hasQuery ? '<div class=\"tt-fav-query\">' + t.queryFrom + ' → ' + t.queryTo + (tripName ? `<span style=\"color:var(--text);font-size:12px;font-weight:600;margin-left:4px;\">（${tripName}）</span>` : '') + '</div>' : ''}
         <div class="tt-fav-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:15px;">→</span> ${t.arr}
           <span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:6px;">${t.dur}</span>
         </div>
@@ -4404,11 +4402,10 @@ function favKey(t){
   return `${t.no}|${t.queryFrom||t.from||''}|${t.queryTo||t.to||''}`;
 }
 // 舊資料裡 trainNos 存的是純車次號字串，這裡相容判斷：新格式用複合鍵完全比對，舊格式用車次號比對
-function tripNamesForFav(fav){
+function tripNameForFav(fav){
   const key = favKey(fav);
-  return trips
-    .filter(trip => (trip.trainNos||[]).some(v => v === key || v === fav.no))
-    .map(trip => trip.name);
+  const trip = trips.find(trip => (trip.trainNos||[]).some(v => v === key || v === fav.no));
+  return trip ? trip.name : null;
 }
 
 
