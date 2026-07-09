@@ -3708,7 +3708,7 @@ function renderTTFavs(){
     const hasQuery = t.queryFrom && t.queryTo;
     const delKey = JSON.stringify({no:t.no,qFrom:t.queryFrom||'',qTo:t.queryTo||''}).replace(/"/g,'&quot;');
     const tripNames = tripNamesForFav(t);
-    const tripNameRows = tripNames.map(n => `<div style="font-size:12px;font-weight:600;color:#258EFF;margin-bottom:3px;">（${n}）</div>`).join('');
+    const tripNameRows = tripNames.map(n => `<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;">（${n}）</div>`).join('');
     return `<div class="tt-fav-card" style="position:relative;" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
       <div class="tt-fav-body">
                         ${hasQuery ? '<div class=\"tt-fav-query\">' + t.queryFrom + ' → ' + t.queryTo + '</div>' : ''}
@@ -4437,7 +4437,7 @@ function renderTripList(){
     return `<div class="tt-card" style="position:relative;min-height:96px;display:flex;align-items:center;" onclick="openTripDetail('${trip.id}')">
       <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
         <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:20px;font-weight:700;color:var(--text);line-height:1.2;">${trip.name}</div>
+          <div style="font-size:20px;font-weight:700;color:#265299;line-height:1.2;">${trip.name}</div>
           ${trip.note ? `<div style="font-size:13px;color:var(--text3);">${trip.note}</div>` : ''}
           <div style="font-size:13px;color:var(--text2);">${count} 個時刻</div>
         </div>
