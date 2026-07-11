@@ -326,6 +326,20 @@ app.get('/api/stations', async (req, res) => {
   }
 });
 
+// ── TEMP DEBUG：查看 TDX 原始欄位（找停駛旗標用，確認後會移除）─────
+app.get('/api/debug/raw-sample', async (req, res) => {
+  try {
+    const date = req.query.date || todayStr();
+    const data = await tdxFetch(
+      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainDate/${date}?$format=JSON`
+    );
+    const timetables = data.TrainTimetables || data || [];
+    res.json({ date, count: timetables.length, sample: timetables.slice(0, 3) });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── Start ─────────────────────────────────────────────
 app.get('/api/debug/train/:no', async (req, res) => {
   try {
