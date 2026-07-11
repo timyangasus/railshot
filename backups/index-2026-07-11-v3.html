@@ -1307,7 +1307,7 @@ function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   return fetch(url, { ...options, signal: controller.signal })
     .catch(e => {
-      if (e.name === 'AbortError') throw new Error('查詢逾時，可能是查詢流量人數過多，請稍後再試');
+      if (e.name === 'AbortError') throw new Error('查詢逾時，請稍後再試');
       throw e;
     })
     .finally(() => clearTimeout(timer));
