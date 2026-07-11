@@ -141,6 +141,7 @@ async function buildIndex(dateStr) {
     const dir = info.Direction === 0 ? 'up' : 'down';
     const from = info.StartingStationName?.Zh_tw || '';
     const to   = info.EndingStationName?.Zh_tw   || '';
+    const suspended = info.SuspendedFlag === 1;
 
     const stops = rawStops
       .sort((a, b) => a.StopSequence - b.StopSequence)
@@ -149,9 +150,10 @@ async function buildIndex(dateStr) {
         stn: s.StationName?.Zh_tw || '',
         arr: s.ArrivalTime   || '',
         dep: s.DepartureTime || '',
+        suspended: s.SuspendedFlag === 1,
       }));
 
-    const trainData = { no: trainNo, type, dir, from, to, stops };
+    const trainData = { no: trainNo, type, dir, from, to, stops, suspended };
     trainIndex[trainNo] = trainData;
     trains.push(trainData);
 
@@ -162,6 +164,7 @@ async function buildIndex(dateStr) {
       stationIndex[stop.stn].push({
         no: trainNo, type, dir, from, to,
         time: stop.dep || stop.arr,
+        suspended: suspended || stop.suspended,
       });
     }
 
@@ -292,6 +295,7 @@ app.get('/api/od/:from/:to/:date', async (req, res) => {
         dep: depStop.dep || depStop.arr,
         arr: arrStop.arr || arrStop.dep,
         stops: train.stops,
+        suspended: train.suspended || depStop.suspended || arrStop.suspended,
       });
     }
     results.sort((a, b) => a.dep.localeCompare(b.dep));
@@ -321,20 +325,6 @@ app.get('/api/stations', async (req, res) => {
     const date = req.query.date;
     const entry = await buildIndex(date);
     res.json(Object.keys(entry.stationIndex).sort());
-  } catch(e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// ── TEMP DEBUG：查看 TDX 原始欄位（找停駛旗標用，確認後會移除）─────
-app.get('/api/debug/raw-sample', async (req, res) => {
-  try {
-    const date = req.query.date || todayStr();
-    const data = await tdxFetch(
-      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainDate/${date}?$format=JSON`
-    );
-    const timetables = data.TrainTimetables || data || [];
-    res.json({ date, count: timetables.length, sample: timetables.slice(0, 3) });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }

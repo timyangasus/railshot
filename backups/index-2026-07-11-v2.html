@@ -2871,16 +2871,15 @@ function renderStationResults(results, stnName, liveMap) {
     const timeDisplay = isEst ? `<span style="color:var(--text2);"><span style="font-size:60%;font-weight:400;">約</span> ${passTime}</span>` : passTime;
     const displayDir = calculateDisplayDir(train);
     const dirLabel = displayDir === 'up' ? '↑ 上行' : '↓ 下行';
-    return `<div class="train-card" style="${train.suspended?'opacity:.55;':''}" onclick="openDetailByNo('${train.no}','${stnName}')">
+    return `<div class="train-card" onclick="openDetailByNo('${train.no}','${stnName}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div class="tc-time" style="${train.suspended?'text-decoration:line-through;':''}">${timeDisplay}</div>
+          <div class="tc-time">${timeDisplay}</div>
           <span class="dir-tag ${displayDir}" style="font-size:13px;padding:4px 12px;">${dirLabel}</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
-          ${train.suspended
-            ? `<span style="font-size:12px;font-weight:700;color:white;background:var(--red);padding:3px 10px;border-radius:20px;">停駛</span>`
-            : `${stopDot}<div class="${cdCls}">${cdTxt}</div>`}
+          ${stopDot}
+          <div class="${cdCls}">${cdTxt}</div>
         </div>
       </div>
       <div class="tc-mid">
@@ -2889,7 +2888,7 @@ function renderStationResults(results, stnName, liveMap) {
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
         <div class="tc-route">${train.from} → ${train.to}</div>
-        ${train.suspended ? '' : delay > 0 ? `<div class="tc-delay">誤點 +${delay}分</div>` : `<div class="tc-ok">✓ 準點</div>`}
+        ${delay > 0 ? `<div class="tc-delay">誤點 +${delay}分</div>` : `<div class="tc-ok">✓ 準點</div>`}
       </div>
     </div>`;
   }).join('');
@@ -2907,11 +2906,9 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
     const { train, s1Time, s2Time, s1Est, s2Est } = r;
     const ti = TYPE_INFO[train.type] || { label: '列車', cls: 'b-exp' };
     const delay = liveMap[train.no] || 0;
-    const delayStr = train.suspended
-      ? `<span style="color:white;background:var(--red);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;">停駛</span>`
-      : delay > 0
-        ? `<span style="color:var(--orange);font-size:13px;font-weight:600;">誤點 +${delay}分</span>`
-        : `<span style="color:var(--green);font-size:13px;font-weight:500;">準點</span>`;
+    const delayStr = delay > 0
+      ? `<span style="color:var(--orange);font-size:13px;font-weight:600;">誤點 +${delay}分</span>`
+      : `<span style="color:var(--green);font-size:13px;font-weight:500;">準點</span>`;
     // 方向大箭頭：上行綠色→，下行藍色←
     const m1 = toMins(s1Time);
     const m2 = toMins(s2Time || '');
@@ -2934,7 +2931,7 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
     const t2Html = s2Est
       ? `<span style="font-size:18px;font-weight:400;color:#446183;">約</span> ${s2Time || '--'}`
       : (s2Time || '--');
-    return `<div class="train-card" style="${train.suspended?'opacity:.55;':''}" onclick="openDetailByNo('${train.no}','${s1Name}','${s2Name}','${s1Time}','${s2Time}')">
+    return `<div class="train-card" onclick="openDetailByNo('${train.no}','${s1Name}','${s2Name}','${s1Time}','${s2Time}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="badge ${ti.cls}">${ti.label}</span>
@@ -3470,7 +3467,6 @@ async function searchTT(){
           dep, arr, dur: calcDurStr(dep, arr),
           delay: liveMap[train.no] || 0,
           from: train.from, to: train.to,
-          suspended: !!(train.suspended || depStop.suspended || arrStop.suspended),
           stops: train.stops.map(s => ({
             s: s.stn, dep: s.dep || s.arr,
             late: liveMap[train.no] || 0,
@@ -3567,17 +3563,15 @@ function renderTTList(list, isMock) {
     const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
     const faved=isTTFaved(t.no);
     const isFastest = calcDurMins(t.dep, t.arr) === minDur;
-    return `<div class="tt-card" style="${t.suspended?'opacity:.55;':''}" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
-
+    return `<div class="tt-card" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+  
       <button class="tt-heart-btn${faved?' liked':''}" onclick="toggleTTFavObj(${JSON.stringify(t).replace(/"/g,'&quot;')},event)">${faved?HEART_FULL:HEART_EMPTY}</button>
       <div style="padding-right:36px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-          <div class="tt-times" style="${t.suspended?'text-decoration:line-through;':''}">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:20px;">→</span> ${t.arr}</div>
-          ${t.suspended
-            ? `<span style="font-size:12px;font-weight:700;color:white;background:var(--red);padding:2px 8px;border-radius:20px;letter-spacing:0;">停駛</span>`
-            : isFastest
-              ? `<span style="font-size:12px;font-weight:700;color:white;background:#E8A000;padding:2px 8px;border-radius:20px;letter-spacing:0;">${t.dur}</span>`
-              : `<span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur}</span>`
+          <div class="tt-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:20px;">→</span> ${t.arr}</div>
+          ${isFastest
+            ? `<span style="font-size:12px;font-weight:700;color:white;background:#E8A000;padding:2px 8px;border-radius:20px;letter-spacing:0;">${t.dur}</span>`
+            : `<span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur}</span>`
           }
         </div>
       </div>
@@ -3587,11 +3581,9 @@ function renderTTList(list, isMock) {
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div class="tt-route">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
-        ${t.suspended
-          ? ''
-          : t.delay>0
-            ? `<div style="font-size:12px;font-weight:600;color:var(--orange);">誤點 +${t.delay}分</div>`
-            : `<div style="font-size:12px;color:var(--green);font-weight:500;">✓ 準點</div>`}
+        ${t.delay>0
+          ? `<div style="font-size:12px;font-weight:600;color:var(--orange);">誤點 +${t.delay}分</div>`
+          : `<div style="font-size:12px;color:var(--green);font-weight:500;">✓ 準點</div>`}
       </div>
     </div>`;
   }).join('');
@@ -3649,8 +3641,7 @@ async function _openTTDetailObj(t){
 
     document.getElementById('det-body').innerHTML=`
       <div style="background:${getDetailBannerGradient(t.type)};margin:-20px -16px 0;padding:20px 16px 24px;position:relative;">
-        <div style="position:absolute;top:16px;right:16px;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-          ${t.suspended ? `<span style="background:var(--red);color:white;font-size:14px;font-weight:700;padding:5px 14px;border-radius:20px;">停駛</span>` : ''}
+        <div style="position:absolute;top:16px;right:16px;">
           <span style="background:rgba(255,255,255,0.18);color:white;font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${dirLabel}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
@@ -3659,8 +3650,8 @@ async function _openTTDetailObj(t){
         </div>
         <div style="font-size:15px;color:rgba(255,255,255,0.65);margin-bottom:12px;">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
         <div style="display:flex;align-items:baseline;gap:8px;">
-          <span style="font-size:34px;font-weight:700;color:white;letter-spacing:-1.5px;line-height:1;${t.suspended?'text-decoration:line-through;':''}">${t.dep} → ${t.arr}</span>
-          ${!t.suspended && t.delay > 0 ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:white;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:20px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2L1 21h22L12 2zm-1 7h2v6h-2V9zm0 8h2v2h-2v-2z"/></svg>+${t.delay}分</span>` : ''}
+          <span style="font-size:34px;font-weight:700;color:white;letter-spacing:-1.5px;line-height:1;">${t.dep} → ${t.arr}</span>
+          ${t.delay > 0 ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:white;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:20px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2L1 21h22L12 2zm-1 7h2v6h-2V9zm0 8h2v2h-2v-2z"/></svg>+${t.delay}分</span>` : ''}
         </div>
         <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);margin-top:5px;">行駛時間：${t.dur}</div>
       </div>
@@ -4045,11 +4036,9 @@ function renderBetweenResultsTo(elId, results, s1Name, s2Name, liveMap){
     const { train, s1Time, s2Time, s1Est, s2Est } = r;
     const ti = TYPE_INFO[train.type] || { label: '列車', cls: 'b-exp' };
     const delay = liveMap[train.no] || 0;
-    const delayStr = train.suspended
-      ? `<span style="color:white;background:var(--red);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;">停駛</span>`
-      : delay > 0
-        ? `<span style="color:var(--orange);font-size:13px;font-weight:600;">誤點 +${delay}分</span>`
-        : `<span style="color:var(--green);font-size:13px;font-weight:500;">準點</span>`;
+    const delayStr = delay > 0
+      ? `<span style="color:var(--orange);font-size:13px;font-weight:600;">誤點 +${delay}分</span>`
+      : `<span style="color:var(--green);font-size:13px;font-weight:500;">準點</span>`;
     const m1 = toMins(s1Time);
     const m2 = toMins(s2Time || '');
     let arrowColor, arrowSvg;
@@ -4067,7 +4056,7 @@ function renderBetweenResultsTo(elId, results, s1Name, s2Name, liveMap){
     const t2Html = s2Est ? `<span style="font-size:18px;font-weight:400;color:#446183;">約</span> ${s2Time||'--'}` : (s2Time||'--');
     const t1Color = s1Est ? '#446183' : 'var(--text)';
     const t2Color = s2Est ? '#446183' : 'var(--text)';
-    return `<div class="train-card" style="${train.suspended?'opacity:.55;':''}" onclick="openDetailByNo('${train.no}','${s1Name}','${s2Name}','${s1Time}','${s2Time}')">
+    return `<div class="train-card" onclick="openDetailByNo('${train.no}','${s1Name}','${s2Name}','${s1Time}','${s2Time}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="badge ${ti.cls}">${ti.label}</span>
