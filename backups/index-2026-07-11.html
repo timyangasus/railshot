@@ -1300,19 +1300,6 @@ const TRAINS=[
 // ===== API CONFIG =====
 const API_BASE = 'https://railshot.onrender.com';
 
-// fetch 沒有內建逾時：TDX 流量暴增時（例如颱風天大家瘋狂查班次）後端可能卡很久才回應，
-// 沒有逾時的話畫面就會一直轉圈圈轉到天荒地老，所以查詢類請求都要包這層逾時保護。
-function fetchWithTimeout(url, options = {}, timeoutMs = 15000) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  return fetch(url, { ...options, signal: controller.signal })
-    .catch(e => {
-      if (e.name === 'AbortError') throw new Error('查詢逾時，請稍後再試');
-      throw e;
-    })
-    .finally(() => clearTimeout(timer));
-}
-
 // TDX 站名對應 StationID（供 API 查詢用）
 const TDX_ID = {
   '基隆':'Keelung','七堵':'Qidu','八堵':'Badu','五堵':'Wudu','汐止':'Xizhi','汐科':'Xike',
@@ -2304,7 +2291,7 @@ async function ensureGTT(dateStr) {
       <div style="font-size:14px;">載入時刻資料中...<br><span style="font-size:12px;color:var(--text3);">首次需要約 10 秒</span></div>
     </div>`;
 
-  const resp = await fetchWithTimeout(`${API_BASE}/api/timetable?date=${targetDate}`, {}, 20000);
+  const resp = await fetch(`${API_BASE}/api/timetable?date=${targetDate}`);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   gttData = await resp.json();
   buildFrontendIndex(gttData.trains);
@@ -2808,7 +2795,7 @@ async function doSearch() {
       liveMap = cachedLiveMap;
     } else {
       try {
-        const lr = await fetchWithTimeout(`${API_BASE}/api/live`, {}, 8000);
+        const lr = await fetch(`${API_BASE}/api/live`);
         const ld = await lr.json();
         (ld.TrainLiveBoards || []).forEach(t => { liveMap[t.TrainNo] = t.DelayTime || 0; });
         cachedLiveMap = liveMap;
@@ -3000,12 +2987,12 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
     let delay = 0;
 
     if (!train && API_BASE) {
-      const resp = await fetchWithTimeout(`${API_BASE}/api/train/${trainNo}`, {}, 8000);
+      const resp = await fetch(`${API_BASE}/api/train/${trainNo}`);
       const data = await resp.json();
       train = data; delay = data.delay || 0;
     } else if (API_BASE) {
       try {
-        const lr = await fetchWithTimeout(`${API_BASE}/api/live`, {}, 8000);
+        const lr = await fetch(`${API_BASE}/api/live`);
         const ld = await lr.json();
         const found = (ld.TrainLiveBoards || []).find(t => t.TrainNo === trainNo);
         delay = found?.DelayTime || 0;
@@ -3443,7 +3430,7 @@ async function searchTT(){
         liveMap = cachedLiveMap;
       } else {
         try {
-          const lr = await fetchWithTimeout(`${API_BASE}/api/live`, {}, 8000);
+          const lr = await fetch(`${API_BASE}/api/live`);
           const ld = await lr.json();
           (ld.TrainLiveBoards || []).forEach(t => { liveMap[t.TrainNo] = t.DelayTime || 0; });
           cachedLiveMap = liveMap;
@@ -3663,7 +3650,7 @@ async function _openTTDetailObj(t){
   if(API_BASE && t.no) {
     try {
       const dateVal = document.getElementById('tt-date')?.value || new Date().toISOString().split('T')[0];
-      const resp = await fetchWithTimeout(`${API_BASE}/api/train/${t.no}/${dateVal}`, {}, 8000);
+      const resp = await fetch(`${API_BASE}/api/train/${t.no}/${dateVal}`);
       if(resp.ok){
         const data = await resp.json();
         const timetables = data.TrainTimetables || [];
@@ -4006,7 +3993,7 @@ async function doBetweenSearch(){
       liveMap = cachedLiveMap;
     } else {
       try {
-        const lr = await fetchWithTimeout(`${API_BASE}/api/live`, {}, 8000);
+        const lr = await fetch(`${API_BASE}/api/live`);
         const ld = await lr.json();
         (ld.TrainLiveBoards || []).forEach(t => { liveMap[t.TrainNo] = t.DelayTime || 0; });
         cachedLiveMap = liveMap;

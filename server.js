@@ -15,9 +15,21 @@ app.use(express.static(path.join(__dirname)));
 let cachedToken = null;
 let tokenExpiry = 0;
 
+// TDX 平時回應很快，但流量暴增時（例如颱風天大家瘋狂查班次）可能整個卡住不回應，
+// fetch 本身沒有內建逾時，一定要自己加 AbortController，否則請求可能無限期掛著。
+async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function getToken() {
   if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
-  const res = await fetch(
+  const res = await fetchWithTimeout(
     'https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token',
     {
       method: 'POST',
@@ -36,7 +48,7 @@ async function tdxFetch(urlPath, retries = 3) {
   for (let i = 0; i <= retries; i++) {
     try {
       const token = await getToken();
-      const res = await fetch(`https://tdx.transportdata.tw${urlPath}`, {
+      const res = await fetchWithTimeout(`https://tdx.transportdata.tw${urlPath}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.status === 429) {
