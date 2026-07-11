@@ -2234,9 +2234,6 @@ function applyLocGPS(){
 }
 // ===== TIMETABLE CACHE (localStorage) =================
 const GTT_TTL = 20 * 60 * 60 * 1000; // 20hr
-// 每次改變快取資料的欄位結構（例如新增 suspended 停駛欄位）就把這個數字 +1，
-// 這樣使用者手機上舊格式的快取會被判斷成不相容、自動重抓，不用等 20 小時 TTL 到期。
-const GTT_SCHEMA_VERSION = 2;
 
 let gttData = null;
 let gttStationIdx = null;
@@ -2284,8 +2281,8 @@ async function ensureGTT(dateStr) {
     const raw = localStorage.getItem(key);
     if (raw) {
       const parsed = JSON.parse(raw);
-      // 日期一致、TTL 未過期、且資料格式版本相符 才使用 cache
-      if (parsed.date === targetDate && Date.now() - parsed.builtAt < GTT_TTL && parsed.schemaVersion === GTT_SCHEMA_VERSION) {
+      // 日期一致 且 TTL 未過期 才使用 cache
+      if (parsed.date === targetDate && Date.now() - parsed.builtAt < GTT_TTL) {
         gttData = parsed;
         buildFrontendIndex(gttData.trains);
         console.log(`GTT loaded from cache [${parsed.source}] for ${targetDate}: ${gttData.trains.length} trains`);
@@ -2310,7 +2307,6 @@ async function ensureGTT(dateStr) {
   const resp = await fetchWithTimeout(`${API_BASE}/api/timetable?date=${targetDate}`, {}, 20000);
   if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
   gttData = await resp.json();
-  gttData.schemaVersion = GTT_SCHEMA_VERSION;
   buildFrontendIndex(gttData.trains);
   try { localStorage.setItem(key, JSON.stringify(gttData)); } catch(e) {}
   console.log(`GTT fetched [${gttData.source}] for ${targetDate}: ${gttData.trains.length} trains`);
