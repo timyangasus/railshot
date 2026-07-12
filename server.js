@@ -330,6 +330,19 @@ app.get('/api/stations', async (req, res) => {
   }
 });
 
+// ── TEMP DEBUG：查 GeneralTrainTimetable 原始欄位（找行駛日規律用，確認後會移除）
+app.get('/api/debug/general-sample', async (req, res) => {
+  try {
+    const no = req.query.no;
+    const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON');
+    const timetables = data.TrainTimetables || data || [];
+    const match = no ? timetables.find(tt => String(tt.TrainInfo?.TrainNo) === no) : null;
+    res.json({ count: timetables.length, sample: match ? [match] : timetables.slice(0, 2) });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── Start ─────────────────────────────────────────────
 app.get('/api/debug/train/:no', async (req, res) => {
   try {
