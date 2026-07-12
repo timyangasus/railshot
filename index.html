@@ -3040,6 +3040,7 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
         </div>
         <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:6px;">${train.from} → ${train.to}</div>
         ${atStation ? `<div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:4px;">${atStation}站</div>` : ''}
+        ${dailyFlagHtml(train)}
       </div>
       <div style="margin-top:16px;" class="sec">停靠站時刻</div>
       <div class="stop-list">
@@ -3475,6 +3476,7 @@ async function searchTT(){
           delay: liveMap[train.no] || 0,
           from: train.from, to: train.to,
           suspended: !!(train.suspended || depStop.suspended || arrStop.suspended),
+          dailyFlag: train.dailyFlag, note: train.note,
           stops: train.stops.map(s => ({
             s: s.stn, dep: s.dep || s.arr,
             late: liveMap[train.no] || 0,
@@ -3613,6 +3615,12 @@ async function openTTDetailObj(t){
   _openTTDetailObj(t);
 }
 
+// 非每日行駛的車次，顯示台鐵原始的行駛日說明文字（例如「逢週五行駛」）
+function dailyFlagHtml(t){
+  if (t.dailyFlag || !t.note) return '';
+  return `<div style="font-size:12px;font-weight:600;color:white;background:rgba(255,255,255,0.18);padding:6px 10px;border-radius:10px;margin-top:8px;line-height:1.5;">📅 ${t.note}</div>`;
+}
+
 async function _openTTDetailObj(t){
   const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
   document.getElementById('detail-page').classList.add('open');
@@ -3667,7 +3675,9 @@ async function _openTTDetailObj(t){
           ${!t.suspended && t.delay > 0 ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:white;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:20px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2L1 21h22L12 2zm-1 7h2v6h-2V9zm0 8h2v2h-2v-2z"/></svg>+${t.delay}分</span>` : ''}
         </div>
         <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);margin-top:5px;">行駛時間：${t.dur}</div>
+        ${dailyFlagHtml(t)}
       </div>
+      ${t.isGeneral ? `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:var(--radius-input);padding:10px 14px;margin:12px 0 0;font-size:12px;color:#7a5500;line-height:1.5;">⚠️ 查無此日期的實際班表，以下為一般時刻表，不含即時誤點/停駛資訊。</div>` : ''}
       ${stops.length?`<div style="margin-top:16px;" class="sec">停靠站時刻</div><div class="stop-list">${stopsHtml}</div>`:''}`;
   };
 
@@ -4415,13 +4425,41 @@ async function searchTrainNo(){
   await ensureGTT(dateVal);
 
   const train = gttData?.trains.find(t => t.no === no);
-  if(!train){
-    if(err){ err.textContent=`找不到車次 ${no}`; err.style.display='block'; }
+  if(train){
+    closeTrainSearch();
+    openDetailByNo(no, '', '', '', '');
     return;
   }
 
-  closeTrainSearch();
-  openDetailByNo(no, '', '', '', '');
+  // 當天資料查不到（可能選錯日期、或該日剛好不開）→ 退而求其次查不綁日期的一般時刻表
+  if(API_BASE){
+    try {
+      const resp = await fetchWithTimeout(`${API_BASE}/api/train-general/${no}`, {}, 8000);
+      if(resp.ok){
+        const general = await resp.json();
+        closeTrainSearch();
+        openGeneralTrainDetail(general);
+        return;
+      }
+    } catch(e) {}
+  }
+
+  if(err){ err.textContent=`找不到車次 ${no}`; err.style.display='block'; }
+}
+
+// 查無當天資料，改顯示一般時刻表（不含即時誤點/停駛，僅供確認車次本身是否存在、基本班表、行駛日）
+function openGeneralTrainDetail(g){
+  const stops = g.stops || [];
+  const dep = stops[0]?.dep || stops[0]?.arr || '';
+  const arr = stops[stops.length-1]?.arr || stops[stops.length-1]?.dep || '';
+  detailNavStack = [];
+  _openTTDetailObj({
+    no: g.no, type: g.type, dir: g.dir, from: g.from, to: g.to,
+    dep, arr, dur: calcDurStr(dep, arr), delay: 0,
+    dailyFlag: g.dailyFlag, note: g.note,
+    isGeneral: true,
+    stops: stops.map(s => ({ s: s.stn, dep: s.dep || s.arr, late: 0, mj: MAJOR.has(s.stn) })),
+  });
 }
 
 // ===== 行程管理 =====

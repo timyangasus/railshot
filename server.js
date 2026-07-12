@@ -142,6 +142,9 @@ async function buildIndex(dateStr) {
     const from = info.StartingStationName?.Zh_tw || '';
     const to   = info.EndingStationName?.Zh_tw   || '';
     const suspended = info.SuspendedFlag === 1;
+    // DailyFlag: 1=每日行駛, 0=特定日期才行駛（實際規律通常寫在 Note，例如「逢週五行駛」）
+    const dailyFlag = info.DailyFlag === 1;
+    const note = info.Note || '';
 
     const stops = rawStops
       .sort((a, b) => a.StopSequence - b.StopSequence)
@@ -153,7 +156,7 @@ async function buildIndex(dateStr) {
         suspended: s.SuspendedFlag === 1,
       }));
 
-    const trainData = { no: trainNo, type, dir, from, to, stops, suspended };
+    const trainData = { no: trainNo, type, dir, from, to, stops, suspended, dailyFlag, note };
     trainIndex[trainNo] = trainData;
     trains.push(trainData);
 
@@ -178,6 +181,49 @@ async function buildIndex(dateStr) {
   gttCacheMap[date] = entry;
   pruneCacheIfNeeded();
   return entry;
+}
+
+// ── 一般時刻表（不綁定日期，查車次用）───────────────────
+// GeneralTrainTimetable 代表車次的「一般規律班表」，不受特定某天停駛/加班影響，
+// 車次找不到當天資料時（例如選錯日期，或該日剛好不開）可以退而求其次用這份查基本資訊。
+let generalIndexCache = null;
+const GENERAL_CACHE_TTL = 24 * 60 * 60 * 1000; // 24hr
+
+async function buildGeneralIndex() {
+  if (generalIndexCache && Date.now() - generalIndexCache.builtAt < GENERAL_CACHE_TTL) return generalIndexCache;
+
+  console.log('Building general timetable index...');
+  const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON');
+  const timetables = data.TrainTimetables || data || [];
+
+  const trainIndex = {};
+  for (const tt of timetables) {
+    const info = tt.TrainInfo || {};
+    const rawStops = tt.StopTimes || [];
+    const trainNo = String(info.TrainNo || '');
+    const stops = rawStops
+      .sort((a, b) => a.StopSequence - b.StopSequence)
+      .map(s => ({
+        id: String(s.StationID || ''),
+        stn: s.StationName?.Zh_tw || '',
+        arr: s.ArrivalTime || '',
+        dep: s.DepartureTime || '',
+      }));
+    trainIndex[trainNo] = {
+      no: trainNo,
+      type: getTrainType(info),
+      dir: info.Direction === 0 ? 'up' : 'down',
+      from: info.StartingStationName?.Zh_tw || '',
+      to: info.EndingStationName?.Zh_tw || '',
+      dailyFlag: info.DailyFlag === 1,
+      note: info.Note || '',
+      stops,
+    };
+  }
+
+  console.log(`General index built: ${Object.keys(trainIndex).length} trains`);
+  generalIndexCache = { trainIndex, builtAt: Date.now() };
+  return generalIndexCache;
 }
 
 // ── Live cache (60s) ──────────────────────────────────
@@ -273,6 +319,18 @@ app.get('/api/train/:no/:date', async (req, res) => {
   }
 });
 
+// ── 列車詳細（一般時刻表，不綁定日期，查車次找不到當天資料時用）─
+app.get('/api/train-general/:no', async (req, res) => {
+  try {
+    const entry = await buildGeneralIndex();
+    const train = entry.trainIndex[req.params.no];
+    if (!train) return res.status(404).json({ error: 'Train not found' });
+    res.json(train);
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── 時刻表 OD（時刻表 tab 用）────────────────────────
 app.get('/api/od/:from/:to/:date', async (req, res) => {
   try {
@@ -325,19 +383,6 @@ app.get('/api/stations', async (req, res) => {
     const date = req.query.date;
     const entry = await buildIndex(date);
     res.json(Object.keys(entry.stationIndex).sort());
-  } catch(e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// ── TEMP DEBUG：查 GeneralTrainTimetable 原始欄位（找行駛日規律用，確認後會移除）
-app.get('/api/debug/general-sample', async (req, res) => {
-  try {
-    const no = req.query.no;
-    const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON');
-    const timetables = data.TrainTimetables || data || [];
-    const match = no ? timetables.find(tt => String(tt.TrainInfo?.TrainNo) === no) : null;
-    res.json({ count: timetables.length, sample: match ? [match] : timetables.slice(0, 2) });
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
