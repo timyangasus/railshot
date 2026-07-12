@@ -3616,12 +3616,9 @@ async function openTTDetailObj(t){
 }
 
 // 非每日行駛的車次，顯示台鐵原始的行駛日說明文字（例如「逢週五行駛」）
-// Note 原文常混雜跟行駛日無關的售票規則（例如「本列車不發售無座票...」），這種句子過濾掉不顯示
 function dailyFlagHtml(t){
   if (t.dailyFlag || !t.note) return '';
-  const cleaned = t.note.split('。').map(s => s.trim()).filter(s => s && !s.includes('車票')).join('。');
-  if (!cleaned) return '';
-  return `<div style="font-size:12px;font-weight:600;color:white;background:rgba(255,255,255,0.18);padding:6px 10px;border-radius:10px;margin-top:8px;line-height:1.5;">📅 ${cleaned}。</div>`;
+  return `<div style="font-size:12px;font-weight:600;color:white;background:rgba(255,255,255,0.18);padding:6px 10px;border-radius:10px;margin-top:8px;line-height:1.5;">📅 ${t.note}</div>`;
 }
 
 async function _openTTDetailObj(t){
