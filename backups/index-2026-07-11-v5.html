@@ -4411,8 +4411,7 @@ async function searchTrainNo(){
   if(!no){ if(err){ err.textContent='請輸入車次號碼'; err.style.display='block'; } return; }
   if(err) err.style.display = 'none';
 
-  const dateVal = document.getElementById('tt-date')?.value;
-  await ensureGTT(dateVal);
+  await ensureGTT();
 
   const train = gttData?.trains.find(t => t.no === no);
   if(!train){
