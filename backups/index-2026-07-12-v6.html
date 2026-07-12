@@ -1852,9 +1852,7 @@ function updateShootDateLbl(){
   const d = shootDate;
   el.textContent = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
   const inp = document.getElementById('shoot-date-input');
-  // 注意：input.valueAsDate 是用 UTC 解讀 Date 物件，台灣是 UTC+8，用 local midnight 的 Date
-  // 直接設 valueAsDate 會少一天，這裡改用字串直接設 value 才會跟畫面上顯示的日期一致
-  if(inp) inp.value = localDateStr(d);
+  if(inp) inp.valueAsDate = d;
 }
 function onShootDateChange(val){
   if(!val) return;
@@ -3891,8 +3889,7 @@ function updateBetweenDateLbl(){
   const d = betweenDate;
   el.textContent = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
   const inp = document.getElementById('between-date-input');
-  // input.valueAsDate 是用 UTC 解讀，local midnight 在台灣時區會少一天，改用字串設 value
-  if(inp) inp.value = localDateStr(d);
+  if(inp) inp.valueAsDate = d;
 }
 
 function onBetweenDateChange(val){
