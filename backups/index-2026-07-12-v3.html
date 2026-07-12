@@ -3680,6 +3680,7 @@ async function _openTTDetailObj(t){
         <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);margin-top:5px;">行駛時間：${t.dur}</div>
         ${dailyFlagHtml(t)}
       </div>
+      ${t.isGeneral ? `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:var(--radius-input);padding:10px 14px;margin:12px 0 0;font-size:12px;color:#7a5500;line-height:1.5;">⚠️ 查無此日期的實際班表，以下為一般時刻表，不含即時誤點/停駛資訊。</div>` : ''}
       ${stops.length?`<div style="margin-top:16px;" class="sec">停靠站時刻</div><div class="stop-list">${stopsHtml}</div>`:''}`;
   };
 
@@ -4459,6 +4460,7 @@ function openGeneralTrainDetail(g){
     no: g.no, type: g.type, dir: g.dir, from: g.from, to: g.to,
     dep, arr, dur: calcDurStr(dep, arr), delay: 0,
     dailyFlag: g.dailyFlag, note: g.note,
+    isGeneral: true,
     stops: stops.map(s => ({ s: s.stn, dep: s.dep || s.arr, late: 0, mj: MAJOR.has(s.stn) })),
   });
 }
