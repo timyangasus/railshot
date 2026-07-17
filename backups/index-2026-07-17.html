@@ -2542,8 +2542,7 @@ window.debugDirection = function(trainNo) {
   console.log(`displayDirection: ${displayDir === 'up' ? '↑ 上行' : '↓ 下行'}`);
   return { trainNo, tdxDir: train.dir, from: train.from, fi, to: train.to, ti, displayDir };
 };
-// 區間快（甚至區間車）也會跳過部分小站，一樣需要通過時間估算，不能只給對號列車用
-const PASS_THRU_TYPES = new Set(['exp','exp3','puy','tze','moc','local','localx']);
+const PASS_THRU_TYPES = new Set(['exp','exp3','puy','tze','moc']);
 
 // ── 里程插值估算列車通過目標站的時間 ─────────────────
 function estimatePassTime(train, targetName) {
