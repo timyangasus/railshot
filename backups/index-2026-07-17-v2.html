@@ -2300,37 +2300,23 @@ async function ensureGTT(dateStr) {
 
   if (!API_BASE) return null;
 
-  const spinnerHtml = (msg) => `<div style="text-align:center;padding:2rem 0;color:var(--text3);">
+  document.getElementById('train-list').innerHTML =
+    `<div style="text-align:center;padding:2rem 0;color:var(--text3);">
       <svg width="40" height="40" viewBox="0 0 40 40" style="animation:spin 1s linear infinite;margin-bottom:8px;" xmlns="http://www.w3.org/2000/svg">
         <circle cx="20" cy="20" r="16" fill="none" stroke="#e0e0e0" stroke-width="4"/>
         <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="60 44" stroke-linecap="round"/>
       </svg>
-      <div style="font-size:14px;">${msg}</div>
+      <div style="font-size:14px;">載入時刻資料中...<br><span style="font-size:12px;color:var(--text3);">首次需要約 10 秒</span></div>
     </div>`;
-  document.getElementById('train-list').innerHTML = spinnerHtml('載入時刻資料中...<br><span style="font-size:12px;color:var(--text3);">首次需要約 10 秒</span>');
 
-  // 伺服器久未使用時可能還在喚醒中，第一次查詢容易卡到逾時，
-  // 但那時候伺服器通常其實已經快好了，所以逾時後自動重試一次，不用使用者自己按第二次
-  let lastErr;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const resp = await fetchWithTimeout(`${API_BASE}/api/timetable?date=${targetDate}`, {}, 20000);
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      gttData = await resp.json();
-      gttData.schemaVersion = GTT_SCHEMA_VERSION;
-      buildFrontendIndex(gttData.trains);
-      try { localStorage.setItem(key, JSON.stringify(gttData)); } catch(e) {}
-      console.log(`GTT fetched [${gttData.source}] for ${targetDate}: ${gttData.trains.length} trains`);
-      return gttData;
-    } catch(e) {
-      lastErr = e;
-      if (attempt === 0) {
-        console.log(`Timetable fetch failed (${e.message}), retrying once...`);
-        document.getElementById('train-list').innerHTML = spinnerHtml('伺服器剛喚醒，重新查詢中...');
-      }
-    }
-  }
-  throw lastErr;
+  const resp = await fetchWithTimeout(`${API_BASE}/api/timetable?date=${targetDate}`, {}, 20000);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  gttData = await resp.json();
+  gttData.schemaVersion = GTT_SCHEMA_VERSION;
+  buildFrontendIndex(gttData.trains);
+  try { localStorage.setItem(key, JSON.stringify(gttData)); } catch(e) {}
+  console.log(`GTT fetched [${gttData.source}] for ${targetDate}: ${gttData.trains.length} trains`);
+  return gttData;
 }
 
 
