@@ -331,26 +331,6 @@ app.get('/api/train-general/:no', async (req, res) => {
   }
 });
 
-// ── TEMP DEBUG：列出所有不重複的車種名稱（找特殊主題列車用，確認後會移除）
-app.get('/api/debug/train-types', async (req, res) => {
-  try {
-    const date = req.query.date || todayStr();
-    const data = await tdxFetch(
-      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainDate/${date}?$format=JSON`
-    );
-    const timetables = data.TrainTimetables || data || [];
-    const seen = {};
-    for (const tt of timetables) {
-      const info = tt.TrainInfo || {};
-      const key = `${info.TrainTypeID}|${info.TrainTypeCode}|${info.TrainTypeName?.Zh_tw}`;
-      if (!seen[key]) seen[key] = { TrainTypeID: info.TrainTypeID, TrainTypeCode: info.TrainTypeCode, TrainTypeName: info.TrainTypeName?.Zh_tw, sample: info.TrainNo };
-    }
-    res.json({ date, count: timetables.length, types: Object.values(seen) });
-  } catch(e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
 // ── 時刻表 OD（時刻表 tab 用）────────────────────────
 app.get('/api/od/:from/:to/:date', async (req, res) => {
   try {
