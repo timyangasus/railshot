@@ -1270,20 +1270,6 @@ function namedTrainBadge(no){
   if (!name) return '';
   return `<span style="font-size:11px;font-weight:700;color:white;background:linear-gradient(135deg,#8B5CF6,#EC4899);padding:2px 8px;border-radius:20px;margin-left:4px;white-space:nowrap;">✨ ${name}</span>`;
 }
-// 特殊列車不歸類在區間快/區間車這種通勤等級分類裡，分類標籤直接換成「特殊列車」
-function typeBadgeHtml(no, ti, extraStyle){
-  if (NAMED_TRAINS[no]) {
-    return `<span class="badge" style="background:linear-gradient(135deg,#8B5CF6,#EC4899);color:white;${extraStyle||''}">特殊列車</span>`;
-  }
-  return `<span class="badge ${ti.cls}"${extraStyle?` style="${extraStyle}"`:''}>${ti.label}</span>`;
-}
-// 詳細頁 banner 用的版本（原本不是走 .badge class，是自訂樣式）
-function detailTypeBadgeHtml(no, type, ti, padding){
-  if (NAMED_TRAINS[no]) {
-    return `<span style="background:linear-gradient(135deg,#8B5CF6,#EC4899);color:white;font-size:13px;padding:${padding};border-radius:20px;font-weight:500;">特殊列車</span>`;
-  }
-  return `<span style="background:${type==='tze'?'#EC802D':'rgba(255,255,255,0.15)'};color:white;font-size:13px;padding:${padding};border-radius:20px;font-weight:500;">${ti.label}</span>`;
-}
 
 // Detail page banner 漸層色（對應車種色，略深以維持白字可讀性）
 const TYPE_BANNER_GRADIENT={
@@ -2937,7 +2923,7 @@ function renderStationResults(results, stnName, liveMap) {
         </div>
       </div>
       <div class="tc-mid">
-        ${typeBadgeHtml(train.no, ti)}${namedTrainBadge(train.no)}
+        <span class="badge ${ti.cls}">${ti.label}</span>${namedTrainBadge(train.no)}
         <span class="tno">${train.no}</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
@@ -2990,7 +2976,7 @@ function renderBetweenResults(results, s1Name, s2Name, liveMap) {
     return `<div class="train-card" style="${train.suspended?'opacity:.55;':''}" onclick="openDetailByNo('${train.no}','${s1Name}','${s2Name}','${s1Time}','${s2Time}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="display:flex;align-items:center;gap:8px;">
-          ${typeBadgeHtml(train.no, ti)}${namedTrainBadge(train.no)}
+          <span class="badge ${ti.cls}">${ti.label}</span>${namedTrainBadge(train.no)}
           <span style="font-size:15px;font-weight:700;color:var(--text);">${train.no}</span>
         </div>
         ${delayStr}
@@ -3085,7 +3071,7 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
           <span style="font-size:30px;font-weight:700;color:white;letter-spacing:-1px;">${trainNo}</span>
-          ${detailTypeBadgeHtml(train.no, train.type, ti, '5px 14px')}${namedTrainBadge(train.no)}
+          <span style="background:${train.type==='tze'?'#EC802D':'rgba(255,255,255,0.15)'};color:white;font-size:13px;padding:5px 14px;border-radius:20px;font-weight:500;">${ti.label}</span>${namedTrainBadge(train.no)}
         </div>
         <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:6px;">${train.from} → ${train.to}</div>
         ${atStation ? `<div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:4px;">${atStation}站</div>` : ''}
@@ -3637,7 +3623,7 @@ function renderTTList(list, isMock) {
         </div>
       </div>
       <div class="tt-mid" style="margin-bottom:3px;">
-        ${typeBadgeHtml(t.no, ti)}${namedTrainBadge(t.no)}
+        <span class="badge ${ti.cls}">${ti.label}</span>${namedTrainBadge(t.no)}
         <span style="font-size:13px;font-weight:600;color:var(--text);">${t.no}</span>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -3719,7 +3705,7 @@ async function _openTTDetailObj(t){
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
           <span style="font-size:30px;font-weight:700;color:white;letter-spacing:-1px;">${t.no}</span>
-          ${detailTypeBadgeHtml(t.no, t.type, ti, '3px 10px')}${namedTrainBadge(t.no)}
+          <span style="background:${t.type==='tze'?'#EC802D':'rgba(255,255,255,0.15)'};color:white;font-size:13px;padding:3px 10px;border-radius:20px;font-weight:500;">${ti.label}</span>${namedTrainBadge(t.no)}
         </div>
         <div style="font-size:15px;color:rgba(255,255,255,0.65);margin-bottom:12px;">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
         <div style="display:flex;align-items:baseline;gap:8px;">
@@ -3804,7 +3790,7 @@ function renderTTFavs(){
           <span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:6px;">${t.dur}</span>
         </div>
         <div class="tt-fav-mid">
-          ${typeBadgeHtml(t.no, ti)}${namedTrainBadge(t.no)}
+          <span class="badge ${ti.cls}">${ti.label}</span>${namedTrainBadge(t.no)}
           <span style="font-size:13px;font-weight:600;color:var(--text);">${t.no}</span>
         </div>
         <div class="tt-fav-route">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
@@ -4136,7 +4122,7 @@ function renderBetweenResultsTo(elId, results, s1Name, s2Name, liveMap){
     return `<div class="train-card" style="${train.suspended?'opacity:.55;':''}" onclick="openDetailByNo('${train.no}','${s1Name}','${s2Name}','${s1Time}','${s2Time}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="display:flex;align-items:center;gap:8px;">
-          ${typeBadgeHtml(train.no, ti)}${namedTrainBadge(train.no)}
+          <span class="badge ${ti.cls}">${ti.label}</span>${namedTrainBadge(train.no)}
           <span style="font-size:15px;font-weight:700;color:var(--text);">${train.no}</span>
         </div>
         ${delayStr}
@@ -4652,7 +4638,7 @@ function renderTripTTSelectList(selectedKeys){
       </div>
       <div style="flex:1;min-width:0;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-          ${typeBadgeHtml(t.no, ti, 'font-size:11px;')}${namedTrainBadge(t.no)}
+          <span class="badge ${ti.cls}" style="font-size:11px;">${ti.label}</span>${namedTrainBadge(t.no)}
           <span style="font-size:14px;font-weight:600;color:var(--text);">${t.no}</span>
         </div>
         <div style="font-size:13px;color:var(--text2);">${t.dep} → ${t.arr} · ${(t.queryFrom||t.from)}→${(t.queryTo||t.to)}</div>
@@ -4849,7 +4835,7 @@ function openTripDetail(id){
             <span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur||''}</span>
           </div>
           <div class="tt-mid" style="margin-bottom:3px;">
-            ${typeBadgeHtml(t.no, ti)}${namedTrainBadge(t.no)}
+            <span class="badge ${ti.cls}">${ti.label}</span>${namedTrainBadge(t.no)}
             <span class="tt-no">${t.no}</span>
           </div>
         </div>
