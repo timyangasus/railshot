@@ -2506,34 +2506,6 @@ function stnKm(name) {
   return STATION_KM[alt];
 }
 
-// ── 宜蘭線／北迴線官方里程（以八堵=0，往台北方向為負、往宜蘭方向為正）──
-// 八堵是分岔點：同一站在「西部幹線」跟「宜蘭線」上的相對位置沒辦法共用
-// STATION_KM 主表的單一數字（那張表把全台鐵路攤平成一條環狀相對位置，
-// 走南迴線+台東線才會連到花蓮；但松山/樹林這類車站直接走宜蘭線到花蓮，
-// 中途完全不觸碰主表的花蓮/蘇澳新數字），所以另外開一張用真實公里數的表，
-// 只在通過站落在八堵兩側之間時介入（例如自強3000 松山→花蓮直達，通過蘇澳新）。
-// 資料來源：台鐵宜蘭線（八堵起）、北迴線（蘇澳新起）官方里程。
-const STATION_KM_YILAN = {
-  '七堵': -1.6, '百福': -3.2, '五堵': -5.0, '汐止': -7.0, '汐科': -8.5,
-  '南港': -13.0, '松山': -15.4, '臺北': -21.7, '萬華': -23.5, '板橋': -27.2,
-  '浮洲': -28.9, '樹林': -31.0,
-  '八堵': 0,
-  '暖暖': 1.6, '四腳亭': 3.8, '瑞芳': 8.9, '猴硐': 13.4, '三貂嶺': 16.0,
-  '牡丹': 19.5, '雙溪': 22.8, '貢寮': 28.2, '福隆': 32.0, '石城': 37.4,
-  '大里': 40.1, '大溪': 44.8, '龜山': 49.4, '外澳': 53.0, '頭城': 56.6,
-  '頂埔': 58.0, '礁溪': 62.9, '四城': 67.6, '宜蘭': 71.3, '二結': 77.1,
-  '中里': 78.3, '羅東': 80.1, '冬山': 85.1, '新馬': 89.3, '蘇澳新': 90.2,
-  '蘇澳': 93.6,
-  '永樂': 95.4, '東澳': 101.1, '南澳': 109.1, '武塔': 112.8,
-  '漢本': 125.7, '和平': 130.1, '和仁': 138.0, '崇德': 148.0,
-  '新城': 153.3, '景美': 158.6, '北埔': 165.1, '花蓮': 169.7,
-};
-function stnKmYilan(name) {
-  if (STATION_KM_YILAN[name] !== undefined) return STATION_KM_YILAN[name];
-  const alt = name.replace(/台/g,'臺').replace(/臺/g,'台');
-  return STATION_KM_YILAN[alt];
-}
-
 // ── 主線站序（由北往南，index 越大越南）──────────────
 const STATION_ORDER = {};
 [
@@ -2642,74 +2614,50 @@ function estimatePassTime(train, targetName) {
   // 非停靠 → 只有允許通過估算的車種才繼續
   if (!PASS_THRU_TYPES.has(train.type)) return null;
 
-  const targetYKm = stnKmYilan(targetName) ?? stnKmYilan(altName);
-
   // 依停靠站序找相鄰站對，驗證同路線且 targetKm 落在其里程之間
   for (let i = 0; i < stops.length - 1; i++) {
     const sA = stops[i].stn;
     const sB = stops[i + 1].stn;
+    const aKm = stnKm(sA);
+    const bKm = stnKm(sB);
+    if (aKm === undefined || bKm === undefined) continue;
+
+  // ── 路線驗證：前後站與目標站至少有一條共同路線 ──────
+  if (targetRoutes.length > 0) {
+    const aRoutes = stationRoutes(sA);
+    const bRoutes = stationRoutes(sB);
+    // 前後站都必須與目標站有共同路線
+    const aMatch = aRoutes.length === 0 || aRoutes.some(r => targetRoutes.includes(r));
+    const bMatch = bRoutes.length === 0 || bRoutes.some(r => targetRoutes.includes(r));
+    if (!aMatch || !bMatch) continue;
+  }
+
     const tA = stops[i].dep || stops[i].arr;
     const tB = stops[i + 1].arr || stops[i + 1].dep;
     if (!tA || !tB) continue;
-    const mA = toMins(tA);
-    const mB = toMins(tB);
-    if (mA < 0 || mB < 0) continue;
 
-    // 主表：環島相對位置（西部／南迴線／台東線）
-    const aKm = stnKm(sA);
-    const bKm = stnKm(sB);
-    if (aKm !== undefined && bKm !== undefined) {
-      // ── 路線驗證：前後站與目標站至少有一條共同路線 ──────
-      let routeOk = true;
-      if (targetRoutes.length > 0) {
-        const aRoutes = stationRoutes(sA);
-        const bRoutes = stationRoutes(sB);
-        // 前後站都必須與目標站有共同路線
-        const aMatch = aRoutes.length === 0 || aRoutes.some(r => targetRoutes.includes(r));
-        const bMatch = bRoutes.length === 0 || bRoutes.some(r => targetRoutes.includes(r));
-        routeOk = aMatch && bMatch;
-      }
-      if (routeOk) {
-        const lo = Math.min(aKm, bKm);
-        const hi = Math.max(aKm, bKm);
-        if (targetKm > lo && targetKm < hi) {
-          const ratio = Math.abs(targetKm - aKm) / Math.abs(bKm - aKm);
-          return buildPassEstimate(mA, mB, ratio, sA, aKm, tA, sB, bKm, tB);
+    const lo = Math.min(aKm, bKm);
+    const hi = Math.max(aKm, bKm);
+    if (targetKm > lo && targetKm < hi) {
+      const mA = toMins(tA);
+      const mB = toMins(tB);
+      if (mA < 0 || mB < 0) continue;
+      const ratio = Math.abs(targetKm - aKm) / Math.abs(bKm - aKm);
+      const estMins = Math.round(mA + ratio * (mB - mA));
+      const h = Math.floor(estMins / 60) % 24;
+      const m = estMins % 60;
+      const estTime = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      return {
+        time: estTime, isEst: true,
+        debug: {
+          prev: sA, prevKm: aKm, prevTime: tA,
+          next: sB, nextKm: bKm, nextTime: tB,
+          ratio: Math.round(ratio * 100) / 100,
         }
-      }
-    }
-
-    // 宜蘭線／北迴線官方里程：處理台北地區⇄花蓮直接走宜蘭線、跨越八堵分岔點的情形
-    // （八堵分岔點兩側的站在主表上互不相連，主表插不出來才會用到這裡）
-    if (targetYKm !== undefined) {
-      const aYKm = stnKmYilan(sA);
-      const bYKm = stnKmYilan(sB);
-      if (aYKm !== undefined && bYKm !== undefined) {
-        const lo = Math.min(aYKm, bYKm);
-        const hi = Math.max(aYKm, bYKm);
-        if (targetYKm > lo && targetYKm < hi) {
-          const ratio = Math.abs(targetYKm - aYKm) / Math.abs(bYKm - aYKm);
-          return buildPassEstimate(mA, mB, ratio, sA, aYKm, tA, sB, bYKm, tB);
-        }
-      }
+      };
     }
   }
   return null;
-}
-
-function buildPassEstimate(mA, mB, ratio, sA, aKm, tA, sB, bKm, tB) {
-  const estMins = Math.round(mA + ratio * (mB - mA));
-  const h = Math.floor(estMins / 60) % 24;
-  const m = estMins % 60;
-  const estTime = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-  return {
-    time: estTime, isEst: true,
-    debug: {
-      prev: sA, prevKm: aKm, prevTime: tA,
-      next: sB, nextKm: bKm, nextTime: tB,
-      ratio: Math.round(ratio * 100) / 100,
-    }
-  };
 }
 
 // ── 前端查詢核心 ──────────────────────────────────────
