@@ -1280,7 +1280,7 @@ function typeBadgeHtml(no, ti, extraStyle){
 // 詳細頁 banner 用的版本（原本不是走 .badge class，是自訂樣式）
 function detailTypeBadgeHtml(no, type, ti, padding){
   if (NAMED_TRAINS[no]) {
-    return `<span style="background:rgba(255,255,255,0.15);color:white;font-size:13px;padding:${padding};border-radius:20px;font-weight:500;">特殊列車</span>`;
+    return `<span style="background:linear-gradient(135deg,#8B5CF6,#EC4899);color:white;font-size:13px;padding:${padding};border-radius:20px;font-weight:500;">特殊列車</span>`;
   }
   return `<span style="background:${type==='tze'?'#EC802D':'rgba(255,255,255,0.15)'};color:white;font-size:13px;padding:${padding};border-radius:20px;font-weight:500;">${ti.label}</span>`;
 }
@@ -1295,8 +1295,7 @@ const TYPE_BANNER_GRADIENT={
   local:  'linear-gradient(135deg,#2438a0 0%,#3350CD 100%)',
   tze:    'linear-gradient(135deg,#4a5158 0%,#6b7280 100%)',
 };
-function getDetailBannerGradient(type, no){
-  if (no && NAMED_TRAINS[no]) return 'linear-gradient(135deg,#6D28D9 0%,#A855F7 100%)';
+function getDetailBannerGradient(type){
   return TYPE_BANNER_GRADIENT[type] || 'linear-gradient(135deg, #1a2d5a 0%, #2d4a8a 100%)';
 }
 
@@ -3080,7 +3079,7 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
 
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
     document.getElementById('det-body').innerHTML = `
-      <div style="background:${getDetailBannerGradient(train.type, train.no)};margin:-20px -16px 0;padding:20px 16px 24px;position:relative;">
+      <div style="background:${getDetailBannerGradient(train.type)};margin:-20px -16px 0;padding:20px 16px 24px;position:relative;">
         <div style="position:absolute;top:16px;right:16px;">
           <span style="background:rgba(255,255,255,0.18);color:white;font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${displayDir==='up'?'↑ 上行':'↓ 下行'}</span>
         </div>
@@ -3713,7 +3712,7 @@ async function _openTTDetailObj(t){
     const dirLabel = tDir === 'up' ? '↑ 上行' : '↓ 下行';
 
     document.getElementById('det-body').innerHTML=`
-      <div style="background:${getDetailBannerGradient(t.type, t.no)};margin:-20px -16px 0;padding:20px 16px 24px;position:relative;">
+      <div style="background:${getDetailBannerGradient(t.type)};margin:-20px -16px 0;padding:20px 16px 24px;position:relative;">
         <div style="position:absolute;top:16px;right:16px;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
           ${t.suspended ? `<span style="background:var(--red);color:white;font-size:14px;font-weight:700;padding:5px 14px;border-radius:20px;">停駛</span>` : ''}
           <span style="background:rgba(255,255,255,0.18);color:white;font-size:14px;font-weight:600;padding:5px 14px;border-radius:20px;">${dirLabel}</span>
