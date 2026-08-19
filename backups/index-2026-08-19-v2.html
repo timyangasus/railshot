@@ -1265,10 +1265,10 @@ const NAMED_TRAINS = {
   '6652': '海風號', '6655': '海風號',           // 南港↔二結，季節限定
   '1': '環島之星 萌旅號', '2': '環島之星 萌旅號', // 環島
 };
-function namedTrainBadge(no, color){
+function namedTrainBadge(no){
   const name = NAMED_TRAINS[no];
   if (!name) return '';
-  return `<span style="font-size:12px;font-weight:700;color:${color || '#8B5CF6'};margin-left:4px;white-space:nowrap;">${name}</span>`;
+  return `<span style="font-size:12px;font-weight:700;color:#8B5CF6;margin-left:4px;white-space:nowrap;">${name}</span>`;
 }
 // 特殊列車不歸類在區間快/區間車這種通勤等級分類裡，分類標籤直接換成「特殊列車」膠囊
 function typeBadgeHtml(no, ti, extraStyle){
@@ -3086,7 +3086,7 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
           <span style="font-size:30px;font-weight:700;color:white;letter-spacing:-1px;">${trainNo}</span>
-          ${detailTypeBadgeHtml(train.no, train.type, ti, '5px 14px')}${namedTrainBadge(train.no, 'white')}
+          ${detailTypeBadgeHtml(train.no, train.type, ti, '5px 14px')}${namedTrainBadge(train.no)}
         </div>
         <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:6px;">${train.from} → ${train.to}</div>
         ${atStation ? `<div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:4px;">${atStation}站</div>` : ''}
@@ -3720,7 +3720,7 @@ async function _openTTDetailObj(t){
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
           <span style="font-size:30px;font-weight:700;color:white;letter-spacing:-1px;">${t.no}</span>
-          ${detailTypeBadgeHtml(t.no, t.type, ti, '3px 10px')}${namedTrainBadge(t.no, 'white')}
+          ${detailTypeBadgeHtml(t.no, t.type, ti, '3px 10px')}${namedTrainBadge(t.no)}
         </div>
         <div style="font-size:15px;color:rgba(255,255,255,0.65);margin-bottom:12px;">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
         <div style="display:flex;align-items:baseline;gap:8px;">
