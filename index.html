@@ -660,6 +660,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <div class="rt" id="res-loc"></div>
       <div class="rc" id="res-count"></div>
     </div>
+    <div id="peak-banner"></div>
     <div id="train-list"></div>
   </div>
 </div>
@@ -731,6 +732,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <div class="rt" id="bres-loc"></div>
       <div class="rc" id="bres-count"></div>
     </div>
+    <div id="bpeak-banner"></div>
     <div id="between-list"></div>
   </div>
 </div>
@@ -2749,6 +2751,35 @@ function toMins(t) {
   const [h, m] = t.split(':').map(Number);
   return h * 60 + m;
 }
+function minsToHHMM(mins) {
+  const h = Math.floor(mins / 60) % 24, m = mins % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+// 對號列車（不含區間/區間快），拍車尖峰時段公告牌用
+const RESERVED_TYPES = ['exp3', 'puy', 'exp', 'moc', 'tze'];
+
+// 在一組對號列車通過時間（分鐘數，已排序）中，找出 120 分鐘內班次最密集的區間
+// 供拍車頁的「今日對號尖峰」公告牌使用：與目前選的時間範圍/車種篩選無關，永遠抓全天對號資料計算
+function findReservedPeak(sortedMins, windowSize = 120) {
+  if (sortedMins.length < 2) return null;
+  let best = null, left = 0;
+  for (let right = 0; right < sortedMins.length; right++) {
+    while (sortedMins[right] - sortedMins[left] > windowSize) left++;
+    const count = right - left + 1;
+    const span = sortedMins[right] - sortedMins[left];
+    if (!best || count > best.count || (count === best.count && span < best.span)) {
+      best = { start: sortedMins[left], end: sortedMins[right], count, span };
+    }
+  }
+  return best.count >= 2 ? best : null;
+}
+function peakBannerHtml(peak) {
+  if (!peak) return '';
+  return `<div style="background:var(--orange-lt);border:1px solid #ffdfb0;border-radius:var(--radius-input);padding:10px 14px;margin-bottom:10px;font-size:13px;font-weight:600;color:var(--orange);">
+    📸 今日對號尖峰 ${minsToHHMM(peak.start)}–${minsToHHMM(peak.end)}（${peak.count} 班）
+  </div>`;
+}
 
 // 單站查詢：停靠 + 通過估算（區間/區間快無停靠直接排除）
 function queryStation(stnName, nowMins, endMins, dirFilter, typeFilter) {
@@ -2922,6 +2953,7 @@ async function doSearch() {
   if (isEmpty) {
     document.getElementById('train-list').innerHTML =
       `<div class="empty-state"><div class="empty-text">請先選擇拍攝點</div></div>`;
+    document.getElementById('peak-banner').innerHTML = '';
     return;
   }
 
@@ -2935,6 +2967,7 @@ async function doSearch() {
       await ensureGTT(localDateStr(shootDate), () => { stopLoading(); stopLoading = startLoadingSpinner('train-list'); });
     } catch(e) {
       stopLoading();
+      document.getElementById('peak-banner').innerHTML = '';
       document.getElementById('train-list').innerHTML =
         `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-input);padding:14px;color:var(--red);font-size:14px;">
           ⚠️ 載入失敗：${e.message}
@@ -2963,12 +2996,18 @@ async function doSearch() {
       const results = queryBetween(s1, s2, nowMins, endMins, dv, tv);
       document.getElementById('res-count').textContent = results.length + ' 班';
       renderBetweenResults(results, s1, s2, liveMap);
+      document.getElementById('peak-banner').innerHTML = '';
       setResetBtnActive('shoot-reset-btn', !isEmpty);
     } else {
       const stn = loc.replace(/站$/, '').trim();
       const results = queryStation(stn, nowMins, endMins, dv, tv);
       document.getElementById('res-count').textContent = results.length + ' 班';
       renderStationResults(results, stn, liveMap);
+
+      // 今日對號尖峰公告牌：與目前時間範圍/車種篩選無關，永遠抓全天對號資料算
+      const reservedToday = queryStation(stn, 0, 23 * 60 + 59, dv, RESERVED_TYPES);
+      const peak = findReservedPeak(reservedToday.map(r => r.passMins).sort((a, b) => a - b));
+      document.getElementById('peak-banner').innerHTML = peakBannerHtml(peak);
 
       setResetBtnActive('shoot-reset-btn', !isEmpty);
     }
@@ -4174,10 +4213,16 @@ async function doBetweenSearch(){
     const results = queryBetween(s1, s2, nowMins, endMins, dv, tv);
     document.getElementById('bres-count').textContent = results.length + ' 班';
     renderBetweenResultsTo('between-list', results, s1, s2, liveMap);
-    
+
+    // 今日對號尖峰公告牌：與目前時間範圍/車種篩選無關，永遠抓全天對號資料算
+    const reservedToday = queryBetween(s1, s2, 0, 23 * 60 + 59, dv, RESERVED_TYPES);
+    const peak = findReservedPeak(reservedToday.map(r => r.s1Mins).sort((a, b) => a - b));
+    document.getElementById('bpeak-banner').innerHTML = peakBannerHtml(peak);
+
     setResetBtnActive('shoot-reset-btn', true);
   } catch(e) {
     stopLoading();
+    document.getElementById('bpeak-banner').innerHTML = '';
     document.getElementById('between-list').innerHTML =
       `<div style="background:var(--red-lt);border:1px solid #ffcccc;border-radius:var(--radius-input);padding:14px;color:var(--red);font-size:14px;">⚠️ 載入失敗：${e.message}</div>`;
   }
