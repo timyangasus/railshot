@@ -1270,7 +1270,7 @@ const NAMED_TRAINS = {
   '6632': { name: '山嵐號', note: '2026 夏季限定，8/23 結束' },      // 彰化↔台南
   '6676': { name: '山嵐號', note: '2026/9/4-12/27 限定日期行駛' },
   '6677': { name: '山嵐號', note: '2026/9/4-12/27 限定日期行駛' },  // 花蓮↔池上（花東縱谷線）
-  '6725': { name: '寶可夢列車', note: '10/3·10/18·10/31·11/14·11/29·12/5限定' }, // 台北→新左營，新光三越×寶可夢30週年特別班
+  '6725': { name: '寶可夢列車' }, // 台北→新左營，新光三越×寶可夢30週年特別班，行駛日太長改看詳細頁的「行駛日」說明，不塞在這裡的 note 擠版面
 };
 function namedTrainBadge(no, color){
   const info = NAMED_TRAINS[no];
@@ -3793,8 +3793,15 @@ async function openTTDetailObj(t){
 // Note 原文常混雜跟行駛日無關的售票規則（例如「本列車不發售無座票...」），這種句子過濾掉不顯示
 function dailyFlagHtml(t){
   if (t.dailyFlag || !t.note) return '';
-  const cleaned = t.note.split('。').map(s => s.trim()).filter(s => s && !s.includes('車票')).join('。');
+  let cleaned = t.note.split('。').map(s => s.trim()).filter(s => s && !s.includes('車票')).join('。');
   if (!cleaned) return '';
+  // 台鐵原文常每段日期前都重複一次「民國115年」，只留第一次，其餘拿掉
+  let seenEra = false;
+  cleaned = cleaned.replace(/民國\d+年/g, m => {
+    if (seenEra) return '';
+    seenEra = true;
+    return m;
+  });
   return `<div style="font-size:12px;font-weight:600;color:white;background:rgba(255,255,255,0.18);padding:6px 10px;border-radius:10px;margin-top:8px;line-height:1.5;">${cleaned}。</div>`;
 }
 
