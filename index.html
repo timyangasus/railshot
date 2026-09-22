@@ -493,6 +493,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 /* Frequent station chips in picker */
 .sp-freq-chip{display:inline-flex;align-items:center;background:var(--bg);border:1.5px solid rgba(26,37,64,0.25);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;margin-right:8px;white-space:nowrap;transition:background .12s;}
 .sp-freq-chip:active{background:var(--accent);color:white;}
+.sp-freq-chip-on{background:var(--accent);border-color:var(--accent);color:white;}
 #trip-name-input::placeholder, #trip-note-input::placeholder{color:rgba(26,37,64,0.4);}
 
 /* ── ANIMATIONS ── */
@@ -3803,6 +3804,12 @@ function dailyFlagHtml(t){
   return `<div style="font-size:12px;font-weight:600;color:white;background:rgba(255,255,255,0.18);padding:6px 10px;border-radius:10px;margin-top:8px;line-height:1.5;">${cleaned}。</div>`;
 }
 
+// 查車次找不到查詢當天的資料，改用伺服器手邊現成快取的其他日期當參考時顯示的提示
+function refDateNoteHtml(t){
+  if (!t.refDateNote) return '';
+  return `<div style="font-size:12px;font-weight:600;color:white;background:rgba(255,255,255,0.28);padding:6px 10px;border-radius:10px;margin-top:8px;line-height:1.5;">ℹ️ ${t.refDateNote}</div>`;
+}
+
 async function _openTTDetailObj(t){
   const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
   document.getElementById('detail-page').classList.add('open');
@@ -3857,6 +3864,7 @@ async function _openTTDetailObj(t){
           ${!t.suspended && t.delay > 0 ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:white;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:20px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M12 2L1 21h22L12 2zm-1 7h2v6h-2V9zm0 8h2v2h-2v-2z"/></svg>+${t.delay}分</span>` : ''}
         </div>
         <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.7);margin-top:5px;">行駛時間：${t.dur}</div>
+        ${refDateNoteHtml(t)}
         ${dailyFlagHtml(t)}
       </div>
       ${stops.length?`<div style="margin-top:16px;" class="sec">停靠站時刻</div><div class="stop-list">${stopsHtml}</div>`:''}`;
@@ -4647,7 +4655,29 @@ async function searchTrainNo(){
       } catch(e) {}
     }
 
-    if(err){ err.style.color = 'var(--red)'; err.textContent=`找不到車次 ${no}`; err.style.display='block'; }
+    // 一般時刻表也沒有 → 可能是海風號/山嵐號/寶可夢列車這種只在特定幾天開的包車，
+    // 這種車次根本不在 GeneralTrainTimetable 裡。掃一下伺服器手邊現成快取的其他日期，
+    // 剛好命中就直接秀出來當參考（不額外打 TDX，找不到也不影響最終的錯誤訊息）。
+    if(API_BASE){
+      try {
+        const resp = await fetchWithTimeout(`${API_BASE}/api/train-anydate/${no}`, {}, 8000);
+        if(resp.ok){
+          const found = await resp.json();
+          closeTrainSearch();
+          openGeneralTrainDetail(found, { refDate: found.date });
+          return;
+        }
+      } catch(e) {}
+    }
+
+    const namedInfo = NAMED_TRAINS[no];
+    if(err){
+      err.style.color = 'var(--red)';
+      err.textContent = namedInfo
+        ? `「${namedInfo.name}」只在特定日期行駛，請換一天再查詢`
+        : `找不到車次 ${no}`;
+      err.style.display='block';
+    }
   } catch(e) {
     stopLoading();
     if(err){ err.style.color = 'var(--red)'; err.textContent = `⚠️ 查詢失敗：${e.message}`; err.style.display = 'block'; }
@@ -4662,7 +4692,8 @@ async function searchTrainNo(){
 }
 
 // 查無當天資料，改顯示一般時刻表（不含即時誤點/停駛，僅供確認車次本身是否存在、基本班表、行駛日）
-function openGeneralTrainDetail(g){
+// opts.refDate：資料其實是從別的日期（伺服器手邊現成快取）抓來的參考班表，不是查詢當天的
+function openGeneralTrainDetail(g, opts){
   const stops = g.stops || [];
   const dep = stops[0]?.dep || stops[0]?.arr || '';
   const arr = stops[stops.length-1]?.arr || stops[stops.length-1]?.dep || '';
@@ -4671,6 +4702,7 @@ function openGeneralTrainDetail(g){
     no: g.no, type: g.type, dir: g.dir, from: g.from, to: g.to,
     dep, arr, dur: calcDurStr(dep, arr), delay: 0,
     dailyFlag: g.dailyFlag, note: g.note,
+    refDateNote: opts?.refDate ? `以下是 ${opts.refDate} 的參考班表，並非查詢日期，實際行駛日請看下方說明` : '',
     stops: stops.map(s => ({ s: s.stn, dep: s.dep || s.arr, late: 0, mj: MAJOR.has(s.stn) })),
   });
 }

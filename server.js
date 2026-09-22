@@ -331,6 +331,20 @@ app.get('/api/train-general/:no', async (req, res) => {
   }
 });
 
+// ── 列車詳細（掃描目前記憶體裡已快取的其他日期）─────────
+// GeneralTrainTimetable 只涵蓋「常態」車次，海風號/山嵐號/寶可夢列車這種只在特定幾天開
+// 的包車完全不在裡面，兩層都查不到時，最後掃一下伺服器手邊現成快取的日期（不額外打 TDX），
+// 剛好命中就回傳當作參考班表，讓查車次的人至少能看出「這是真的車次、只是今天沒開」。
+app.get('/api/train-anydate/:no', (req, res) => {
+  const no = req.params.no;
+  const dates = Object.keys(gttCacheMap).sort();
+  for (const date of dates) {
+    const train = gttCacheMap[date].trainIndex[no];
+    if (train) return res.json({ ...train, date, source: gttCacheMap[date].source });
+  }
+  res.status(404).json({ error: 'Train not found in any cached date' });
+});
+
 // ── 時刻表 OD（時刻表 tab 用）────────────────────────
 app.get('/api/od/:from/:to/:date', async (req, res) => {
   try {
