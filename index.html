@@ -494,6 +494,24 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .sp-freq-chip{display:inline-flex;align-items:center;background:var(--bg);border:1.5px solid rgba(26,37,64,0.25);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;margin-right:8px;white-space:nowrap;transition:background .12s;}
 .sp-freq-chip:active{background:var(--accent);color:white;}
 .sp-freq-chip-on{background:var(--accent);border-color:var(--accent);color:white;}
+
+/* 日誌 */
+.jr-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.jr-cal-wd{text-align:center;font-size:12px;font-weight:600;color:var(--text3);padding:6px 0;}
+.jr-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-radius:8px;}
+.jr-day:active{background:var(--bg3);}
+.jr-day-num{font-size:14px;font-weight:600;color:var(--text);}
+.jr-today .jr-day-num{color:var(--accent);font-weight:800;}
+.jr-day-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);}
+.jr-entry-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-input);padding:14px;margin-bottom:10px;cursor:pointer;}
+.jr-entry-date{font-size:12px;font-weight:600;color:var(--text3);margin-bottom:4px;}
+.jr-entry-text{font-size:14px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word;}
+.jr-thumb-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.jr-thumb{width:60px;height:60px;border-radius:8px;object-fit:cover;background:var(--bg3);flex-shrink:0;}
+.jr-photo-item{position:relative;width:74px;height:74px;flex-shrink:0;}
+.jr-photo-item img{width:100%;height:100%;object-fit:cover;border-radius:8px;background:var(--bg3);display:block;}
+.jr-photo-del{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:var(--red);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+.jr-photo-share{position:absolute;bottom:2px;right:2px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.55);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 #trip-name-input::placeholder, #trip-note-input::placeholder{color:rgba(26,37,64,0.4);}
 
 /* ── ANIMATIONS ── */
@@ -779,10 +797,89 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   </div>
 </div>
 
-<!-- TAB 4: 設定 -->
+<!-- TAB 5: 日誌 -->
+<div class="screen" id="tab-journal">
+<div class="sc">
+  <div id="jr-install-hint" style="display:none;background:var(--orange-lt);border:1px solid #ffdfb0;border-radius:var(--radius-input);padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--orange);line-height:1.5;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+      <div>📌 建議把 railshot「加入主畫面」再用日誌功能——照片存在裝置本機，加到主畫面比較不會被系統自動清除。</div>
+      <div onclick="jrDismissInstallHint()" style="flex-shrink:0;cursor:pointer;font-weight:700;">✕</div>
+    </div>
+  </div>
 
+  <div class="tt-form" style="padding:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div onclick="jrChangeMonth(-1)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:20px;">‹</div>
+      <div id="jr-month-label" style="font-size:17px;font-weight:700;color:var(--text);"></div>
+      <div onclick="jrChangeMonth(1)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:20px;">›</div>
+    </div>
+    <div class="jr-cal-grid" style="margin-bottom:4px;">
+      <div class="jr-cal-wd">一</div><div class="jr-cal-wd">二</div><div class="jr-cal-wd">三</div>
+      <div class="jr-cal-wd">四</div><div class="jr-cal-wd">五</div><div class="jr-cal-wd">六</div><div class="jr-cal-wd">日</div>
+    </div>
+    <div id="jr-cal-grid" class="jr-cal-grid"></div>
+  </div>
+
+  <div class="sec" style="margin:16px 0 8px;">所有紀錄</div>
+  <div id="jr-entries-list"></div>
+</div>
+</div>
 
 </div><!-- /page-container -->
+
+<!-- SHEET: 日誌當天紀錄列表 -->
+<div class="sheet-ov" id="journal-day-sheet" onclick="closeOv(event,'journal-day-sheet')">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-hdr">
+      <div class="sh-title" id="jr-day-sheet-title"></div>
+      <div class="sh-close" onclick="closeSheet('journal-day-sheet')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+      </div>
+    </div>
+    <div class="sh-body">
+      <input type="hidden" id="jr-day-date"/>
+      <div id="jr-day-entries" style="margin-bottom:14px;"></div>
+      <button onclick="jrOpenEntryEditor(document.getElementById('jr-day-date').value, null)" style="width:100%;background:var(--accent);color:white;border:none;border-radius:var(--radius-input);padding:15px;font-size:15px;font-weight:700;cursor:pointer;">+ 新增紀錄</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHEET: 新增/編輯日誌紀錄 -->
+<div class="sheet-ov" id="journal-entry-sheet" onclick="jrEntrySheetOvClick(event)">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-hdr">
+      <div class="sh-title" id="jr-entry-sheet-title">新增紀錄</div>
+      <div class="sh-close" onclick="closeSheet('journal-entry-sheet')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+      </div>
+    </div>
+    <div class="sh-body">
+      <input type="hidden" id="jr-edit-id"/>
+      <input type="hidden" id="jr-edit-date"/>
+      <div style="margin-bottom:14px;">
+        <div class="sec" style="margin-bottom:6px;">時間</div>
+        <input type="time" id="jr-time-input"
+          style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:14px;font-size:16px;color:var(--text);font-family:inherit;outline:none;"/>
+      </div>
+      <div style="margin-bottom:14px;">
+        <div class="sec" style="margin-bottom:6px;">紀錄內容</div>
+        <textarea id="jr-text-input" rows="4" placeholder="例如：台南站看到自強3000通過"
+          style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:14px;font-size:15px;color:var(--text);font-family:inherit;outline:none;resize:vertical;"></textarea>
+      </div>
+      <div style="margin-bottom:18px;">
+        <div class="sec" style="margin-bottom:8px;">照片（只存在這支裝置，不會上傳）</div>
+        <div id="jr-photo-grid" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;"></div>
+        <input type="file" id="jr-photo-input" accept="image/*" multiple style="display:none;" onchange="jrHandlePhotoPick(event)"/>
+        <button onclick="document.getElementById('jr-photo-input').click()"
+          style="background:var(--bg3);color:var(--text2);border:1.5px dashed var(--border2);border-radius:var(--radius-input);padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;">+ 新增照片</button>
+      </div>
+      <button onclick="jrSaveEntry()" style="width:100%;background:var(--accent);color:white;border:none;border-radius:var(--radius-input);padding:16px;font-size:16px;font-weight:700;cursor:pointer;">儲存</button>
+      <button id="jr-delete-btn" onclick="jrDeleteEntry()" style="display:none;width:100%;margin-top:8px;background:var(--red-lt);color:var(--red);border:none;border-radius:var(--radius-input);padding:14px;font-size:15px;font-weight:600;cursor:pointer;">刪除這筆紀錄</button>
+    </div>
+  </div>
+</div>
 
 <!-- TAB BAR -->
 <div class="alert-ov" id="confirm-ov">
@@ -815,6 +912,11 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   <div class="tab-item" onclick="switchTab('fav',this)" id="tbtn-fav">
     <svg class="tab-icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Zm0-108q96-86 158-147.5t98-107q36-45.5 50-81t14-70.5q0-60-40-100t-100-40q-47 0-87 26.5T518-680h-76q-15-41-55-67.5T300-774q-60 0-100 40t-40 100q0 35 14 70.5t50 81q36 45.5 98 107T480-228Zm0-273Z"/></svg>
     <div class="tab-label">收藏</div>
+    <div class="tab-active-bar"></div>
+  </div>
+  <div class="tab-item" onclick="switchTab('journal',this)" id="tbtn-journal">
+    <svg class="tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <div class="tab-label">日誌</div>
     <div class="tab-active-bar"></div>
   </div>
 </div>
@@ -1408,7 +1510,7 @@ function updateBell(){const b=document.getElementById('bell-badge');if(b)b.style
 
 // ===== TABS =====
 function switchTab(name,el){
-  const TAB_TITLES = { tt: '時刻表', single: '單點', between: '區間', fav: '收藏' };
+  const TAB_TITLES = { tt: '時刻表', single: '單點', between: '區間', fav: '收藏', journal: '日誌' };
   const titleEl = document.getElementById('header-title');
   if(titleEl) titleEl.textContent = TAB_TITLES[name] || '';
 
@@ -1444,6 +1546,11 @@ function switchTab(name,el){
     renderTTFavs();
     renderTripList();
     if(document.getElementById('fav-stn-panel')?.classList.contains('visible')) favStnRenderStns();
+  }
+  if(name==='journal'){
+    jrInitCalendar();
+    jrMaybeShowInstallHint();
+    try { navigator.storage?.persist?.(); } catch(e) {}
   }
 
   // reset 按鈕切換
@@ -5059,6 +5166,295 @@ function showToast(msg){
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(()=> el.classList.remove('show'), 1800);
 }
+// ===== 日誌（拍車紀錄，照片只存本機 IndexedDB，不上傳） =====
+function jrEsc(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let journalEntries = JSON.parse(localStorage.getItem('rs_journal') || '[]');
+function saveJournalEntries(){ localStorage.setItem('rs_journal', JSON.stringify(journalEntries)); }
+
+// ── 照片本機儲存（IndexedDB）────────────────────────────
+let jrDBPromise = null;
+function jrOpenDB(){
+  if (jrDBPromise) return jrDBPromise;
+  jrDBPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open('railshot_journal', 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore('photos', { keyPath: 'id' }); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return jrDBPromise;
+}
+function jrSavePhotoBlob(id, blob){
+  return jrOpenDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction('photos', 'readwrite');
+    tx.objectStore('photos').put({ id, blob });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+function jrGetPhotoBlob(id){
+  return jrOpenDB().then(db => new Promise((resolve, reject) => {
+    const req = db.transaction('photos', 'readonly').objectStore('photos').get(id);
+    req.onsuccess = () => resolve(req.result?.blob || null);
+    req.onerror = () => reject(req.error);
+  }));
+}
+function jrDeletePhotoBlob(id){
+  return jrOpenDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction('photos', 'readwrite');
+    tx.objectStore('photos').delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+// 存進 IndexedDB 前先壓縮：長邊壓到 1000px、JPEG 70% 品質，
+// 存的是縮圖等級的預覽，不是手機相簿裡的原圖，容量小很多、真正遺失時損失也小很多
+function jrCompressImage(file, maxDim = 1000, quality = 0.7){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width >= height) { height = Math.round(height * maxDim / width); width = maxDim; }
+        else { width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('壓縮失敗')), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('圖片讀取失敗')); };
+    img.src = url;
+  });
+}
+
+// ── 加到主畫面提示 ───────────────────────────────────
+function jrMaybeShowInstallHint(){
+  const hint = document.getElementById('jr-install-hint');
+  if (!hint) return;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const dismissed = localStorage.getItem('rs_journal_hint_dismissed') === '1';
+  hint.style.display = (!isStandalone && !dismissed) ? 'block' : 'none';
+}
+function jrDismissInstallHint(){
+  localStorage.setItem('rs_journal_hint_dismissed', '1');
+  jrMaybeShowInstallHint();
+}
+
+// ── 月曆 ─────────────────────────────────────────────
+let jrViewYear, jrViewMonth; // jrViewMonth: 0-indexed
+function jrInitCalendar(){
+  if (jrViewYear === undefined) {
+    const now = new Date();
+    jrViewYear = now.getFullYear();
+    jrViewMonth = now.getMonth();
+  }
+  jrRenderCalendar();
+  jrRenderEntryList();
+}
+function jrChangeMonth(delta){
+  jrViewMonth += delta;
+  if (jrViewMonth < 0) { jrViewMonth = 11; jrViewYear--; }
+  else if (jrViewMonth > 11) { jrViewMonth = 0; jrViewYear++; }
+  jrRenderCalendar();
+}
+function jrEntriesOnDate(dateStr){ return journalEntries.filter(e => e.date === dateStr); }
+function jrRenderCalendar(){
+  const label = document.getElementById('jr-month-label');
+  if (label) label.textContent = `${jrViewYear} 年 ${jrViewMonth + 1} 月`;
+  const first = new Date(jrViewYear, jrViewMonth, 1);
+  const startWeekday = (first.getDay() + 6) % 7; // 週一=0
+  const daysInMonth = new Date(jrViewYear, jrViewMonth + 1, 0).getDate();
+  const todayStr = localDateStr();
+  let html = '';
+  for (let i = 0; i < startWeekday; i++) html += `<div></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${jrViewYear}-${String(jrViewMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const has = jrEntriesOnDate(dateStr).length > 0;
+    html += `<div class="jr-day${dateStr===todayStr?' jr-today':''}" onclick="jrOpenDay('${dateStr}')">
+      <div class="jr-day-num">${d}</div>
+      ${has ? '<div class="jr-day-dot"></div>' : ''}
+    </div>`;
+  }
+  const grid = document.getElementById('jr-cal-grid');
+  if (grid) grid.innerHTML = html;
+}
+
+const JR_WEEKDAY_ZH = ['日','一','二','三','四','五','六'];
+function jrDateLabel(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${dateStr}（週${JR_WEEKDAY_ZH[d.getDay()]}）`;
+}
+
+// ── 當天紀錄列表(sheet) ───────────────────────────────
+function jrOpenDay(dateStr){
+  document.getElementById('jr-day-date').value = dateStr;
+  document.getElementById('jr-day-sheet-title').textContent = jrDateLabel(dateStr);
+  jrRenderDayEntries(dateStr);
+  openSheet('journal-day-sheet');
+}
+function jrRenderDayEntries(dateStr){
+  const el = document.getElementById('jr-day-entries');
+  if (!el) return;
+  const entries = jrEntriesOnDate(dateStr).sort((a,b) => a.time.localeCompare(b.time));
+  if (!entries.length) {
+    el.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:8px 0 4px;">這天還沒有紀錄</div>`;
+    return;
+  }
+  el.innerHTML = entries.map(e => `
+    <div class="jr-entry-card" onclick="jrOpenEntryEditor('${e.date}','${e.id}')">
+      <div class="jr-entry-date">${e.time}</div>
+      <div class="jr-entry-text">${jrEsc(e.text)}</div>
+      ${e.photoIds?.length ? `<div class="jr-thumb-row" id="jr-thumbs-day-${e.id}"></div>` : ''}
+    </div>
+  `).join('');
+  entries.forEach(e => (e.photoIds||[]).forEach(pid => jrRenderThumb(`jr-thumbs-day-${e.id}`, pid)));
+}
+
+// ── 所有紀錄列表(主頁) ──────────────────────────────────
+function jrRenderEntryList(){
+  const el = document.getElementById('jr-entries-list');
+  if (!el) return;
+  if (!journalEntries.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-text">尚無紀錄，點月曆上的日期開始記錄</div></div>`;
+    return;
+  }
+  const sorted = [...journalEntries].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+  el.innerHTML = sorted.map(e => `
+    <div class="jr-entry-card" onclick="jrOpenEntryEditor('${e.date}','${e.id}')">
+      <div class="jr-entry-date">${jrDateLabel(e.date)} ${e.time}</div>
+      <div class="jr-entry-text">${jrEsc(e.text)}</div>
+      ${e.photoIds?.length ? `<div class="jr-thumb-row" id="jr-thumbs-list-${e.id}"></div>` : ''}
+    </div>
+  `).join('');
+  sorted.forEach(e => (e.photoIds||[]).forEach(pid => jrRenderThumb(`jr-thumbs-list-${e.id}`, pid)));
+}
+function jrRenderThumb(containerId, photoId){
+  jrGetPhotoBlob(photoId).then(blob => {
+    if (!blob) return;
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const img = document.createElement('img');
+    img.className = 'jr-thumb';
+    img.src = URL.createObjectURL(blob);
+    container.appendChild(img);
+  }).catch(()=>{});
+}
+
+// ── 新增/編輯紀錄 ────────────────────────────────────
+let jrEditingPhotos = []; // [{id, isNew, blob?}] 編輯中尚未存檔的照片清單
+function jrOpenEntryEditor(dateStr, entryId){
+  closeSheet('journal-day-sheet');
+  const entry = entryId ? journalEntries.find(e => e.id === entryId) : null;
+  document.getElementById('jr-edit-id').value = entryId || '';
+  document.getElementById('jr-edit-date').value = dateStr;
+  document.getElementById('jr-entry-sheet-title').textContent = entry ? '編輯紀錄' : '新增紀錄';
+  document.getElementById('jr-time-input').value = entry ? entry.time : `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`;
+  document.getElementById('jr-text-input').value = entry ? entry.text : '';
+  document.getElementById('jr-delete-btn').style.display = entry ? 'block' : 'none';
+  jrEditingPhotos = (entry?.photoIds || []).map(id => ({ id, isNew: false }));
+  jrRenderPhotoGrid();
+  openSheet('journal-entry-sheet');
+}
+function jrEntrySheetOvClick(e){
+  if (e.target === document.getElementById('journal-entry-sheet')) closeSheet('journal-entry-sheet');
+}
+function jrRenderPhotoGrid(){
+  const el = document.getElementById('jr-photo-grid');
+  if (!el) return;
+  el.innerHTML = jrEditingPhotos.map((p, idx) => `<div class="jr-photo-item" id="jr-pitem-${idx}"></div>`).join('');
+  jrEditingPhotos.forEach((p, idx) => {
+    const container = document.getElementById(`jr-pitem-${idx}`);
+    if (!container) return;
+    const render = (blob, url) => {
+      container.dataset.blobUrl = url;
+      container.innerHTML = `<img src="${url}"/>
+        <div class="jr-photo-del" onclick="event.stopPropagation();jrRemovePhoto(${idx})">✕</div>
+        <div class="jr-photo-share" onclick="event.stopPropagation();jrSharePhoto(${idx})" title="備份到手機相簿">⇪</div>`;
+    };
+    if (p.isNew) render(p.blob, URL.createObjectURL(p.blob));
+    else jrGetPhotoBlob(p.id).then(blob => { if (blob) render(blob, URL.createObjectURL(blob)); }).catch(()=>{});
+  });
+}
+// 把單張照片備份出去（分享/存回相簿），當作 IndexedDB 萬一被系統清掉時的保險
+async function jrSharePhoto(idx){
+  const p = jrEditingPhotos[idx];
+  if (!p) return;
+  const blob = p.isNew ? p.blob : await jrGetPhotoBlob(p.id).catch(()=>null);
+  if (!blob) { showToast('讀取照片失敗'); return; }
+  const file = new File([blob], `railshot-journal-${Date.now()}.jpg`, { type: 'image/jpeg' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; } catch(e) { /* 使用者取消也會走到這，忽略 */ }
+  } else {
+    // 不支援分享 API 的瀏覽器：開新分頁顯示圖片，長按即可存到相簿
+    window.open(URL.createObjectURL(blob), '_blank');
+  }
+}
+async function jrHandlePhotoPick(event){
+  const files = Array.from(event.target.files || []);
+  event.target.value = '';
+  for (const file of files) {
+    try {
+      const blob = await jrCompressImage(file);
+      jrEditingPhotos.push({ id: 'jrp_' + Date.now() + '_' + Math.random().toString(36).slice(2,8), isNew: true, blob });
+    } catch(e) { console.log('壓縮照片失敗', e); }
+  }
+  jrRenderPhotoGrid();
+}
+function jrRemovePhoto(idx){
+  jrEditingPhotos.splice(idx, 1);
+  jrRenderPhotoGrid();
+}
+async function jrSaveEntry(){
+  const id = document.getElementById('jr-edit-id').value;
+  const date = document.getElementById('jr-edit-date').value;
+  const time = document.getElementById('jr-time-input').value || '00:00';
+  const text = document.getElementById('jr-text-input').value.trim();
+  if (!text && !jrEditingPhotos.length) { showToast('請輸入內容或加張照片'); return; }
+
+  // 把新加入的照片存進 IndexedDB
+  for (const p of jrEditingPhotos) {
+    if (p.isNew) { await jrSavePhotoBlob(p.id, p.blob); }
+  }
+  // 刪掉這次編輯中被移除的舊照片
+  if (id) {
+    const old = journalEntries.find(e => e.id === id);
+    const keptIds = new Set(jrEditingPhotos.map(p => p.id));
+    for (const oldId of (old?.photoIds || [])) {
+      if (!keptIds.has(oldId)) jrDeletePhotoBlob(oldId).catch(()=>{});
+    }
+  }
+
+  const photoIds = jrEditingPhotos.map(p => p.id);
+  if (id) {
+    const entry = journalEntries.find(e => e.id === id);
+    if (entry) { entry.time = time; entry.text = text; entry.photoIds = photoIds; }
+  } else {
+    journalEntries.push({ id: 'jr_' + Date.now() + '_' + Math.random().toString(36).slice(2,8), date, time, text, photoIds, createdAt: Date.now() });
+  }
+  saveJournalEntries();
+  closeSheet('journal-entry-sheet');
+  jrRenderCalendar();
+  jrRenderEntryList();
+  showToast('已儲存');
+}
+function jrDeleteEntry(){
+  const id = document.getElementById('jr-edit-id').value;
+  if (!id) return;
+  const entry = journalEntries.find(e => e.id === id);
+  (entry?.photoIds || []).forEach(pid => jrDeletePhotoBlob(pid).catch(()=>{}));
+  journalEntries = journalEntries.filter(e => e.id !== id);
+  saveJournalEntries();
+  closeSheet('journal-entry-sheet');
+  jrRenderCalendar();
+  jrRenderEntryList();
+  showToast('已刪除');
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
 }
