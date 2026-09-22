@@ -800,13 +800,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <!-- TAB 5: 日誌 -->
 <div class="screen" id="tab-journal">
 <div class="sc">
-  <div id="jr-install-hint" style="display:none;background:var(--orange-lt);border:1px solid #ffdfb0;border-radius:var(--radius-input);padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--orange);line-height:1.5;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-      <div>📌 建議把 railshot「加入主畫面」再用日誌功能——照片存在裝置本機，加到主畫面比較不會被系統自動清除。</div>
-      <div onclick="jrDismissInstallHint()" style="flex-shrink:0;cursor:pointer;font-weight:700;">✕</div>
-    </div>
-  </div>
-
   <div class="tt-form" style="padding:14px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div onclick="jrChangeMonth(-1)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:20px;">‹</div>
@@ -858,22 +851,16 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div class="sh-body">
       <input type="hidden" id="jr-edit-id"/>
       <input type="hidden" id="jr-edit-date"/>
-      <div style="margin-bottom:14px;">
-        <div class="sec" style="margin-bottom:6px;">時間</div>
-        <input type="time" id="jr-time-input"
-          style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:14px;font-size:16px;color:var(--text);font-family:inherit;outline:none;"/>
-      </div>
-      <div style="margin-bottom:14px;">
-        <div class="sec" style="margin-bottom:6px;">紀錄內容</div>
-        <textarea id="jr-text-input" rows="4" placeholder="例如：台南站看到自強3000通過"
-          style="width:100%;box-sizing:border-box;background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:14px;font-size:15px;color:var(--text);font-family:inherit;outline:none;resize:vertical;"></textarea>
-      </div>
-      <div style="margin-bottom:18px;">
-        <div class="sec" style="margin-bottom:8px;">照片（只存在這支裝置，不會上傳）</div>
-        <div id="jr-photo-grid" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;"></div>
+      <input type="hidden" id="jr-edit-time"/>
+      <div id="jr-time-label" style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px;"></div>
+      <!-- 貼文式輸入框：文字＋照片都在同一個框裡，像部落格貼文 -->
+      <div style="background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:14px;margin-bottom:18px;">
+        <textarea id="jr-text-input" rows="9" placeholder="例如：台南站看到自強3000通過"
+          style="width:100%;box-sizing:border-box;background:transparent;border:none;padding:0;font-size:15px;color:var(--text);font-family:inherit;outline:none;resize:vertical;display:block;"></textarea>
+        <div id="jr-photo-grid" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"></div>
         <input type="file" id="jr-photo-input" accept="image/*" multiple style="display:none;" onchange="jrHandlePhotoPick(event)"/>
         <button onclick="document.getElementById('jr-photo-input').click()"
-          style="background:var(--bg3);color:var(--text2);border:1.5px dashed var(--border2);border-radius:var(--radius-input);padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;">+ 新增照片</button>
+          style="margin-top:10px;background:white;color:var(--text2);border:1.5px dashed var(--border2);border-radius:var(--radius-input);padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;">📷 加照片（只存在這支裝置，不會上傳）</button>
       </div>
       <button onclick="jrSaveEntry()" style="width:100%;background:var(--accent);color:white;border:none;border-radius:var(--radius-input);padding:16px;font-size:16px;font-weight:700;cursor:pointer;">儲存</button>
       <button id="jr-delete-btn" onclick="jrDeleteEntry()" style="display:none;width:100%;margin-top:8px;background:var(--red-lt);color:var(--red);border:none;border-radius:var(--radius-input);padding:14px;font-size:15px;font-weight:600;cursor:pointer;">刪除這筆紀錄</button>
@@ -1549,7 +1536,6 @@ function switchTab(name,el){
   }
   if(name==='journal'){
     jrInitCalendar();
-    jrMaybeShowInstallHint();
     try { navigator.storage?.persist?.(); } catch(e) {}
   }
 
@@ -5232,19 +5218,6 @@ function jrCompressImage(file, maxDim = 1000, quality = 0.7){
   });
 }
 
-// ── 加到主畫面提示 ───────────────────────────────────
-function jrMaybeShowInstallHint(){
-  const hint = document.getElementById('jr-install-hint');
-  if (!hint) return;
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  const dismissed = localStorage.getItem('rs_journal_hint_dismissed') === '1';
-  hint.style.display = (!isStandalone && !dismissed) ? 'block' : 'none';
-}
-function jrDismissInstallHint(){
-  localStorage.setItem('rs_journal_hint_dismissed', '1');
-  jrMaybeShowInstallHint();
-}
-
 // ── 月曆 ─────────────────────────────────────────────
 let jrViewYear, jrViewMonth; // jrViewMonth: 0-indexed
 function jrInitCalendar(){
@@ -5350,10 +5323,13 @@ let jrEditingPhotos = []; // [{id, isNew, blob?}] 編輯中尚未存檔的照片
 function jrOpenEntryEditor(dateStr, entryId){
   closeSheet('journal-day-sheet');
   const entry = entryId ? journalEntries.find(e => e.id === entryId) : null;
+  // 時間一律用「建立當下」的時間，不給手動改，每筆紀錄自然就是它被寫下的那一刻
+  const time = entry ? entry.time : `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`;
   document.getElementById('jr-edit-id').value = entryId || '';
   document.getElementById('jr-edit-date').value = dateStr;
+  document.getElementById('jr-edit-time').value = time;
+  document.getElementById('jr-time-label').textContent = `建立時間 ${time}`;
   document.getElementById('jr-entry-sheet-title').textContent = entry ? '編輯紀錄' : '新增紀錄';
-  document.getElementById('jr-time-input').value = entry ? entry.time : `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`;
   document.getElementById('jr-text-input').value = entry ? entry.text : '';
   document.getElementById('jr-delete-btn').style.display = entry ? 'block' : 'none';
   jrEditingPhotos = (entry?.photoIds || []).map(id => ({ id, isNew: false }));
@@ -5412,7 +5388,7 @@ function jrRemovePhoto(idx){
 async function jrSaveEntry(){
   const id = document.getElementById('jr-edit-id').value;
   const date = document.getElementById('jr-edit-date').value;
-  const time = document.getElementById('jr-time-input').value || '00:00';
+  const time = document.getElementById('jr-edit-time').value || '00:00';
   const text = document.getElementById('jr-text-input').value.trim();
   if (!text && !jrEditingPhotos.length) { showToast('請輸入內容或加張照片'); return; }
 
