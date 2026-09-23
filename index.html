@@ -522,7 +522,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .jr-card2-thumb{flex-shrink:0;width:76px;height:76px;overflow:hidden;background:var(--bg3);}
 .jr-card2-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
 
-.jr-editor-body{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;}
+.jr-editor-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;padding:16px;-webkit-overflow-scrolling:touch;}
 .jr-block-text{width:100%;min-height:1.6em;box-sizing:border-box;border:none;outline:none;background:transparent;font-size:16px;line-height:1.6;color:var(--text);font-family:inherit;resize:none;overflow:hidden;display:block;padding:2px 0;}
 .jr-block-text::placeholder{color:var(--text3);}
 .jr-title-input{width:100%;min-height:1.35em;box-sizing:border-box;border:none;outline:none;background:transparent;font-size:20px;font-weight:800;line-height:1.35;color:var(--text);font-family:inherit;resize:none;overflow:hidden;display:block;padding:0;}
@@ -531,6 +531,8 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .jr-block-img{width:100%;display:block;background:var(--bg3);}
 .jr-block-img-del{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.55);color:white;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;}
 .jr-toolbar{display:flex;align-items:center;gap:4px;padding:8px 14px calc(8px + var(--safe-bot));border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+/* 鍵盤確定開啟時，工具列下面直接接著鍵盤，不需要再留 Home 指示條的安全區留白 */
+.jr-toolbar.jr-kb-open{padding-bottom:8px;}
 .jr-tb-btn{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;}
 .jr-tb-btn:active{background:var(--bg3);}
 .jr-tb-btn.disabled{opacity:.3;pointer-events:none;}
@@ -5536,6 +5538,9 @@ function jrOpenEditor(entryId, defaultDate){
   }
   jrRenderEditorBody();
   document.getElementById('jr-editor-page').classList.add('open');
+  jrLockBackgroundScroll();
+  jrBindViewportListeners();
+  jrSyncEditorViewport(); // 開啟當下先同步一次，不等第一次 resize/scroll 事件才算
 }
 function jrRenderDateTimeLabels(){
   const date = document.getElementById('jr-edit-date-input').value;
@@ -5547,15 +5552,86 @@ function jrOnDateTimeInputChange(){ jrRenderDateTimeLabels(); }
 function jrCloseEditor(){
   const page = document.getElementById('jr-editor-page');
   page.classList.remove('open');
+  jrUnbindViewportListeners();
+  jrUnlockBackgroundScroll();
+  // 清掉開啟期間用來跟著 visualViewport 走的 inline 樣式，讓頁面之後重新用回
+  // .detail-page 的 inset:0 預設值
+  page.style.top = '';
+  page.style.height = '';
+  page.style.bottom = '';
+  const toolbar = document.getElementById('jr-toolbar');
+  if (toolbar) toolbar.classList.remove('jr-kb-open');
   // 點日期進編輯頁時留下的選取黑框，回到月曆後就沒有意義了，關閉編輯頁時一併取消
   jrSelectedDate = null;
   jrRenderCalendar();
 }
-// 鍵盤上緣的工具列改交給 <meta viewport interactive-widget=resizes-content>（見 <head>）處理：
-// 鍵盤跳出時瀏覽器會直接把 layout viewport 縮小，inset:0 的編輯頁跟著變矮，
-// flex:1 的內容區跟著收縮，工具列自然貼齊在新的（變矮的）頁面最下緣，不需要再用
-// visualViewport 手動算位移。先前那版每次捲動/縮放都要重算 transform，捲動時常常
-// 跟手指拖動的節奏對不上、看起來像工具列自己在飄動；交給瀏覽器原生處理就不會有這問題。
+
+// ── 編輯頁 × 鍵盤：單一定位策略 ──────────────────────────
+// 唯一負責跟鍵盤打交道的地方。整個 #jr-editor-page 的 top/height 直接對齊
+// visualViewport（不是只搬動工具列、也不額外再扣一次鍵盤高度），編輯頁本身
+// 變矮之後，三段式 flex column（標頭 flex-shrink:0 / 內容 flex:1;min-height:0 /
+// 工具列 flex-shrink:0）會自己把工具列擠到新的最下緣，工具列本身完全不用
+// fixed、sticky 或 translateY。
+let jrVPRafId = null;
+let jrVPBound = false;
+function jrScheduleViewportSync(){
+  if (jrVPRafId != null) return; // 同一畫面裡的多個事件合併成一次更新
+  jrVPRafId = requestAnimationFrame(() => { jrVPRafId = null; jrSyncEditorViewport(); });
+}
+function jrSyncEditorViewport(){
+  const page = document.getElementById('jr-editor-page');
+  if (!page || !page.classList.contains('open')) return;
+  const vv = window.visualViewport;
+  if (vv) {
+    page.style.top = `${vv.offsetTop}px`;
+    page.style.height = `${vv.height}px`;
+    page.style.bottom = 'auto';
+  } else {
+    page.style.top = '';
+    page.style.height = '';
+    page.style.bottom = '';
+  }
+  // 鍵盤是否「確定」開啟：可視範圍比 layout viewport 矮出一截才算，避免把工具列
+  // 安全區 padding 的收放跟位置計算混在一起（分開判斷、不重複補償）
+  const keyboardOpen = !!vv && (window.innerHeight - vv.height) > 100;
+  const toolbar = document.getElementById('jr-toolbar');
+  if (toolbar) toolbar.classList.toggle('jr-kb-open', keyboardOpen);
+}
+function jrBindViewportListeners(){
+  if (jrVPBound) return;
+  jrVPBound = true;
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', jrScheduleViewportSync);
+    window.visualViewport.addEventListener('scroll', jrScheduleViewportSync);
+  }
+  window.addEventListener('resize', jrScheduleViewportSync);
+}
+function jrUnbindViewportListeners(){
+  if (!jrVPBound) return;
+  jrVPBound = false;
+  if (window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', jrScheduleViewportSync);
+    window.visualViewport.removeEventListener('scroll', jrScheduleViewportSync);
+  }
+  window.removeEventListener('resize', jrScheduleViewportSync);
+  if (jrVPRafId != null) { cancelAnimationFrame(jrVPRafId); jrVPRafId = null; }
+}
+// 編輯頁開啟期間，只讓 #jr-editor-body 自己捲動，背後那一頁（月曆/清單）維持原本
+// 捲動位置不動；關閉時還原，不用 window.scrollTo 這種會跟 Safari 對焦捲動互相
+// 干擾的強制拉回法
+let jrBgScrollEl = null, jrBgScrollTop = 0;
+function jrLockBackgroundScroll(){
+  jrBgScrollEl = document.querySelector('.screen.active');
+  if (!jrBgScrollEl) return;
+  jrBgScrollTop = jrBgScrollEl.scrollTop;
+  jrBgScrollEl.style.overflow = 'hidden';
+}
+function jrUnlockBackgroundScroll(){
+  if (!jrBgScrollEl) return;
+  jrBgScrollEl.style.overflow = '';
+  jrBgScrollEl.scrollTop = jrBgScrollTop;
+  jrBgScrollEl = null;
+}
 // 返回鍵：有內容就當作「完成」自動存檔，完全沒打東西才單純關閉，不會生一筆空紀錄
 function jrBack(){
   if (jrHasContent()) jrSaveEntry();
