@@ -5548,6 +5548,9 @@ function jrCloseEditor(){
   page.classList.remove('open');
   const toolbar = document.getElementById('jr-toolbar');
   if (toolbar) { toolbar.style.transform = ''; toolbar.classList.remove('jr-kb-open'); }
+  // 點日期進編輯頁時留下的選取黑框，回到月曆後就沒有意義了，關閉編輯頁時一併取消
+  jrSelectedDate = null;
+  jrRenderCalendar();
 }
 // iOS Safari 不會在鍵盤跳出時縮小 layout viewport，只縮小可視範圍，
 // 所以貼在最下面的工具列（加照片按鈕）會被鍵盤蓋住、使用者以為打完字加不了照片。
