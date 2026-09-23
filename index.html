@@ -876,11 +876,13 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div id="jr-blocks-container"></div>
   </div>
   <div class="jr-toolbar" id="jr-toolbar">
-    <div class="jr-tb-btn" onclick="document.getElementById('jr-photo-input').click()" title="加入照片">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 15l3.2-3.6 2.4 2.6L16 10l4 5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="8" cy="8.5" r="1.4" fill="currentColor"/></svg>
-    </div>
-    <div class="jr-tb-btn" onclick="document.getElementById('jr-camera-input').click()" title="相機">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 012-2h1.2l1.1-1.6a1 1 0 01.8-.4h5.8a1 1 0 01.8.4L16.8 6H18a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.3" stroke="currentColor" stroke-width="1.7"/></svg>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div class="jr-tb-btn" style="color:#006CE1;" onclick="document.getElementById('jr-photo-input').click()" title="加入照片">
+        <svg width="27" height="27" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 15l3.2-3.6 2.4 2.6L16 10l4 5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="8" cy="8.5" r="1.4" fill="currentColor"/></svg>
+      </div>
+      <div class="jr-tb-btn" style="color:#006CE1;" onclick="document.getElementById('jr-camera-input').click()" title="相機">
+        <svg width="27" height="27" viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 012-2h1.2l1.1-1.6a1 1 0 01.8-.4h5.8a1 1 0 01.8.4L16.8 6H18a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.3" stroke="currentColor" stroke-width="1.7"/></svg>
+      </div>
     </div>
     <div style="flex:1;"></div>
     <div class="jr-tb-btn" id="jr-undo-btn" onclick="jrUndo()" title="復原">
