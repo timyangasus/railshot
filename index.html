@@ -5573,9 +5573,6 @@ function jrOnViewportResize(){
   const keyboardOpen = keyboardOverlap > 100;
   toolbar.style.transform = keyboardOpen ? `translateY(-${keyboardOverlap}px)` : '';
   toolbar.classList.toggle('jr-kb-open', keyboardOpen);
-  // 保險：iOS 有時仍會在對焦輸入框時偷偷把外層文件往下捲一點，即使 html/body 設了
-  // overflow:hidden 也一樣；這裡強制歸零，避免跟上面的位移疊加造成飄移。
-  if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
 }
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', jrOnViewportResize);
