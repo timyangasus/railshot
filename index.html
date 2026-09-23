@@ -5956,7 +5956,10 @@ function jrIntroGo(){
 (function jrInitIntro(){
   const dot = document.getElementById('jr-tab-dot');
   if (dot && localStorage.getItem(JR_VISITED_KEY)) dot.style.display = 'none';
-  if (!localStorage.getItem(JR_INTRO_SEEN_KEY)) {
+  // 網址加上 ?showIntro=1 可以隨時強制預覽介紹頁，不用清掉裝置上的已讀旗標
+  // （清旗標要連同 localStorage 一起清，會把已經寫好的日誌資料也清掉，太危險）
+  const forcePreview = new URLSearchParams(location.search).get('showIntro') === '1';
+  if (forcePreview || !localStorage.getItem(JR_INTRO_SEEN_KEY)) {
     document.getElementById('jr-intro-ov').classList.add('open');
   }
 })();
