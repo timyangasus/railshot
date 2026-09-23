@@ -500,10 +500,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .jr-cal-wd{text-align:center;font-size:12px;font-weight:600;color:var(--text3);padding:6px 0;}
 .jr-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .jr-day-num{width:34px;height:34px;max-width:100%;max-height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--text);box-sizing:border-box;}
-.jr-day.has-data .jr-day-num{background:var(--accent);color:white;font-weight:700;}
-.jr-day.is-today .jr-day-num{color:var(--accent);font-weight:800;}
-.jr-day.is-today.has-data .jr-day-num{color:white;}
-.jr-day.is-today:not(.has-data) .jr-day-num{box-shadow:inset 0 0 0 2px var(--accent);}
+.jr-day.is-holiday .jr-day-num{color:var(--red);}
+.jr-day.has-data .jr-day-num{background:#2FB6E0;color:white;font-weight:700;}
+.jr-day.is-today .jr-day-num{background:var(--accent);color:white;font-weight:800;}
 .jr-day.is-selected .jr-day-num{outline:2px solid var(--text2);outline-offset:2px;}
 
 .jr-fab{position:fixed;right:20px;bottom:calc(var(--tab-h) + 16px);width:54px;height:54px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(26,37,64,0.35);cursor:pointer;z-index:60;}
@@ -826,7 +825,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   <div class="tt-form" style="padding:14px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div onclick="jrChangeMonth(-1)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:20px;">‹</div>
-      <div id="jr-month-label" style="font-size:17px;font-weight:700;color:var(--text);"></div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="jr-month-label" style="font-size:17px;font-weight:700;color:var(--text);"></div>
+        <div onclick="jrGoToday()" style="font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;padding:4px 11px;border:1px solid var(--border2);border-radius:20px;">今天</div>
+      </div>
       <div onclick="jrChangeMonth(1)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:20px;">›</div>
     </div>
     <div class="jr-cal-grid" style="margin-bottom:4px;">
@@ -836,10 +838,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div id="jr-cal-grid" class="jr-cal-grid"></div>
   </div>
 
-  <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;">
-    <div class="sec" style="margin:0;">所有紀錄</div>
-    <div onclick="jrGoToday()" style="font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;padding:5px 12px;border:1px solid var(--border2);border-radius:20px;">今天</div>
-  </div>
+  <div class="sec" style="margin:16px 0 8px;">所有紀錄</div>
   <div id="jr-entries-list"></div>
 </div>
 <div class="jr-fab" onclick="jrOpenEditorForNew()">
@@ -5287,6 +5286,21 @@ function jrSelectDate(dateStr){
   const hdr = document.getElementById('jr-group-' + dateStr);
   if (hdr) hdr.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+// 台灣 2026 年（民國115年）政府行政機關辦公日曆表放假日，含連假延伸的週末。
+// 這份清單每年都會變（政府逐年公告），目前只手動填了 2026 年；切到其他年份月曆不會有紅字，之後有需要再補。
+const TW_HOLIDAYS_2026 = new Set([
+  '2026-01-01', // 元旦
+  '2026-02-14','2026-02-15','2026-02-16','2026-02-17','2026-02-18','2026-02-19','2026-02-20','2026-02-21','2026-02-22', // 農曆春節
+  '2026-02-27','2026-02-28','2026-03-01', // 和平紀念日
+  '2026-04-03','2026-04-04','2026-04-05','2026-04-06', // 兒童節、民族掃墓節
+  '2026-05-01','2026-05-02','2026-05-03', // 勞動節
+  '2026-06-19','2026-06-20','2026-06-21', // 端午節
+  '2026-09-25','2026-09-26','2026-09-27','2026-09-28', // 中秋節、教師節
+  '2026-10-09','2026-10-10','2026-10-11', // 國慶日
+  '2026-10-24','2026-10-25','2026-10-26', // 台灣光復節
+  '2026-12-25','2026-12-26','2026-12-27', // 行憲紀念日
+]);
+
 function jrRenderCalendar(){
   const label = document.getElementById('jr-month-label');
   if (label) label.textContent = `${jrViewYear} 年 ${jrViewMonth + 1} 月`;
@@ -5300,6 +5314,7 @@ function jrRenderCalendar(){
     const dateStr = `${jrViewYear}-${String(jrViewMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const has = jrEntriesOnDate(dateStr).length > 0;
     const cls = ['jr-day'];
+    if (TW_HOLIDAYS_2026.has(dateStr)) cls.push('is-holiday');
     if (dateStr === todayStr) cls.push('is-today');
     if (dateStr === jrSelectedDate) cls.push('is-selected');
     if (has) cls.push('has-data');
