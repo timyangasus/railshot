@@ -511,19 +511,16 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .jr-card-wrap{position:relative;margin-bottom:10px;border-radius:var(--radius-input);overflow:hidden;}
 .jr-card-del-bg{position:absolute;inset:0;background:var(--red);display:flex;align-items:center;justify-content:flex-end;}
 .jr-card-del-btn{color:white;font-weight:700;font-size:14px;padding:0 22px;height:100%;display:flex;align-items:center;cursor:pointer;}
-.jr-card2{position:relative;background:var(--card);border:1px solid var(--border);display:flex;gap:12px;padding:14px;cursor:pointer;touch-action:pan-y;background-clip:padding-box;}
+.jr-card2{position:relative;background:var(--card);border:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;padding:14px;cursor:pointer;touch-action:pan-y;background-clip:padding-box;}
 .jr-card2-left{flex-shrink:0;width:42px;text-align:center;}
 .jr-card2-wd{font-size:11px;color:var(--text3);font-weight:600;}
 .jr-card2-day{font-size:20px;font-weight:800;color:var(--text);line-height:1.15;}
 .jr-card2-time{font-size:10px;color:var(--text3);margin-top:2px;}
 .jr-card2-mid{flex:1;min-width:0;}
-.jr-card2-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.jr-card2-title{font-size:15px;font-weight:700;color:#006CE1;margin-bottom:3px;}
 .jr-card2-body{font-size:13px;color:var(--text2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.jr-card2-thumb{flex-shrink:0;width:64px;height:64px;overflow:hidden;display:grid;gap:2px;background:var(--bg3);}
-.jr-card2-thumb.n1{grid-template-columns:1fr;}
-.jr-card2-thumb.n2plus{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
-.jr-thumb-cell{background-size:cover;background-position:center;position:relative;}
-.jr-thumb-more{position:absolute;inset:0;background:rgba(0,0,0,0.45);color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.jr-card2-thumb{flex-shrink:0;width:76px;height:76px;overflow:hidden;background:var(--bg3);}
+.jr-card2-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
 
 .jr-editor-body{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;}
 .jr-block-text{width:100%;min-height:1.6em;box-sizing:border-box;border:none;outline:none;background:transparent;font-size:16px;line-height:1.6;color:var(--text);font-family:inherit;resize:none;overflow:hidden;display:block;padding:2px 0;}
@@ -826,7 +823,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
     <div onclick="jrGoToday()" style="font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;padding:4px 11px;border:1px solid var(--border2);border-radius:20px;">今天</div>
   </div>
-  <div class="tt-form" style="padding:14px;">
+  <div class="tt-form" style="padding:14px;border-radius:0;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div onclick="jrChangeMonth(-1)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:20px;">‹</div>
       <div id="jr-month-label" style="font-size:17px;font-weight:700;color:var(--text);"></div>
@@ -5392,29 +5389,25 @@ function jrCardHtml(e){
         ${title ? `<div class="jr-card2-title">${jrEsc(title)}</div>` : ''}
         <div class="jr-card2-body">${jrEsc(body)}</div>
       </div>
-      ${photoIds.length ? jrThumbHtml(e.id, photoIds) : ''}
+      ${photoIds.length ? jrThumbHtml(e.id) : ''}
     </div>
   </div>`;
 }
-function jrThumbHtml(entryId, photoIds){
-  const shown = photoIds.slice(0, 4);
-  const cls = shown.length === 1 ? 'n1' : 'n2plus';
-  return `<div class="jr-card2-thumb ${cls}" id="jr-thumb-${entryId}">
-    ${shown.map((pid,i) => `<div class="jr-thumb-cell" data-pid="${pid}">${(i===3 && photoIds.length>4) ? `<div class="jr-thumb-more">+${photoIds.length-4}</div>` : ''}</div>`).join('')}
-  </div>`;
+// 清單縮圖只顯示第一張照片（不拼接多張），沒有照片就整塊不顯示
+function jrThumbHtml(entryId){
+  return `<div class="jr-card2-thumb" id="jr-thumb-${entryId}"></div>`;
 }
 function jrRenderCardThumb(entry){
   const photoIds = jrPhotoIdsOf(entry);
   if (!photoIds.length) return;
   const container = document.getElementById(`jr-thumb-${entry.id}`);
   if (!container) return;
-  photoIds.slice(0,4).forEach(pid => {
-    jrGetPhotoBlob(pid).then(blob => {
-      if (!blob) return;
-      const cell = container.querySelector(`[data-pid="${pid}"]`);
-      if (cell) cell.style.backgroundImage = `url(${URL.createObjectURL(blob)})`;
-    }).catch(()=>{});
-  });
+  jrGetPhotoBlob(photoIds[0]).then(blob => {
+    if (!blob || !container) return;
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(blob);
+    container.appendChild(img);
+  }).catch(()=>{});
 }
 
 // ── 卡片左滑刪除 ──────────────────────────────────────
