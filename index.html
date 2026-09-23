@@ -498,20 +498,43 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 /* 日誌 */
 .jr-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
 .jr-cal-wd{text-align:center;font-size:12px;font-weight:600;color:var(--text3);padding:6px 0;}
-.jr-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border-radius:8px;}
-.jr-day:active{background:var(--bg3);}
-.jr-day-num{font-size:14px;font-weight:600;color:var(--text);}
-.jr-today .jr-day-num{color:var(--accent);font-weight:800;}
-.jr-day-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);}
-.jr-entry-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-input);padding:14px;margin-bottom:10px;cursor:pointer;}
-.jr-entry-date{font-size:12px;font-weight:600;color:var(--text3);margin-bottom:4px;}
-.jr-entry-text{font-size:14px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word;}
-.jr-thumb-row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
-.jr-thumb{width:60px;height:60px;border-radius:8px;object-fit:cover;background:var(--bg3);flex-shrink:0;}
-.jr-photo-item{position:relative;width:74px;height:74px;flex-shrink:0;}
-.jr-photo-item img{width:100%;height:100%;object-fit:cover;border-radius:8px;background:var(--bg3);display:block;}
-.jr-photo-del{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:var(--red);color:white;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
-.jr-photo-share{position:absolute;bottom:2px;right:2px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.55);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.jr-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.jr-day-num{width:34px;height:34px;max-width:100%;max-height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--text);box-sizing:border-box;}
+.jr-day.has-data .jr-day-num{background:var(--accent);color:white;font-weight:700;}
+.jr-day.is-today .jr-day-num{color:var(--accent);font-weight:800;}
+.jr-day.is-today.has-data .jr-day-num{color:white;}
+.jr-day.is-today:not(.has-data) .jr-day-num{box-shadow:inset 0 0 0 2px var(--accent);}
+.jr-day.is-selected .jr-day-num{outline:2px solid var(--text2);outline-offset:2px;}
+
+.jr-fab{position:fixed;right:20px;bottom:calc(var(--tab-h) + 16px);width:54px;height:54px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(26,37,64,0.35);cursor:pointer;z-index:60;}
+
+.jr-date-group-hdr{font-size:13px;font-weight:700;color:var(--text2);margin:14px 0 6px;}
+.jr-card-wrap{position:relative;margin-bottom:10px;border-radius:var(--radius-input);overflow:hidden;}
+.jr-card-del-bg{position:absolute;inset:0;background:var(--red);display:flex;align-items:center;justify-content:flex-end;}
+.jr-card-del-btn{color:white;font-weight:700;font-size:14px;padding:0 22px;height:100%;display:flex;align-items:center;cursor:pointer;}
+.jr-card2{position:relative;background:var(--card);border:1px solid var(--border);display:flex;gap:12px;padding:14px;cursor:pointer;touch-action:pan-y;background-clip:padding-box;}
+.jr-card2-left{flex-shrink:0;width:42px;text-align:center;}
+.jr-card2-wd{font-size:11px;color:var(--text3);font-weight:600;}
+.jr-card2-day{font-size:20px;font-weight:800;color:var(--text);line-height:1.15;}
+.jr-card2-time{font-size:10px;color:var(--text3);margin-top:2px;}
+.jr-card2-mid{flex:1;min-width:0;}
+.jr-card2-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.jr-card2-body{font-size:13px;color:var(--text2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.jr-card2-thumb{flex-shrink:0;width:64px;height:64px;border-radius:8px;overflow:hidden;display:grid;gap:2px;background:var(--bg3);}
+.jr-card2-thumb.n1{grid-template-columns:1fr;}
+.jr-card2-thumb.n2plus{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
+.jr-thumb-cell{background-size:cover;background-position:center;position:relative;}
+.jr-thumb-more{position:absolute;inset:0;background:rgba(0,0,0,0.45);color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+
+.jr-editor-body{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;}
+.jr-block-text{width:100%;box-sizing:border-box;border:none;outline:none;background:transparent;font-size:16px;line-height:1.6;color:var(--text);font-family:inherit;resize:none;overflow:hidden;display:block;padding:2px 0;}
+.jr-block-img-wrap{position:relative;margin:10px 0;}
+.jr-block-img{width:100%;border-radius:10px;display:block;background:var(--bg3);}
+.jr-block-img-del{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.55);color:white;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;}
+.jr-toolbar{display:flex;align-items:center;gap:4px;padding:8px 14px calc(8px + var(--safe-bot));border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
+.jr-tb-btn{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;}
+.jr-tb-btn:active{background:var(--bg3);}
+.jr-tb-btn.disabled{opacity:.3;pointer-events:none;}
 #trip-name-input::placeholder, #trip-note-input::placeholder{color:rgba(26,37,64,0.4);}
 
 /* ── ANIMATIONS ── */
@@ -799,7 +822,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 
 <!-- TAB 5: 日誌 -->
 <div class="screen" id="tab-journal">
-<div class="sc">
+<div class="sc" style="padding-bottom:90px;">
   <div class="tt-form" style="padding:14px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div onclick="jrChangeMonth(-1)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:20px;">‹</div>
@@ -813,59 +836,60 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div id="jr-cal-grid" class="jr-cal-grid"></div>
   </div>
 
-  <div class="sec" style="margin:16px 0 8px;">所有紀錄</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;">
+    <div class="sec" style="margin:0;">所有紀錄</div>
+    <div onclick="jrGoToday()" style="font-size:13px;font-weight:600;color:var(--accent);cursor:pointer;padding:5px 12px;border:1px solid var(--border2);border-radius:20px;">今天</div>
+  </div>
   <div id="jr-entries-list"></div>
+</div>
+<div class="jr-fab" onclick="jrOpenEditorForNew()">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
 </div>
 </div>
 
 </div><!-- /page-container -->
 
-<!-- SHEET: 日誌當天紀錄列表 -->
-<div class="sheet-ov" id="journal-day-sheet" onclick="closeOv(event,'journal-day-sheet')">
-  <div class="sheet">
-    <div class="sh-handle"></div>
-    <div class="sh-hdr">
-      <div class="sh-title" id="jr-day-sheet-title"></div>
-      <div class="sh-close" onclick="closeSheet('journal-day-sheet')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
-      </div>
+<!-- PAGE: 新增/編輯日誌（全螢幕） -->
+<div class="detail-page" id="jr-editor-page">
+  <div class="det-hdr" style="justify-content:space-between;">
+    <div class="back-btn" onclick="jrCloseEditor()" style="gap:0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="#1a2540"/></svg>
     </div>
-    <div class="sh-body">
-      <input type="hidden" id="jr-day-date"/>
-      <div id="jr-day-entries" style="margin-bottom:14px;"></div>
-      <button onclick="jrOpenEntryEditor(document.getElementById('jr-day-date').value, null)" style="width:100%;background:var(--accent);color:white;border:none;border-radius:var(--radius-input);padding:15px;font-size:15px;font-weight:700;cursor:pointer;">+ 新增紀錄</button>
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <label for="jr-edit-date-input" style="cursor:pointer;position:relative;">
+        <span id="jr-edit-date-label" style="font-size:15px;font-weight:700;color:var(--text);"></span>
+        <input type="date" id="jr-edit-date-input" onchange="jrOnDateTimeInputChange()" style="position:absolute;opacity:0;width:100%;height:100%;left:0;top:0;"/>
+      </label>
+      <label for="jr-edit-time-input" style="cursor:pointer;position:relative;">
+        <span id="jr-edit-time-label" style="font-size:12px;color:var(--text3);"></span>
+        <input type="time" id="jr-edit-time-input" onchange="jrOnDateTimeInputChange()" style="position:absolute;opacity:0;width:100%;height:100%;left:0;top:0;"/>
+      </label>
     </div>
-  </div>
-</div>
-
-<!-- SHEET: 新增/編輯日誌紀錄 -->
-<div class="sheet-ov" id="journal-entry-sheet" onclick="jrEntrySheetOvClick(event)">
-  <div class="sheet">
-    <div class="sh-handle"></div>
-    <div class="sh-hdr">
-      <div class="sh-title" id="jr-entry-sheet-title">新增紀錄</div>
-      <div class="sh-close" onclick="closeSheet('journal-entry-sheet')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
-      </div>
-    </div>
-    <div class="sh-body">
-      <input type="hidden" id="jr-edit-id"/>
-      <input type="hidden" id="jr-edit-date"/>
-      <input type="hidden" id="jr-edit-time"/>
-      <div id="jr-time-label" style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px;"></div>
-      <!-- 貼文式輸入框：文字＋照片都在同一個框裡，像部落格貼文 -->
-      <div style="background:#eef0f5;border:1px solid var(--border);border-radius:var(--radius-input);padding:14px;margin-bottom:18px;">
-        <textarea id="jr-text-input" rows="9" placeholder="例如：台南站看到自強3000通過"
-          style="width:100%;box-sizing:border-box;background:transparent;border:none;padding:0;font-size:15px;color:var(--text);font-family:inherit;outline:none;resize:vertical;display:block;"></textarea>
-        <div id="jr-photo-grid" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"></div>
-        <input type="file" id="jr-photo-input" accept="image/*" multiple style="display:none;" onchange="jrHandlePhotoPick(event)"/>
-        <button onclick="document.getElementById('jr-photo-input').click()"
-          style="margin-top:10px;background:white;color:var(--text2);border:1.5px dashed var(--border2);border-radius:var(--radius-input);padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;">📷 加照片（只存在這支裝置，不會上傳）</button>
-      </div>
-      <button onclick="jrSaveEntry()" style="width:100%;background:var(--accent);color:white;border:none;border-radius:var(--radius-input);padding:16px;font-size:16px;font-weight:700;cursor:pointer;">儲存</button>
-      <button id="jr-delete-btn" onclick="jrDeleteEntry()" style="display:none;width:100%;margin-top:8px;background:var(--red-lt);color:var(--red);border:none;border-radius:var(--radius-input);padding:14px;font-size:15px;font-weight:600;cursor:pointer;">刪除這筆紀錄</button>
+    <div id="jr-save-btn" onclick="jrSaveEntry()" style="width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .15s;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg>
     </div>
   </div>
+  <div id="jr-editor-body" class="jr-editor-body"></div>
+  <div id="jr-delete-row" style="display:none;padding:10px 16px;border-top:1px solid var(--border);">
+    <button onclick="jrDeleteCurrentEntry()" style="width:100%;background:var(--red-lt);color:var(--red);border:none;border-radius:var(--radius-input);padding:12px;font-size:14px;font-weight:600;cursor:pointer;">刪除這筆紀錄</button>
+  </div>
+  <div class="jr-toolbar">
+    <div class="jr-tb-btn" onclick="document.getElementById('jr-photo-input').click()" title="加入照片">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 15l3.2-3.6 2.4 2.6L16 10l4 5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="8" cy="8.5" r="1.4" fill="currentColor"/></svg>
+    </div>
+    <div class="jr-tb-btn" onclick="document.getElementById('jr-camera-input').click()" title="相機">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 012-2h1.2l1.1-1.6a1 1 0 01.8-.4h5.8a1 1 0 01.8.4L16.8 6H18a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.3" stroke="currentColor" stroke-width="1.7"/></svg>
+    </div>
+    <div style="flex:1;"></div>
+    <div class="jr-tb-btn" id="jr-undo-btn" onclick="jrUndo()" title="復原">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 15l-4.5-4L9 7M4.5 11H15a5.5 5.5 0 010 11h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="jr-tb-btn" id="jr-redo-btn" onclick="jrRedo()" title="取消復原">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 15l4.5-4L15 7M19.5 11H9a5.5 5.5 0 000 11h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+  <input type="file" id="jr-photo-input" accept="image/*" multiple style="display:none;" onchange="jrHandlePhotoPick(event)"/>
+  <input type="file" id="jr-camera-input" accept="image/*" capture="environment" style="display:none;" onchange="jrHandlePhotoPick(event)"/>
 </div>
 
 <!-- TAB BAR -->
@@ -5157,7 +5181,17 @@ function jrEsc(s){
   return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+// entry: { id, date:'YYYY-MM-DD', time:'HH:MM', content:[{type:'text',value}|{type:'image',id}], createdAt, updatedAt }
 let journalEntries = JSON.parse(localStorage.getItem('rs_journal') || '[]');
+// 相容舊格式（text+photoIds 兩個獨立欄位）：轉成新的 content 陣列，避免舊資料直接壞掉
+journalEntries = journalEntries.map(e => {
+  if (e.content) return e;
+  const content = [];
+  if (e.text) content.push({ type: 'text', value: e.text });
+  else content.push({ type: 'text', value: '' });
+  (e.photoIds || []).forEach(id => content.push({ type: 'image', id }));
+  return { id: e.id, date: e.date, time: e.time, content, createdAt: e.createdAt || Date.now() };
+});
 function saveJournalEntries(){ localStorage.setItem('rs_journal', JSON.stringify(journalEntries)); }
 
 // ── 照片本機儲存（IndexedDB）────────────────────────────
@@ -5220,11 +5254,13 @@ function jrCompressImage(file, maxDim = 1000, quality = 0.7){
 
 // ── 月曆 ─────────────────────────────────────────────
 let jrViewYear, jrViewMonth; // jrViewMonth: 0-indexed
+let jrSelectedDate = null;
 function jrInitCalendar(){
   if (jrViewYear === undefined) {
     const now = new Date();
     jrViewYear = now.getFullYear();
     jrViewMonth = now.getMonth();
+    jrSelectedDate = localDateStr();
   }
   jrRenderCalendar();
   jrRenderEntryList();
@@ -5235,7 +5271,22 @@ function jrChangeMonth(delta){
   else if (jrViewMonth > 11) { jrViewMonth = 0; jrViewYear++; }
   jrRenderCalendar();
 }
+function jrGoToday(){
+  const now = new Date();
+  jrViewYear = now.getFullYear();
+  jrViewMonth = now.getMonth();
+  jrSelectedDate = localDateStr();
+  jrRenderCalendar();
+  const hdr = document.getElementById('jr-group-' + jrSelectedDate);
+  if (hdr) hdr.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 function jrEntriesOnDate(dateStr){ return journalEntries.filter(e => e.date === dateStr); }
+function jrSelectDate(dateStr){
+  jrSelectedDate = dateStr;
+  jrRenderCalendar();
+  const hdr = document.getElementById('jr-group-' + dateStr);
+  if (hdr) hdr.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 function jrRenderCalendar(){
   const label = document.getElementById('jr-month-label');
   if (label) label.textContent = `${jrViewYear} 年 ${jrViewMonth + 1} 月`;
@@ -5248,10 +5299,11 @@ function jrRenderCalendar(){
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${jrViewYear}-${String(jrViewMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const has = jrEntriesOnDate(dateStr).length > 0;
-    html += `<div class="jr-day${dateStr===todayStr?' jr-today':''}" onclick="jrOpenDay('${dateStr}')">
-      <div class="jr-day-num">${d}</div>
-      ${has ? '<div class="jr-day-dot"></div>' : ''}
-    </div>`;
+    const cls = ['jr-day'];
+    if (dateStr === todayStr) cls.push('is-today');
+    if (dateStr === jrSelectedDate) cls.push('is-selected');
+    if (has) cls.push('has-data');
+    html += `<div class="${cls.join(' ')}" onclick="jrSelectDate('${dateStr}')"><div class="jr-day-num">${d}</div></div>`;
   }
   const grid = document.getElementById('jr-cal-grid');
   if (grid) grid.innerHTML = html;
@@ -5260,176 +5312,363 @@ function jrRenderCalendar(){
 const JR_WEEKDAY_ZH = ['日','一','二','三','四','五','六'];
 function jrDateLabel(dateStr){
   const d = new Date(dateStr + 'T00:00:00');
-  return `${dateStr}（週${JR_WEEKDAY_ZH[d.getDay()]}）`;
+  return `${dateStr.slice(0,4)}年${Number(dateStr.slice(5,7))}月${Number(dateStr.slice(8,10))}日（週${JR_WEEKDAY_ZH[d.getDay()]}）`;
 }
-
-// ── 當天紀錄列表(sheet) ───────────────────────────────
-function jrOpenDay(dateStr){
-  document.getElementById('jr-day-date').value = dateStr;
-  document.getElementById('jr-day-sheet-title').textContent = jrDateLabel(dateStr);
-  jrRenderDayEntries(dateStr);
-  openSheet('journal-day-sheet');
+function jrTimeAmPm(time){
+  const [h, m] = (time || '00:00').split(':').map(Number);
+  const ampm = h < 12 ? 'AM' : 'PM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
 }
-function jrRenderDayEntries(dateStr){
-  const el = document.getElementById('jr-day-entries');
-  if (!el) return;
-  const entries = jrEntriesOnDate(dateStr).sort((a,b) => a.time.localeCompare(b.time));
-  if (!entries.length) {
-    el.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:8px 0 4px;">這天還沒有紀錄</div>`;
-    return;
+// 標題＝內容裡第一行文字；內文摘要＝其餘文字（跳過圖片）串起來
+function jrExtractTitleBody(content){
+  let title = '', bodyParts = [], usedTitle = false;
+  for (const b of content) {
+    if (b.type !== 'text') continue;
+    if (!usedTitle) {
+      const lines = b.value.split('\n');
+      title = lines[0] || '';
+      const rest = lines.slice(1).join(' ').trim();
+      if (rest) bodyParts.push(rest);
+      usedTitle = true;
+    } else if (b.value.trim()) {
+      bodyParts.push(b.value.trim());
+    }
   }
-  el.innerHTML = entries.map(e => `
-    <div class="jr-entry-card" onclick="jrOpenEntryEditor('${e.date}','${e.id}')">
-      <div class="jr-entry-date">${e.time}</div>
-      <div class="jr-entry-text">${jrEsc(e.text)}</div>
-      ${e.photoIds?.length ? `<div class="jr-thumb-row" id="jr-thumbs-day-${e.id}"></div>` : ''}
-    </div>
-  `).join('');
-  entries.forEach(e => (e.photoIds||[]).forEach(pid => jrRenderThumb(`jr-thumbs-day-${e.id}`, pid)));
+  return { title: title.trim(), body: bodyParts.join(' ').trim() };
 }
+function jrPhotoIdsOf(entry){ return entry.content.filter(b => b.type === 'image').map(b => b.id); }
 
-// ── 所有紀錄列表(主頁) ──────────────────────────────────
+// ── 所有紀錄（依日期分組，新到舊） ────────────────────────
 function jrRenderEntryList(){
   const el = document.getElementById('jr-entries-list');
   if (!el) return;
   if (!journalEntries.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-text">尚無紀錄，點月曆上的日期開始記錄</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-text">尚無紀錄，點右下角＋開始記錄</div></div>`;
     return;
   }
   const sorted = [...journalEntries].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
-  el.innerHTML = sorted.map(e => `
-    <div class="jr-entry-card" onclick="jrOpenEntryEditor('${e.date}','${e.id}')">
-      <div class="jr-entry-date">${jrDateLabel(e.date)} ${e.time}</div>
-      <div class="jr-entry-text">${jrEsc(e.text)}</div>
-      ${e.photoIds?.length ? `<div class="jr-thumb-row" id="jr-thumbs-list-${e.id}"></div>` : ''}
-    </div>
+  const groups = [];
+  let lastDate = null;
+  for (const e of sorted) {
+    if (e.date !== lastDate) { groups.push({ date: e.date, entries: [] }); lastDate = e.date; }
+    groups[groups.length - 1].entries.push(e);
+  }
+  el.innerHTML = groups.map(g => `
+    <div id="jr-group-${g.date}" class="jr-date-group-hdr">${jrDateLabel(g.date)}</div>
+    ${g.entries.map(e => jrCardHtml(e)).join('')}
   `).join('');
-  sorted.forEach(e => (e.photoIds||[]).forEach(pid => jrRenderThumb(`jr-thumbs-list-${e.id}`, pid)));
+  sorted.forEach(e => jrRenderCardThumb(e));
 }
-function jrRenderThumb(containerId, photoId){
-  jrGetPhotoBlob(photoId).then(blob => {
-    if (!blob) return;
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    const img = document.createElement('img');
-    img.className = 'jr-thumb';
-    img.src = URL.createObjectURL(blob);
-    container.appendChild(img);
-  }).catch(()=>{});
+function jrCardHtml(e){
+  const { title, body } = jrExtractTitleBody(e.content);
+  const d = new Date(e.date + 'T00:00:00');
+  const photoIds = jrPhotoIdsOf(e);
+  return `<div class="jr-card-wrap">
+    <div class="jr-card-del-bg"><div class="jr-card-del-btn" onclick="jrDeleteEntryById('${e.id}')">刪除</div></div>
+    <div class="jr-card2" id="jr-card-${e.id}" data-id="${e.id}"
+      onclick="jrCardClick(event,'${e.id}')"
+      ontouchstart="jrSwipeStart(event,'${e.id}')" ontouchmove="jrSwipeMove(event,'${e.id}')" ontouchend="jrSwipeEnd(event,'${e.id}')">
+      <div class="jr-card2-left">
+        <div class="jr-card2-wd">週${JR_WEEKDAY_ZH[d.getDay()]}</div>
+        <div class="jr-card2-day">${Number(e.date.slice(8,10))}</div>
+        <div class="jr-card2-time">${jrTimeAmPm(e.time)}</div>
+      </div>
+      <div class="jr-card2-mid">
+        ${title ? `<div class="jr-card2-title">${jrEsc(title)}</div>` : ''}
+        <div class="jr-card2-body">${jrEsc(body)}</div>
+      </div>
+      ${photoIds.length ? jrThumbHtml(e.id, photoIds) : ''}
+    </div>
+  </div>`;
 }
-
-// ── 新增/編輯紀錄 ────────────────────────────────────
-let jrEditingPhotos = []; // [{id, isNew, blob?}] 編輯中尚未存檔的照片清單
-function jrOpenEntryEditor(dateStr, entryId){
-  closeSheet('journal-day-sheet');
-  const entry = entryId ? journalEntries.find(e => e.id === entryId) : null;
-  // 時間一律用「建立當下」的時間，不給手動改，每筆紀錄自然就是它被寫下的那一刻
-  const time = entry ? entry.time : `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`;
-  document.getElementById('jr-edit-id').value = entryId || '';
-  document.getElementById('jr-edit-date').value = dateStr;
-  document.getElementById('jr-edit-time').value = time;
-  document.getElementById('jr-time-label').textContent = `建立時間 ${time}`;
-  document.getElementById('jr-entry-sheet-title').textContent = entry ? '編輯紀錄' : '新增紀錄';
-  document.getElementById('jr-text-input').value = entry ? entry.text : '';
-  document.getElementById('jr-delete-btn').style.display = entry ? 'block' : 'none';
-  jrEditingPhotos = (entry?.photoIds || []).map(id => ({ id, isNew: false }));
-  jrRenderPhotoGrid();
-  openSheet('journal-entry-sheet');
+function jrThumbHtml(entryId, photoIds){
+  const shown = photoIds.slice(0, 4);
+  const cls = shown.length === 1 ? 'n1' : 'n2plus';
+  return `<div class="jr-card2-thumb ${cls}" id="jr-thumb-${entryId}">
+    ${shown.map((pid,i) => `<div class="jr-thumb-cell" data-pid="${pid}">${(i===3 && photoIds.length>4) ? `<div class="jr-thumb-more">+${photoIds.length-4}</div>` : ''}</div>`).join('')}
+  </div>`;
 }
-function jrEntrySheetOvClick(e){
-  if (e.target === document.getElementById('journal-entry-sheet')) closeSheet('journal-entry-sheet');
-}
-function jrRenderPhotoGrid(){
-  const el = document.getElementById('jr-photo-grid');
-  if (!el) return;
-  el.innerHTML = jrEditingPhotos.map((p, idx) => `<div class="jr-photo-item" id="jr-pitem-${idx}"></div>`).join('');
-  jrEditingPhotos.forEach((p, idx) => {
-    const container = document.getElementById(`jr-pitem-${idx}`);
-    if (!container) return;
-    const render = (blob, url) => {
-      container.dataset.blobUrl = url;
-      container.innerHTML = `<img src="${url}"/>
-        <div class="jr-photo-del" onclick="event.stopPropagation();jrRemovePhoto(${idx})">✕</div>
-        <div class="jr-photo-share" onclick="event.stopPropagation();jrSharePhoto(${idx})" title="備份到手機相簿">⇪</div>`;
-    };
-    if (p.isNew) render(p.blob, URL.createObjectURL(p.blob));
-    else jrGetPhotoBlob(p.id).then(blob => { if (blob) render(blob, URL.createObjectURL(blob)); }).catch(()=>{});
+function jrRenderCardThumb(entry){
+  const photoIds = jrPhotoIdsOf(entry);
+  if (!photoIds.length) return;
+  const container = document.getElementById(`jr-thumb-${entry.id}`);
+  if (!container) return;
+  photoIds.slice(0,4).forEach(pid => {
+    jrGetPhotoBlob(pid).then(blob => {
+      if (!blob) return;
+      const cell = container.querySelector(`[data-pid="${pid}"]`);
+      if (cell) cell.style.backgroundImage = `url(${URL.createObjectURL(blob)})`;
+    }).catch(()=>{});
   });
 }
-// 把單張照片備份出去（分享/存回相簿），當作 IndexedDB 萬一被系統清掉時的保險
-async function jrSharePhoto(idx){
-  const p = jrEditingPhotos[idx];
-  if (!p) return;
-  const blob = p.isNew ? p.blob : await jrGetPhotoBlob(p.id).catch(()=>null);
-  if (!blob) { showToast('讀取照片失敗'); return; }
-  const file = new File([blob], `railshot-journal-${Date.now()}.jpg`, { type: 'image/jpeg' });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file] }); return; } catch(e) { /* 使用者取消也會走到這，忽略 */ }
-  } else {
-    // 不支援分享 API 的瀏覽器：開新分頁顯示圖片，長按即可存到相簿
-    window.open(URL.createObjectURL(blob), '_blank');
-  }
-}
-async function jrHandlePhotoPick(event){
-  const files = Array.from(event.target.files || []);
-  event.target.value = '';
-  for (const file of files) {
-    try {
-      const blob = await jrCompressImage(file);
-      jrEditingPhotos.push({ id: 'jrp_' + Date.now() + '_' + Math.random().toString(36).slice(2,8), isNew: true, blob });
-    } catch(e) { console.log('壓縮照片失敗', e); }
-  }
-  jrRenderPhotoGrid();
-}
-function jrRemovePhoto(idx){
-  jrEditingPhotos.splice(idx, 1);
-  jrRenderPhotoGrid();
-}
-async function jrSaveEntry(){
-  const id = document.getElementById('jr-edit-id').value;
-  const date = document.getElementById('jr-edit-date').value;
-  const time = document.getElementById('jr-edit-time').value || '00:00';
-  const text = document.getElementById('jr-text-input').value.trim();
-  if (!text && !jrEditingPhotos.length) { showToast('請輸入內容或加張照片'); return; }
 
-  // 把新加入的照片存進 IndexedDB
-  for (const p of jrEditingPhotos) {
-    if (p.isNew) { await jrSavePhotoBlob(p.id, p.blob); }
-  }
-  // 刪掉這次編輯中被移除的舊照片
-  if (id) {
-    const old = journalEntries.find(e => e.id === id);
-    const keptIds = new Set(jrEditingPhotos.map(p => p.id));
-    for (const oldId of (old?.photoIds || [])) {
-      if (!keptIds.has(oldId)) jrDeletePhotoBlob(oldId).catch(()=>{});
-    }
-  }
-
-  const photoIds = jrEditingPhotos.map(p => p.id);
-  if (id) {
-    const entry = journalEntries.find(e => e.id === id);
-    if (entry) { entry.time = time; entry.text = text; entry.photoIds = photoIds; }
-  } else {
-    journalEntries.push({ id: 'jr_' + Date.now() + '_' + Math.random().toString(36).slice(2,8), date, time, text, photoIds, createdAt: Date.now() });
-  }
-  saveJournalEntries();
-  closeSheet('journal-entry-sheet');
-  jrRenderCalendar();
-  jrRenderEntryList();
-  showToast('已儲存');
+// ── 卡片左滑刪除 ──────────────────────────────────────
+let jrOpenSwipeId = null;
+let jrSwipeState = { active:false, dragging:false, id:null, startX:0, startY:0, dx:0 };
+function jrSwipeStart(e, id){
+  const t = e.touches[0];
+  jrSwipeState = { active:true, dragging:false, id, startX:t.clientX, startY:t.clientY, dx: jrOpenSwipeId===id ? -84 : 0 };
 }
-function jrDeleteEntry(){
-  const id = document.getElementById('jr-edit-id').value;
-  if (!id) return;
+function jrSwipeMove(e, id){
+  if (!jrSwipeState.active || jrSwipeState.id !== id) return;
+  const t = e.touches[0];
+  const dx = t.clientX - jrSwipeState.startX;
+  const dy = t.clientY - jrSwipeState.startY;
+  if (!jrSwipeState.dragging) {
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+    if (Math.abs(dy) > Math.abs(dx)) { jrSwipeState.active = false; return; }
+    jrSwipeState.dragging = true;
+  }
+  e.preventDefault();
+  const base = jrOpenSwipeId === id ? -84 : 0;
+  const val = Math.max(-84, Math.min(0, base + dx));
+  jrSwipeState.dx = val;
+  const card = document.getElementById('jr-card-' + id);
+  if (card) card.style.transform = `translateX(${val}px)`;
+}
+function jrSwipeEnd(e, id){
+  if (!jrSwipeState.active) return;
+  jrSwipeState.active = false;
+  const card = document.getElementById('jr-card-' + id);
+  if (!jrSwipeState.dragging) return;
+  if (jrSwipeState.dx < -42) {
+    if (card) card.style.transform = 'translateX(-84px)';
+    if (jrOpenSwipeId && jrOpenSwipeId !== id) jrCloseSwipe(jrOpenSwipeId);
+    jrOpenSwipeId = id;
+  } else {
+    if (card) card.style.transform = 'translateX(0)';
+    if (jrOpenSwipeId === id) jrOpenSwipeId = null;
+  }
+}
+function jrCloseSwipe(id){
+  const card = document.getElementById('jr-card-' + id);
+  if (card) card.style.transform = 'translateX(0)';
+  if (jrOpenSwipeId === id) jrOpenSwipeId = null;
+}
+function jrCardClick(e, id){
+  if (jrSwipeState.dragging) { jrSwipeState.dragging = false; return; }
+  if (jrOpenSwipeId === id) { jrCloseSwipe(id); return; }
+  if (jrOpenSwipeId) jrCloseSwipe(jrOpenSwipeId);
+  jrOpenEditorForEntry(id);
+}
+function jrDeleteEntryById(id){
   const entry = journalEntries.find(e => e.id === id);
-  (entry?.photoIds || []).forEach(pid => jrDeletePhotoBlob(pid).catch(()=>{}));
+  if (!entry) return;
+  jrPhotoIdsOf(entry).forEach(pid => jrDeletePhotoBlob(pid).catch(()=>{}));
   journalEntries = journalEntries.filter(e => e.id !== id);
   saveJournalEntries();
-  closeSheet('journal-entry-sheet');
+  jrOpenSwipeId = null;
   jrRenderCalendar();
   jrRenderEntryList();
   showToast('已刪除');
 }
+
+// ── 新增/編輯（全螢幕頁） ────────────────────────────────
+let jrEditingId = null;
+let jrBlocks = [];          // [{type:'text',value}|{type:'image',id}]
+let jrBlobsById = {};       // id -> {blob, previewUrl}
+let jrUndoStack = [];
+let jrRedoStack = [];
+let jrActiveTextIdx = 0;
+
+function jrOpenEditorForNew(){
+  jrOpenEditor(null, jrSelectedDate || localDateStr());
+}
+function jrOpenEditorForEntry(id){
+  jrOpenEditor(id, null);
+}
+function jrOpenEditor(entryId, defaultDate){
+  jrEditingId = entryId || null;
+  const entry = entryId ? journalEntries.find(e => e.id === entryId) : null;
+  const now = new Date();
+  const date = entry ? entry.date : defaultDate;
+  const time = entry ? entry.time : `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('jr-edit-date-input').value = date;
+  document.getElementById('jr-edit-time-input').value = time;
+  jrRenderDateTimeLabels();
+  document.getElementById('jr-delete-row').style.display = entry ? 'block' : 'none';
+
+  jrBlobsById = {};
+  jrUndoStack = []; jrRedoStack = [];
+  if (entry) {
+    jrBlocks = entry.content.map(b => b.type === 'text' ? { type:'text', value:b.value } : { type:'image', id:b.id });
+    const photoIds = jrPhotoIdsOf(entry);
+    Promise.all(photoIds.map(pid => jrGetPhotoBlob(pid).then(blob => {
+      if (blob) jrBlobsById[pid] = { blob, previewUrl: URL.createObjectURL(blob) };
+    }))).then(jrRenderEditorBody);
+  } else {
+    jrBlocks = [{ type: 'text', value: '' }];
+  }
+  jrRenderEditorBody();
+  document.getElementById('jr-editor-page').classList.add('open');
+}
+function jrRenderDateTimeLabels(){
+  const date = document.getElementById('jr-edit-date-input').value;
+  const time = document.getElementById('jr-edit-time-input').value;
+  document.getElementById('jr-edit-date-label').textContent = date ? `${Number(date.slice(5,7))}月${Number(date.slice(8,10))}日（週${JR_WEEKDAY_ZH[new Date(date+'T00:00:00').getDay()]}）` : '';
+  document.getElementById('jr-edit-time-label').textContent = time ? jrTimeAmPm(time) : '';
+}
+function jrOnDateTimeInputChange(){ jrRenderDateTimeLabels(); }
+function jrCloseEditor(){
+  document.getElementById('jr-editor-page').classList.remove('open');
+}
+
+function jrHasContent(){
+  return jrBlocks.some(b => (b.type === 'text' && b.value.trim()) || b.type === 'image');
+}
+function jrUpdateSaveBtnState(){
+  const btn = document.getElementById('jr-save-btn');
+  if (!btn) return;
+  const has = jrHasContent();
+  btn.style.opacity = has ? '1' : '0.35';
+  btn.style.pointerEvents = has ? 'auto' : 'none';
+}
+function jrAutoGrow(ta){
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+function jrRenderEditorBody(){
+  const el = document.getElementById('jr-editor-body');
+  if (!el) return;
+  el.innerHTML = jrBlocks.map((b, i) => {
+    if (b.type === 'text') {
+      return `<textarea class="jr-block-text" data-idx="${i}" placeholder="${i===0?'寫點什麼...':''}"
+        oninput="jrOnBlockTextInput(${i}, this)" onfocus="jrActiveTextIdx=${i}"
+        >${jrEsc(b.value)}</textarea>`;
+    }
+    const info = jrBlobsById[b.id];
+    return `<div class="jr-block-img-wrap">
+      <img class="jr-block-img" src="${info ? info.previewUrl : ''}"/>
+      <div class="jr-block-img-del" onclick="jrDeleteImageBlock(${i})">✕</div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('textarea').forEach(jrAutoGrow);
+  jrUpdateSaveBtnState();
+  jrUpdateUndoRedoBtns();
+}
+function jrOnBlockTextInput(idx, elm){
+  jrBlocks[idx].value = elm.value;
+  jrAutoGrow(elm);
+  jrUpdateSaveBtnState();
+}
+function jrSnapshotBlocks(){
+  return jrBlocks.map(b => b.type === 'text' ? { type:'text', value:b.value } : { type:'image', id:b.id });
+}
+function jrPushUndo(){
+  jrUndoStack.push(jrSnapshotBlocks());
+  if (jrUndoStack.length > 30) jrUndoStack.shift();
+  jrRedoStack = [];
+}
+function jrUndo(){
+  if (!jrUndoStack.length) return;
+  jrRedoStack.push(jrSnapshotBlocks());
+  jrBlocks = jrUndoStack.pop();
+  jrRenderEditorBody();
+}
+function jrRedo(){
+  if (!jrRedoStack.length) return;
+  jrUndoStack.push(jrSnapshotBlocks());
+  jrBlocks = jrRedoStack.pop();
+  jrRenderEditorBody();
+}
+function jrUpdateUndoRedoBtns(){
+  const u = document.getElementById('jr-undo-btn');
+  const r = document.getElementById('jr-redo-btn');
+  if (u) u.classList.toggle('disabled', !jrUndoStack.length);
+  if (r) r.classList.toggle('disabled', !jrRedoStack.length);
+}
+function jrMergeAdjacentTextBlocks(){
+  for (let i = jrBlocks.length - 2; i >= 0; i--) {
+    if (jrBlocks[i].type === 'text' && jrBlocks[i+1].type === 'text') {
+      jrBlocks[i].value += (jrBlocks[i].value && jrBlocks[i+1].value ? '\n' : '') + jrBlocks[i+1].value;
+      jrBlocks.splice(i+1, 1);
+    }
+  }
+}
+function jrCurrentImageCount(){ return jrBlocks.filter(b => b.type === 'image').length; }
+
+async function jrHandlePhotoPick(event){
+  let files = Array.from(event.target.files || []);
+  event.target.value = '';
+  if (!files.length) return;
+  const remain = 10 - jrCurrentImageCount();
+  if (remain <= 0) { showToast('最多只能加 10 張照片'); return; }
+  if (files.length > remain) { files = files.slice(0, remain); showToast(`最多只能加 10 張照片，已取前 ${remain} 張`); }
+
+  jrPushUndo();
+  const idx = jrActiveTextIdx;
+  const activeTa = document.querySelector(`textarea[data-idx="${idx}"]`);
+  const curVal = jrBlocks[idx] && jrBlocks[idx].type === 'text' ? jrBlocks[idx].value : '';
+  const cursorPos = activeTa ? activeTa.selectionStart : curVal.length;
+  const before = curVal.slice(0, cursorPos);
+  const after = curVal.slice(cursorPos);
+
+  const newBlocks = [];
+  for (const file of files) {
+    try {
+      const compressed = await jrCompressImage(file);
+      const id = 'jrp_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+      jrBlobsById[id] = { blob: compressed, previewUrl: URL.createObjectURL(compressed) };
+      newBlocks.push({ type: 'image', id });
+    } catch(e) { console.log('壓縮照片失敗', e); }
+  }
+  if (!newBlocks.length) return;
+
+  jrBlocks.splice(idx, 1, { type:'text', value: before }, ...newBlocks, { type:'text', value: after });
+  jrRenderEditorBody();
+  const afterIdx = idx + 1 + newBlocks.length;
+  jrActiveTextIdx = afterIdx;
+  requestAnimationFrame(() => {
+    const afterTa = document.querySelector(`textarea[data-idx="${afterIdx}"]`);
+    if (afterTa) { afterTa.focus(); afterTa.setSelectionRange(0,0); }
+  });
+}
+function jrDeleteImageBlock(idx){
+  jrPushUndo();
+  jrBlocks.splice(idx, 1);
+  jrMergeAdjacentTextBlocks();
+  jrRenderEditorBody();
+}
+
+async function jrSaveEntry(){
+  if (!jrHasContent()) return;
+  const date = document.getElementById('jr-edit-date-input').value;
+  const time = document.getElementById('jr-edit-time-input').value || '00:00';
+
+  const oldEntry = jrEditingId ? journalEntries.find(e => e.id === jrEditingId) : null;
+  const oldPhotoIds = new Set(oldEntry ? jrPhotoIdsOf(oldEntry) : []);
+  const keptPhotoIds = new Set(jrBlocks.filter(b => b.type === 'image').map(b => b.id));
+
+  // 新加入的照片（jrBlobsById 裡有、但還沒真的寫進 IndexedDB 的）存檔
+  for (const id of keptPhotoIds) {
+    if (!oldPhotoIds.has(id) && jrBlobsById[id]) {
+      await jrSavePhotoBlob(id, jrBlobsById[id].blob);
+    }
+  }
+  // 這次編輯被移除的舊照片，從 IndexedDB 刪掉
+  for (const id of oldPhotoIds) {
+    if (!keptPhotoIds.has(id)) jrDeletePhotoBlob(id).catch(()=>{});
+  }
+
+  const content = jrSnapshotBlocks();
+  if (oldEntry) {
+    oldEntry.date = date; oldEntry.time = time; oldEntry.content = content; oldEntry.updatedAt = Date.now();
+  } else {
+    journalEntries.push({ id: 'jr_' + Date.now() + '_' + Math.random().toString(36).slice(2,8), date, time, content, createdAt: Date.now() });
+  }
+  saveJournalEntries();
+  jrCloseEditor();
+  jrRenderCalendar();
+  jrRenderEntryList();
+  showToast('已儲存');
+}
+function jrDeleteCurrentEntry(){
+  if (!jrEditingId) return;
+  jrDeleteEntryById(jrEditingId);
+  jrCloseEditor();
+}
+
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
