@@ -5658,10 +5658,15 @@ function jrLockBackgroundScroll(){
   if (!jrBgScrollEl) return;
   jrBgScrollTop = jrBgScrollEl.scrollTop;
   jrBgScrollEl.style.overflow = 'hidden';
+  // 編輯頁鍵盤開啟時只縮到可視範圍那麼高，鍵盤沒完全蓋到的那條縫會露出後面
+  // 月曆／清單本身的內容（不只是 tab bar 跟＋而已），乾脆把整頁背景畫面藏起來，
+  // 用 visibility 而不是 display:none，版面本身不用重新計算，關閉時直接復原
+  jrBgScrollEl.style.visibility = 'hidden';
 }
 function jrUnlockBackgroundScroll(){
   if (!jrBgScrollEl) return;
   jrBgScrollEl.style.overflow = '';
+  jrBgScrollEl.style.visibility = '';
   jrBgScrollEl.scrollTop = jrBgScrollTop;
   jrBgScrollEl = null;
 }
