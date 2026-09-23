@@ -505,7 +505,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .jr-day.is-holiday .jr-day-num{color:var(--red);}
 .jr-day.has-data .jr-day-num{background:#2FB6E0;color:white;font-weight:700;}
 .jr-day.is-today .jr-day-num{background:var(--accent);color:white;font-weight:800;}
-.jr-day.is-selected:not(.is-today) .jr-day-num{outline:2px solid var(--text2);outline-offset:2px;}
 
 .jr-fab{position:fixed;right:20px;bottom:calc(var(--tab-h) + 16px);width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(26,37,64,0.25);cursor:pointer;z-index:60;}
 
@@ -5345,7 +5344,6 @@ function jrRenderCalendar(){
     const dow = new Date(jrViewYear, jrViewMonth, d).getDay(); // 0=日 6=六
     if (dow === 0 || dow === 6 || TW_HOLIDAYS_2026.has(dateStr)) cls.push('is-holiday');
     if (dateStr === todayStr) cls.push('is-today');
-    if (dateStr === jrSelectedDate) cls.push('is-selected');
     if (has) cls.push('has-data');
     html += `<div class="${cls.join(' ')}" onclick="jrSelectDate('${dateStr}')"><div class="jr-day-num">${d}</div></div>`;
   }
@@ -5751,7 +5749,6 @@ async function jrSaveEntry(){
   if (!jrHasContent()) return;
   await jrPersistCurrentEntry();
   jrCloseEditor();
-  showToast('已儲存');
 }
 // ── 編輯頁左右滑動切換到前一筆／後一筆日誌（依日期時間排序，只在正在編輯「已存在」的紀錄時可用）──
 let jrEditSwipeState = { active:false, dragging:false, startX:0, startY:0 };
