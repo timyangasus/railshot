@@ -5538,6 +5538,12 @@ function jrOpenEditor(entryId, defaultDate){
   }
   jrRenderEditorBody();
   document.getElementById('jr-editor-page').classList.add('open');
+  // 開啟當下（鍵盤必定還沒開）先記一次可視範圍高度當基準值，判斷鍵盤是否開啟時
+  // 用這個固定基準比對，不要每次都重讀 window.innerHeight——有些 iOS 版本搭配
+  // <meta interactive-widget=resizes-content> 鍵盤跳出時 window.innerHeight 本身
+  // 也會跟著縮小，這樣一來鍵盤明明還開著，卻會因為兩邊都縮小、差距被拉近到小於
+  // 門檻值，被誤判成「鍵盤沒開」，工具列的安全區留白就會跑回來
+  jrBaselineViewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
   jrLockBackgroundScroll();
   jrBindViewportListeners();
   jrSyncEditorViewport(); // 開啟當下先同步一次，不等第一次 resize/scroll 事件才算
@@ -5568,6 +5574,7 @@ function jrCloseEditor(){
   page.style.bottom = '';
   const toolbar = document.getElementById('jr-toolbar');
   if (toolbar) toolbar.classList.remove('jr-kb-open');
+  jrBaselineViewportHeight = null;
   const tabBar = document.querySelector('.tab-bar');
   const fab = document.querySelector('.jr-fab');
   if (tabBar) tabBar.style.display = '';
@@ -5585,6 +5592,7 @@ function jrCloseEditor(){
 // fixed、sticky 或 translateY。
 let jrVPRafId = null;
 let jrVPBound = false;
+let jrBaselineViewportHeight = null;
 function jrScheduleViewportSync(){
   if (jrVPRafId != null) return; // 同一畫面裡的多個事件合併成一次更新
   jrVPRafId = requestAnimationFrame(() => { jrVPRafId = null; jrSyncEditorViewport(); });
@@ -5602,9 +5610,11 @@ function jrSyncEditorViewport(){
     page.style.height = '';
     page.style.bottom = '';
   }
-  // 鍵盤是否「確定」開啟：可視範圍比 layout viewport 矮出一截才算，避免把工具列
-  // 安全區 padding 的收放跟位置計算混在一起（分開判斷、不重複補償）
-  const keyboardOpen = !!vv && (window.innerHeight - vv.height) > 100;
+  // 鍵盤是否「確定」開啟：可視範圍比「開啟編輯頁當下（鍵盤必為關閉狀態）」量到的
+  // 基準高度矮出一截才算，避免把工具列安全區 padding 的收放跟位置計算混在一起
+  // （分開判斷、不重複補償），也不受 window.innerHeight 之後可能被鍵盤動態調整影響
+  const baseline = jrBaselineViewportHeight != null ? jrBaselineViewportHeight : window.innerHeight;
+  const keyboardOpen = !!vv && (baseline - vv.height) > 100;
   const toolbar = document.getElementById('jr-toolbar');
   if (toolbar) toolbar.classList.toggle('jr-kb-open', keyboardOpen);
   // 把目前正在打字的欄位捲到可視範圍內。放在這裡（每次同步都做，不是只在 focusin
