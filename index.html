@@ -5561,6 +5561,7 @@ function jrCloseEditor(){
   page.style.bottom = '';
   const toolbar = document.getElementById('jr-toolbar');
   if (toolbar) toolbar.classList.remove('jr-kb-open');
+  jrPrevKeyboardOpen = false;
   // 點日期進編輯頁時留下的選取黑框，回到月曆後就沒有意義了，關閉編輯頁時一併取消
   jrSelectedDate = null;
   jrRenderCalendar();
@@ -5574,6 +5575,7 @@ function jrCloseEditor(){
 // fixed、sticky 或 translateY。
 let jrVPRafId = null;
 let jrVPBound = false;
+let jrPrevKeyboardOpen = false;
 function jrScheduleViewportSync(){
   if (jrVPRafId != null) return; // 同一畫面裡的多個事件合併成一次更新
   jrVPRafId = requestAnimationFrame(() => { jrVPRafId = null; jrSyncEditorViewport(); });
@@ -5596,6 +5598,17 @@ function jrSyncEditorViewport(){
   const keyboardOpen = !!vv && (window.innerHeight - vv.height) > 100;
   const toolbar = document.getElementById('jr-toolbar');
   if (toolbar) toolbar.classList.toggle('jr-kb-open', keyboardOpen);
+  // 鍵盤從關到開的那一刻，把目前正在打字的欄位捲到可視範圍內——編輯頁本身變矮後，
+  // 內容區原本的捲動位置不會自動跟著調整，鍵盤蓋住照片下方那行時使用者會看不到
+  // 自己在打的地方，只在「剛打開」這一次做，之後使用者自己手動捲動就不再干預
+  if (keyboardOpen && !jrPrevKeyboardOpen) {
+    const active = document.activeElement;
+    const body = document.getElementById('jr-editor-body');
+    if (active && body && body.contains(active)) {
+      requestAnimationFrame(() => active.scrollIntoView({ block: 'center' }));
+    }
+  }
+  jrPrevKeyboardOpen = keyboardOpen;
 }
 function jrBindViewportListeners(){
   if (jrVPBound) return;
