@@ -5541,6 +5541,13 @@ function jrOpenEditor(entryId, defaultDate){
   jrLockBackgroundScroll();
   jrBindViewportListeners();
   jrSyncEditorViewport(); // 開啟當下先同步一次，不等第一次 resize/scroll 事件才算
+  // 編輯頁鍵盤開啟時只會縮到 visualViewport 那麼高，不再是全螢幕，鍵盤沒完全蓋到的
+  // 那條縫會露出後面本來就在畫面最下面的 tab bar 跟＋按鈕；編輯頁開著的時候乾脆
+  // 直接把這兩個藏起來，關閉時再還原
+  const tabBar = document.querySelector('.tab-bar');
+  const fab = document.querySelector('.jr-fab');
+  if (tabBar) tabBar.style.display = 'none';
+  if (fab) fab.style.display = 'none';
 }
 function jrRenderDateTimeLabels(){
   const date = document.getElementById('jr-edit-date-input').value;
@@ -5562,6 +5569,10 @@ function jrCloseEditor(){
   const toolbar = document.getElementById('jr-toolbar');
   if (toolbar) toolbar.classList.remove('jr-kb-open');
   jrPrevKeyboardOpen = false;
+  const tabBar = document.querySelector('.tab-bar');
+  const fab = document.querySelector('.jr-fab');
+  if (tabBar) tabBar.style.display = '';
+  if (fab) fab.style.display = '';
   // 點日期進編輯頁時留下的選取黑框，回到月曆後就沒有意義了，關閉編輯頁時一併取消
   jrSelectedDate = null;
   jrRenderCalendar();
