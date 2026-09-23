@@ -5726,7 +5726,7 @@ function jrUpdateSaveBtnState(){
   const btn = document.getElementById('jr-save-btn');
   if (!btn) return;
   const has = jrHasContent();
-  btn.style.opacity = has ? '1' : '0.35';
+  btn.style.background = has ? '#006CE1' : '#c8d0dc';
   btn.style.pointerEvents = has ? 'auto' : 'none';
 }
 function jrAutoGrow(ta){
