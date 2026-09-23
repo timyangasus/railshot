@@ -5568,7 +5568,6 @@ function jrCloseEditor(){
   page.style.bottom = '';
   const toolbar = document.getElementById('jr-toolbar');
   if (toolbar) toolbar.classList.remove('jr-kb-open');
-  jrPrevKeyboardOpen = false;
   const tabBar = document.querySelector('.tab-bar');
   const fab = document.querySelector('.jr-fab');
   if (tabBar) tabBar.style.display = '';
@@ -5586,7 +5585,6 @@ function jrCloseEditor(){
 // fixed、sticky 或 translateY。
 let jrVPRafId = null;
 let jrVPBound = false;
-let jrPrevKeyboardOpen = false;
 function jrScheduleViewportSync(){
   if (jrVPRafId != null) return; // 同一畫面裡的多個事件合併成一次更新
   jrVPRafId = requestAnimationFrame(() => { jrVPRafId = null; jrSyncEditorViewport(); });
@@ -5609,18 +5607,16 @@ function jrSyncEditorViewport(){
   const keyboardOpen = !!vv && (window.innerHeight - vv.height) > 100;
   const toolbar = document.getElementById('jr-toolbar');
   if (toolbar) toolbar.classList.toggle('jr-kb-open', keyboardOpen);
-  // 鍵盤從關到開的那一刻，把目前正在打字的欄位捲到可視範圍內——編輯頁本身變矮後，
-  // 內容區原本的捲動位置不會自動跟著調整，鍵盤蓋住照片下方那行時使用者會看不到
-  // 自己在打的地方，只在「剛打開」這一次做，之後使用者自己手動捲動就不再干預
-  if (keyboardOpen && !jrPrevKeyboardOpen) {
-    const active = document.activeElement;
-    const body = document.getElementById('jr-editor-body');
-    if (active && body && body.contains(active)) {
-      requestAnimationFrame(() => active.scrollIntoView({ block: 'center' }));
-    }
-  }
-  jrPrevKeyboardOpen = keyboardOpen;
 }
+// 把目前正在打字的欄位捲到可視範圍內。掛在 focusin（不是鍵盤開關的那個判斷）上，
+// 這樣不管是鍵盤原本就關著、剛跳出來，還是鍵盤早就開著、使用者換點另一張照片
+// 下面的欄位，每次「焦點換了」都會重新捲一次——不會只在第一次鍵盤彈起時生效，
+// 也不用等 visualViewport 的 resize/scroll 事件（換欄位不一定會觸發那些事件）
+document.getElementById('jr-editor-body').addEventListener('focusin', () => {
+  jrSyncEditorViewport();
+  const active = document.activeElement;
+  if (active) requestAnimationFrame(() => active.scrollIntoView({ block: 'center' }));
+});
 function jrBindViewportListeners(){
   if (jrVPBound) return;
   jrVPBound = true;
