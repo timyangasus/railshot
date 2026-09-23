@@ -526,7 +526,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .jr-editor-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;padding:16px;-webkit-overflow-scrolling:touch;}
 .jr-block-text{width:100%;min-height:1.6em;box-sizing:border-box;border:none;outline:none;background:transparent;font-size:20px;line-height:1.6;color:var(--text);font-family:inherit;resize:none;overflow:hidden;display:block;padding:2px 0;}
 .jr-block-text::placeholder{color:var(--text3);}
-.jr-title-input{width:100%;min-height:1.35em;box-sizing:border-box;border:none;outline:none;background:transparent;font-size:20px;font-weight:800;line-height:1.35;color:var(--text);font-family:inherit;resize:none;overflow:hidden;display:block;padding:0;}
+.jr-title-input{width:100%;min-height:1.35em;box-sizing:border-box;border:none;outline:none;background:transparent;font-size:23px;font-weight:800;line-height:1.35;color:#006CE1;font-family:inherit;resize:none;overflow:hidden;display:block;padding:0;}
 .jr-title-input::placeholder{color:var(--text3);}
 .jr-block-img-wrap{position:relative;margin:10px 0;}
 .jr-block-img{width:100%;display:block;background:var(--bg3);}
@@ -5758,7 +5758,9 @@ function jrRenderEditorBody(){
 // 點編輯區的空白處（不是點在文字段落或圖片上）也要能叫出鍵盤，
 // 對應到離點擊位置最近的文字段落，體感上跟點一般筆記 App 空白處一樣好打字
 function jrEditorBodyClick(event){
-  if (event.target.id !== 'jr-editor-body') return; // 有點到文字/圖片就交給那個元素自己處理
+  // 有點到文字/圖片就交給那個元素自己處理；空白處點擊的 target 可能是 jr-editor-body
+  // 本身，也可能是包在裡面、用來避免重繪時把標題洗掉的 jr-blocks-container，兩種都算空白
+  if (event.target.id !== 'jr-editor-body' && event.target.id !== 'jr-blocks-container') return;
   const textareas = Array.from(document.querySelectorAll('.jr-block-text'));
   if (!textareas.length) return;
   const clickY = event.clientY;
