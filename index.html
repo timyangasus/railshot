@@ -505,7 +505,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .jr-day.is-today .jr-day-num{background:var(--accent);color:white;font-weight:800;}
 .jr-day.is-selected:not(.is-today) .jr-day-num{outline:2px solid var(--text2);outline-offset:2px;}
 
-.jr-fab{position:fixed;right:20px;bottom:calc(var(--tab-h) + 16px);width:54px;height:54px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(26,37,64,0.35);cursor:pointer;z-index:60;}
+.jr-fab{position:fixed;right:20px;bottom:calc(var(--tab-h) + 16px);width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(26,37,64,0.25);cursor:pointer;z-index:60;}
 
 .jr-date-group-hdr{font-size:13px;font-weight:700;color:var(--text2);margin:14px 0 6px;}
 .jr-card-wrap{position:relative;margin-bottom:10px;border-radius:var(--radius-input);overflow:hidden;}
@@ -563,6 +563,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <button onclick="resetShootForm()" id="shoot-reset-btn" title="清除資料" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
       </button>
+      <div onclick="jrGoToday()" id="jr-today-header-btn" style="display:none;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;padding:5px 12px;border:1px solid var(--border2);border-radius:20px;">今天</div>
     </div>
   </div>
 </div>
@@ -822,9 +823,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <!-- TAB 5: 日誌 -->
 <div class="screen" id="tab-journal">
 <div class="sc" style="padding-bottom:90px;">
-  <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
-    <div onclick="jrGoToday()" style="font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;padding:4px 11px;border:1px solid var(--border2);border-radius:20px;">今天</div>
-  </div>
   <div class="tt-form" style="padding:14px;border-radius:0;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div onclick="jrChangeMonth(-1)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:20px;">‹</div>
@@ -1570,6 +1568,8 @@ function switchTab(name,el){
   if(shootResetBtn) shootResetBtn.style.display = (name === 'single' || name === 'between') ? 'flex' : 'none';
   const srchBtn = document.getElementById('train-search-btn');
   if(srchBtn) srchBtn.style.display = name === 'tt' ? 'flex' : 'none';
+  const jrTodayBtn = document.getElementById('jr-today-header-btn');
+  if(jrTodayBtn) jrTodayBtn.style.display = name === 'journal' ? 'flex' : 'none';
 
   // 點同一個 tab icon → 滾回最頂部
   if(isSameTab){
