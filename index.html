@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content"/>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta http-equiv="Pragma" content="no-cache"/>
 <meta http-equiv="Expires" content="0"/>
@@ -531,8 +531,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .jr-block-img{width:100%;display:block;background:var(--bg3);}
 .jr-block-img-del{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.55);color:white;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;}
 .jr-toolbar{display:flex;align-items:center;gap:4px;padding:8px 14px calc(8px + var(--safe-bot));border-top:1px solid var(--border);background:var(--bg2);flex-shrink:0;}
-/* 鍵盤跳出來時，工具列下面直接接著鍵盤，不需要再留 Home 指示條的安全區留白 */
-.jr-toolbar.jr-kb-open{padding-bottom:8px;}
 .jr-tb-btn{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;}
 .jr-tb-btn:active{background:var(--bg3);}
 .jr-tb-btn.disabled{opacity:.3;pointer-events:none;}
@@ -5549,40 +5547,15 @@ function jrOnDateTimeInputChange(){ jrRenderDateTimeLabels(); }
 function jrCloseEditor(){
   const page = document.getElementById('jr-editor-page');
   page.classList.remove('open');
-  const toolbar = document.getElementById('jr-toolbar');
-  if (toolbar) { toolbar.style.transform = ''; toolbar.classList.remove('jr-kb-open'); }
-  const body = document.getElementById('jr-editor-body');
-  if (body) body.style.marginBottom = '';
   // 點日期進編輯頁時留下的選取黑框，回到月曆後就沒有意義了，關閉編輯頁時一併取消
   jrSelectedDate = null;
   jrRenderCalendar();
 }
-// iOS Safari 不會在鍵盤跳出時縮小 layout viewport，只縮小可視範圍，
-// 所以貼在最下面的工具列（加照片按鈕）會被鍵盤蓋住、使用者以為打完字加不了照片。
-// 用 visualViewport 追蹤可視範圍實際高度，把整個編輯頁跟著縮到鍵盤上緣，工具列永遠留在鍵盤正上方。
-function jrOnViewportResize(){
-  const page = document.getElementById('jr-editor-page');
-  const toolbar = document.getElementById('jr-toolbar');
-  const body = document.getElementById('jr-editor-body');
-  if (!page || !page.classList.contains('open') || !window.visualViewport || !toolbar || !body) return;
-  // iOS 定位鍵盤上緣的標準算法（MDN Visual Viewport API 範例）：layout viewport 高度
-  // 減去可視範圍高度、再減去可視範圍相對 layout viewport 的位移（offsetTop）。
-  const vv = window.visualViewport;
-  // 只把工具列往上推到鍵盤正上方，整個編輯頁本身維持原本 inset:0 全滿、不縮小，
-  // 不然縮小頁面等於讓出畫面下半部給後面的首頁，滑動時會看到首頁月曆/清單透出來
-  const keyboardOverlap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-  const keyboardOpen = keyboardOverlap > 100;
-  toolbar.style.transform = keyboardOpen ? `translateY(-${keyboardOverlap}px)` : '';
-  toolbar.classList.toggle('jr-kb-open', keyboardOpen);
-  // 只用 transform 移動工具列是「畫」上去而已，不會讓內容區跟著變矮，
-  // 於是捲動內容（照片、文字）還是會捲到工具列原本的位置，視覺上蓋過被移上來的工具列。
-  // 這裡額外把內容區的高度也讓出同樣的量，捲動範圍的下緣才會真的跟著工具列一起往上收。
-  body.style.marginBottom = keyboardOpen ? `${keyboardOverlap}px` : '';
-}
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', jrOnViewportResize);
-  window.visualViewport.addEventListener('scroll', jrOnViewportResize);
-}
+// 鍵盤上緣的工具列改交給 <meta viewport interactive-widget=resizes-content>（見 <head>）處理：
+// 鍵盤跳出時瀏覽器會直接把 layout viewport 縮小，inset:0 的編輯頁跟著變矮，
+// flex:1 的內容區跟著收縮，工具列自然貼齊在新的（變矮的）頁面最下緣，不需要再用
+// visualViewport 手動算位移。先前那版每次捲動/縮放都要重算 transform，捲動時常常
+// 跟手指拖動的節奏對不上、看起來像工具列自己在飄動；交給瀏覽器原生處理就不會有這問題。
 // 返回鍵：有內容就當作「完成」自動存檔，完全沒打東西才單純關閉，不會生一筆空紀錄
 function jrBack(){
   if (jrHasContent()) jrSaveEntry();
