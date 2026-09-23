@@ -5697,7 +5697,7 @@ function jrRenderEditorBody(){
   if (!el) return;
   el.innerHTML = jrBlocks.map((b, i) => {
     if (b.type === 'text') {
-      return `<textarea class="jr-block-text" data-idx="${i}" placeholder="寫點什麼吧⋯⋯"
+      return `<textarea class="jr-block-text" data-idx="${i}"
         oninput="jrOnBlockTextInput(${i}, this)" onfocus="jrActiveTextIdx=${i}"
         >${jrEsc(b.value)}</textarea>`;
     }
