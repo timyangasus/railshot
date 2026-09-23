@@ -5551,6 +5551,8 @@ function jrCloseEditor(){
   page.classList.remove('open');
   const toolbar = document.getElementById('jr-toolbar');
   if (toolbar) { toolbar.style.transform = ''; toolbar.classList.remove('jr-kb-open'); }
+  const body = document.getElementById('jr-editor-body');
+  if (body) body.style.marginBottom = '';
   // 點日期進編輯頁時留下的選取黑框，回到月曆後就沒有意義了，關閉編輯頁時一併取消
   jrSelectedDate = null;
   jrRenderCalendar();
@@ -5561,11 +5563,10 @@ function jrCloseEditor(){
 function jrOnViewportResize(){
   const page = document.getElementById('jr-editor-page');
   const toolbar = document.getElementById('jr-toolbar');
-  if (!page || !page.classList.contains('open') || !window.visualViewport || !toolbar) return;
+  const body = document.getElementById('jr-editor-body');
+  if (!page || !page.classList.contains('open') || !window.visualViewport || !toolbar || !body) return;
   // iOS 定位鍵盤上緣的標準算法（MDN Visual Viewport API 範例）：layout viewport 高度
   // 減去可視範圍高度、再減去可視範圍相對 layout viewport 的位移（offsetTop）。
-  // 少了 offsetTop 這項，內容較多、iOS 把畫面往上捲動對焦欄位時，工具列就會被推得
-  // 太高，跟鍵盤中間空出一大塊；把它加回來才會跟著鍵盤上緣走。
   const vv = window.visualViewport;
   // 只把工具列往上推到鍵盤正上方，整個編輯頁本身維持原本 inset:0 全滿、不縮小，
   // 不然縮小頁面等於讓出畫面下半部給後面的首頁，滑動時會看到首頁月曆/清單透出來
@@ -5573,6 +5574,10 @@ function jrOnViewportResize(){
   const keyboardOpen = keyboardOverlap > 100;
   toolbar.style.transform = keyboardOpen ? `translateY(-${keyboardOverlap}px)` : '';
   toolbar.classList.toggle('jr-kb-open', keyboardOpen);
+  // 只用 transform 移動工具列是「畫」上去而已，不會讓內容區跟著變矮，
+  // 於是捲動內容（照片、文字）還是會捲到工具列原本的位置，視覺上蓋過被移上來的工具列。
+  // 這裡額外把內容區的高度也讓出同樣的量，捲動範圍的下緣才會真的跟著工具列一起往上收。
+  body.style.marginBottom = keyboardOpen ? `${keyboardOverlap}px` : '';
 }
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', jrOnViewportResize);
