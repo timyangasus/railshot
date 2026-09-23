@@ -850,7 +850,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 
 <!-- PAGE: 新增/編輯日誌（全螢幕） -->
 <div class="detail-page" id="jr-editor-page">
-  <div id="jr-vp-debug" style="position:fixed;top:0;left:0;right:0;z-index:999;background:rgba(255,0,0,0.85);color:white;font-size:11px;font-family:monospace;padding:4px 6px;white-space:pre-wrap;pointer-events:none;"></div>
   <div class="det-hdr" style="justify-content:space-between;">
     <div class="back-btn" onclick="jrBack()" style="gap:0;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="#1a2540"/></svg>
@@ -5579,9 +5578,6 @@ function jrOnViewportResize(){
   // 於是捲動內容（照片、文字）還是會捲到工具列原本的位置，視覺上蓋過被移上來的工具列。
   // 這裡額外把內容區的高度也讓出同樣的量，捲動範圍的下緣才會真的跟著工具列一起往上收。
   body.style.marginBottom = keyboardOpen ? `${keyboardOverlap}px` : '';
-  // 除錯用：暫時顯示 visualViewport 的即時數值，方便對照實機上這幾個值到底怎麼變化
-  const dbg = document.getElementById('jr-vp-debug');
-  if (dbg) dbg.textContent = `innerH=${window.innerHeight} vv.h=${Math.round(vv.height)} vv.top=${Math.round(vv.offsetTop)} scrollY=${window.scrollY} overlap=${Math.round(keyboardOverlap)} kbOpen=${keyboardOpen}`;
 }
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', jrOnViewportResize);
