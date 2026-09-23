@@ -503,7 +503,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .jr-day.is-holiday .jr-day-num{color:var(--red);}
 .jr-day.has-data .jr-day-num{background:#2FB6E0;color:white;font-weight:700;}
 .jr-day.is-today .jr-day-num{background:var(--accent);color:white;font-weight:800;}
-.jr-day.is-selected .jr-day-num{outline:2px solid var(--text2);outline-offset:2px;}
+.jr-day.is-selected:not(.is-today) .jr-day-num{outline:2px solid var(--text2);outline-offset:2px;}
 
 .jr-fab{position:fixed;right:20px;bottom:calc(var(--tab-h) + 16px);width:54px;height:54px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(26,37,64,0.35);cursor:pointer;z-index:60;}
 
@@ -822,13 +822,13 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <!-- TAB 5: 日誌 -->
 <div class="screen" id="tab-journal">
 <div class="sc" style="padding-bottom:90px;">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+    <div onclick="jrGoToday()" style="font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;padding:4px 11px;border:1px solid var(--border2);border-radius:20px;">今天</div>
+  </div>
   <div class="tt-form" style="padding:14px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div onclick="jrChangeMonth(-1)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:20px;">‹</div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div id="jr-month-label" style="font-size:17px;font-weight:700;color:var(--text);"></div>
-        <div onclick="jrGoToday()" style="font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;padding:4px 11px;border:1px solid var(--border2);border-radius:20px;">今天</div>
-      </div>
+      <div id="jr-month-label" style="font-size:17px;font-weight:700;color:var(--text);"></div>
       <div onclick="jrChangeMonth(1)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:20px;">›</div>
     </div>
     <div class="jr-cal-grid" style="margin-bottom:4px;">
@@ -5314,7 +5314,8 @@ function jrRenderCalendar(){
     const dateStr = `${jrViewYear}-${String(jrViewMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const has = jrEntriesOnDate(dateStr).length > 0;
     const cls = ['jr-day'];
-    if (TW_HOLIDAYS_2026.has(dateStr)) cls.push('is-holiday');
+    const dow = new Date(jrViewYear, jrViewMonth, d).getDay(); // 0=日 6=六
+    if (dow === 0 || dow === 6 || TW_HOLIDAYS_2026.has(dateStr)) cls.push('is-holiday');
     if (dateStr === todayStr) cls.push('is-today');
     if (dateStr === jrSelectedDate) cls.push('is-selected');
     if (has) cls.push('has-data');
