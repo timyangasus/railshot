@@ -517,14 +517,16 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .jr-card2-day{font-size:20px;font-weight:800;color:var(--text);line-height:1.15;}
 .jr-card2-time{font-size:10px;color:var(--text3);margin-top:2px;}
 .jr-card2-mid{flex:1;min-width:0;}
-.jr-card2-title{font-size:15px;font-weight:700;color:#006CE1;margin-bottom:3px;}
-.jr-card2-body{font-size:13px;color:var(--text2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.jr-card2-title{font-size:17px;font-weight:700;color:#006CE1;margin-bottom:3px;}
+.jr-card2-body{font-size:13px;color:var(--text2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;}
 .jr-card2-thumb{flex-shrink:0;width:76px;height:76px;overflow:hidden;background:var(--bg3);}
 .jr-card2-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
 
 .jr-editor-body{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;}
 .jr-block-text{width:100%;min-height:1.6em;box-sizing:border-box;border:none;outline:none;background:transparent;font-size:16px;line-height:1.6;color:var(--text);font-family:inherit;resize:none;overflow:hidden;display:block;padding:2px 0;}
 .jr-block-text::placeholder{color:var(--text3);}
+.jr-title-input{width:100%;min-height:1.35em;box-sizing:border-box;border:none;outline:none;background:transparent;font-size:20px;font-weight:800;line-height:1.35;color:var(--text);font-family:inherit;resize:none;overflow:hidden;display:block;padding:0;}
+.jr-title-input::placeholder{color:var(--text3);}
 .jr-block-img-wrap{position:relative;margin:10px 0;}
 .jr-block-img{width:100%;display:block;background:var(--bg3);}
 .jr-block-img-del{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,0.55);color:white;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;}
@@ -849,7 +851,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <!-- PAGE: 新增/編輯日誌（全螢幕） -->
 <div class="detail-page" id="jr-editor-page">
   <div class="det-hdr" style="justify-content:space-between;">
-    <div class="back-btn" onclick="jrCloseEditor()" style="gap:0;">
+    <div class="back-btn" onclick="jrBack()" style="gap:0;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="#1a2540"/></svg>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;">
@@ -865,6 +867,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div id="jr-save-btn" onclick="jrSaveEntry()" style="width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .15s;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg>
     </div>
+  </div>
+  <div style="padding:16px 16px 0;">
+    <textarea id="jr-title-input" class="jr-title-input" rows="1" placeholder="我是標題"
+      oninput="jrAutoGrow(this);jrUpdateSaveBtnState()" onclick="event.stopPropagation()"></textarea>
   </div>
   <div id="jr-editor-body" class="jr-editor-body" onclick="jrEditorBodyClick(event)"></div>
   <div class="jr-toolbar">
@@ -5175,7 +5181,8 @@ function jrEsc(s){
   return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-// entry: { id, date:'YYYY-MM-DD', time:'HH:MM', content:[{type:'text',value}|{type:'image',id}], createdAt, updatedAt }
+// entry: { id, date:'YYYY-MM-DD', time:'HH:MM', title, content:[{type:'text',value}|{type:'image',id}], createdAt, updatedAt }
+// content 只放「內文」（文字＋圖片），標題是獨立欄位，不再從 content 第一行硬拆
 let journalEntries = JSON.parse(localStorage.getItem('rs_journal') || '[]');
 // 相容舊格式（text+photoIds 兩個獨立欄位）：轉成新的 content 陣列，避免舊資料直接壞掉
 journalEntries = journalEntries.map(e => {
@@ -5185,6 +5192,25 @@ journalEntries = journalEntries.map(e => {
   else content.push({ type: 'text', value: '' });
   (e.photoIds || []).forEach(id => content.push({ type: 'image', id }));
   return { id: e.id, date: e.date, time: e.time, content, createdAt: e.createdAt || Date.now() };
+});
+// 相容「標題混在 content 第一行」的舊格式：把第一個文字段落的第一行拆出來當標題
+journalEntries = journalEntries.map(e => {
+  if (e.title !== undefined) return e;
+  const content = [];
+  let title = '', usedTitle = false;
+  for (const b of e.content) {
+    if (b.type === 'text' && !usedTitle) {
+      const lines = b.value.split('\n');
+      title = lines[0] || '';
+      const rest = lines.slice(1).join('\n');
+      usedTitle = true;
+      if (rest) content.push({ type: 'text', value: rest });
+    } else {
+      content.push(b);
+    }
+  }
+  if (!content.length) content.push({ type: 'text', value: '' });
+  return { ...e, title, content };
 });
 function saveJournalEntries(){ localStorage.setItem('rs_journal', JSON.stringify(journalEntries)); }
 
@@ -5332,21 +5358,9 @@ function jrTimeAmPm(time){
   return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
 }
 // 標題＝內容裡第一行文字；內文摘要＝其餘文字（跳過圖片）串起來
-function jrExtractTitleBody(content){
-  let title = '', bodyParts = [], usedTitle = false;
-  for (const b of content) {
-    if (b.type !== 'text') continue;
-    if (!usedTitle) {
-      const lines = b.value.split('\n');
-      title = lines[0] || '';
-      const rest = lines.slice(1).join(' ').trim();
-      if (rest) bodyParts.push(rest);
-      usedTitle = true;
-    } else if (b.value.trim()) {
-      bodyParts.push(b.value.trim());
-    }
-  }
-  return { title: title.trim(), body: bodyParts.join(' ').trim() };
+// 內文預覽：把 content 裡的文字段落串起來（跳過圖片），給清單卡片用
+function jrBodyPreview(content){
+  return content.filter(b => b.type === 'text' && b.value.trim()).map(b => b.value.trim()).join(' ').trim();
 }
 function jrPhotoIdsOf(entry){ return entry.content.filter(b => b.type === 'image').map(b => b.id); }
 
@@ -5372,7 +5386,8 @@ function jrRenderEntryList(){
   sorted.forEach(e => jrRenderCardThumb(e));
 }
 function jrCardHtml(e){
-  const { title, body } = jrExtractTitleBody(e.content);
+  const title = e.title || '';
+  const body = jrBodyPreview(e.content);
   const d = new Date(e.date + 'T00:00:00');
   const photoIds = jrPhotoIdsOf(e);
   return `<div class="jr-card-wrap">
@@ -5495,6 +5510,10 @@ function jrOpenEditor(entryId, defaultDate){
   document.getElementById('jr-edit-time-input').value = time;
   jrRenderDateTimeLabels();
 
+  const titleInput = document.getElementById('jr-title-input');
+  titleInput.value = entry ? (entry.title || '') : '';
+  jrAutoGrow(titleInput);
+
   jrBlobsById = {};
   jrUndoStack = []; jrRedoStack = [];
   if (entry) {
@@ -5519,8 +5538,15 @@ function jrOnDateTimeInputChange(){ jrRenderDateTimeLabels(); }
 function jrCloseEditor(){
   document.getElementById('jr-editor-page').classList.remove('open');
 }
+// 返回鍵：有內容就當作「完成」自動存檔，完全沒打東西才單純關閉，不會生一筆空紀錄
+function jrBack(){
+  if (jrHasContent()) jrSaveEntry();
+  else jrCloseEditor();
+}
 
 function jrHasContent(){
+  const titleInput = document.getElementById('jr-title-input');
+  if (titleInput && titleInput.value.trim()) return true;
   return jrBlocks.some(b => (b.type === 'text' && b.value.trim()) || b.type === 'image');
 }
 function jrUpdateSaveBtnState(){
@@ -5539,7 +5565,7 @@ function jrRenderEditorBody(){
   if (!el) return;
   el.innerHTML = jrBlocks.map((b, i) => {
     if (b.type === 'text') {
-      return `<textarea class="jr-block-text" data-idx="${i}" placeholder="寫點什麼，可輸入文字"
+      return `<textarea class="jr-block-text" data-idx="${i}" placeholder="寫點什麼吧⋯⋯"
         oninput="jrOnBlockTextInput(${i}, this)" onfocus="jrActiveTextIdx=${i}"
         >${jrEsc(b.value)}</textarea>`;
     }
@@ -5656,6 +5682,7 @@ async function jrSaveEntry(){
   if (!jrHasContent()) return;
   const date = document.getElementById('jr-edit-date-input').value;
   const time = document.getElementById('jr-edit-time-input').value || '00:00';
+  const title = document.getElementById('jr-title-input').value.trim();
 
   const oldEntry = jrEditingId ? journalEntries.find(e => e.id === jrEditingId) : null;
   const oldPhotoIds = new Set(oldEntry ? jrPhotoIdsOf(oldEntry) : []);
@@ -5674,9 +5701,9 @@ async function jrSaveEntry(){
 
   const content = jrSnapshotBlocks();
   if (oldEntry) {
-    oldEntry.date = date; oldEntry.time = time; oldEntry.content = content; oldEntry.updatedAt = Date.now();
+    oldEntry.date = date; oldEntry.time = time; oldEntry.title = title; oldEntry.content = content; oldEntry.updatedAt = Date.now();
   } else {
-    journalEntries.push({ id: 'jr_' + Date.now() + '_' + Math.random().toString(36).slice(2,8), date, time, content, createdAt: Date.now() });
+    journalEntries.push({ id: 'jr_' + Date.now() + '_' + Math.random().toString(36).slice(2,8), date, time, title, content, createdAt: Date.now() });
   }
   saveJournalEntries();
   jrCloseEditor();
