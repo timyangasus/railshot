@@ -876,10 +876,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   </div>
   <div class="jr-toolbar" id="jr-toolbar">
     <div style="display:flex;align-items:center;gap:14px;">
-      <div class="jr-tb-btn" style="color:#006CE1;background:var(--bg3);" onclick="document.getElementById('jr-photo-input').click()" title="加入照片">
+      <div class="jr-tb-btn" style="color:#006CE1;" onclick="document.getElementById('jr-photo-input').click()" title="加入照片">
         <svg width="27" height="27" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 15l3.2-3.6 2.4 2.6L16 10l4 5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="8" cy="8.5" r="1.4" fill="currentColor"/></svg>
       </div>
-      <div class="jr-tb-btn" style="color:#006CE1;background:var(--bg3);" onclick="document.getElementById('jr-camera-input').click()" title="相機">
+      <div class="jr-tb-btn" style="color:#006CE1;" onclick="document.getElementById('jr-camera-input').click()" title="相機">
         <svg width="27" height="27" viewBox="0 0 24 24" fill="none"><path d="M4 8a2 2 0 012-2h1.2l1.1-1.6a1 1 0 01.8-.4h5.8a1 1 0 01.8.4L16.8 6H18a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V8z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.3" stroke="currentColor" stroke-width="1.7"/></svg>
       </div>
     </div>
@@ -5564,7 +5564,10 @@ function jrOnViewportResize(){
   const vv = window.visualViewport;
   // 只把工具列往上推到鍵盤正上方，整個編輯頁本身維持原本 inset:0 全滿、不縮小，
   // 不然縮小頁面等於讓出畫面下半部給後面的首頁，滑動時會看到首頁月曆/清單透出來
-  const keyboardOverlap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+  // 注意：不能再扣 vv.offsetTop —— iOS 13+ 的 position:fixed 元素本來就已經跟著
+  // visual viewport 平移了，若內容較多（例如有照片）導致鍵盤把輸入框往上捲動、
+  // offsetTop 跟著變化時，再扣一次會變成疊加位移，工具列就會飄到畫面中間去。
+  const keyboardOverlap = Math.max(0, window.innerHeight - vv.height);
   const keyboardOpen = keyboardOverlap > 100;
   toolbar.style.transform = keyboardOpen ? `translateY(-${keyboardOverlap}px)` : '';
   toolbar.classList.toggle('jr-kb-open', keyboardOpen);
