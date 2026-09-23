@@ -5512,6 +5512,7 @@ function jrOpenEditorForEntry(id){
 }
 function jrOpenEditor(entryId, defaultDate){
   jrEditingId = entryId || null;
+  jrActiveTextIdx = 0; // 換一篇日誌時重置，避免沿用上一篇的段落 index 導致插入照片位置跑掉
   const entry = entryId ? journalEntries.find(e => e.id === entryId) : null;
   const now = new Date();
   const date = entry ? entry.date : defaultDate;
@@ -5561,16 +5562,20 @@ function jrOnViewportResize(){
   const page = document.getElementById('jr-editor-page');
   const toolbar = document.getElementById('jr-toolbar');
   if (!page || !page.classList.contains('open') || !window.visualViewport || !toolbar) return;
+  // iOS 定位鍵盤上緣的標準算法（MDN Visual Viewport API 範例）：layout viewport 高度
+  // 減去可視範圍高度、再減去可視範圍相對 layout viewport 的位移（offsetTop）。
+  // 少了 offsetTop 這項，內容較多、iOS 把畫面往上捲動對焦欄位時，工具列就會被推得
+  // 太高，跟鍵盤中間空出一大塊；把它加回來才會跟著鍵盤上緣走。
   const vv = window.visualViewport;
   // 只把工具列往上推到鍵盤正上方，整個編輯頁本身維持原本 inset:0 全滿、不縮小，
   // 不然縮小頁面等於讓出畫面下半部給後面的首頁，滑動時會看到首頁月曆/清單透出來
-  // 注意：不能再扣 vv.offsetTop —— iOS 13+ 的 position:fixed 元素本來就已經跟著
-  // visual viewport 平移了，若內容較多（例如有照片）導致鍵盤把輸入框往上捲動、
-  // offsetTop 跟著變化時，再扣一次會變成疊加位移，工具列就會飄到畫面中間去。
-  const keyboardOverlap = Math.max(0, window.innerHeight - vv.height);
+  const keyboardOverlap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
   const keyboardOpen = keyboardOverlap > 100;
   toolbar.style.transform = keyboardOpen ? `translateY(-${keyboardOverlap}px)` : '';
   toolbar.classList.toggle('jr-kb-open', keyboardOpen);
+  // 保險：iOS 有時仍會在對焦輸入框時偷偷把外層文件往下捲一點，即使 html/body 設了
+  // overflow:hidden 也一樣；這裡強制歸零，避免跟上面的位移疊加造成飄移。
+  if (window.scrollX || window.scrollY) window.scrollTo(0, 0);
 }
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', jrOnViewportResize);
@@ -5706,7 +5711,11 @@ async function jrHandlePhotoPick(event){
   jrActiveTextIdx = afterIdx;
   requestAnimationFrame(() => {
     const afterTa = document.querySelector(`textarea[data-idx="${afterIdx}"]`);
-    if (afterTa) { afterTa.focus(); afterTa.setSelectionRange(0,0); }
+    if (afterTa) {
+      afterTa.focus();
+      afterTa.setSelectionRange(0,0);
+      afterTa.scrollIntoView({ block: 'center' });
+    }
   });
 }
 function jrDeleteImageBlock(idx){
