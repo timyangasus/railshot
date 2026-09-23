@@ -5607,16 +5607,19 @@ function jrSyncEditorViewport(){
   const keyboardOpen = !!vv && (window.innerHeight - vv.height) > 100;
   const toolbar = document.getElementById('jr-toolbar');
   if (toolbar) toolbar.classList.toggle('jr-kb-open', keyboardOpen);
-}
-// 把目前正在打字的欄位捲到可視範圍內。掛在 focusin（不是鍵盤開關的那個判斷）上，
-// 這樣不管是鍵盤原本就關著、剛跳出來，還是鍵盤早就開著、使用者換點另一張照片
-// 下面的欄位，每次「焦點換了」都會重新捲一次——不會只在第一次鍵盤彈起時生效，
-// 也不用等 visualViewport 的 resize/scroll 事件（換欄位不一定會觸發那些事件）
-document.getElementById('jr-editor-body').addEventListener('focusin', () => {
-  jrSyncEditorViewport();
+  // 把目前正在打字的欄位捲到可視範圍內。放在這裡（每次同步都做，不是只在 focusin
+  // 當下做一次）是因為 focusin 觸發的當下鍵盤通常都還在跳出來的動畫中，
+  // visualViewport 還沒縮到最終高度，這時候算出來的捲動位置會是「鍵盤還沒完全
+  // 出現」時的位置，鍵盤跳完之後反而蓋住欄位。之後 visualViewport 的
+  // resize/scroll 事件跟著鍵盤動畫陸續觸發、鍵盤已開著切換欄位的 focusin 也會
+  // 再呼叫到這裡，每次都重新捲一次會自動收斂到鍵盤完全展開後的正確位置。
+  const editorBody = document.getElementById('jr-editor-body');
   const active = document.activeElement;
-  if (active) requestAnimationFrame(() => active.scrollIntoView({ block: 'center' }));
-});
+  if (active && editorBody && editorBody.contains(active)) {
+    requestAnimationFrame(() => active.scrollIntoView({ block: 'center' }));
+  }
+}
+document.getElementById('jr-editor-body').addEventListener('focusin', jrSyncEditorViewport);
 function jrBindViewportListeners(){
   if (jrVPBound) return;
   jrVPBound = true;
