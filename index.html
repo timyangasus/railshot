@@ -509,7 +509,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 
 .jr-fab{position:fixed;right:20px;bottom:calc(var(--tab-h) + 16px);width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(26,37,64,0.25);cursor:pointer;z-index:60;}
 
-.jr-date-group-hdr{font-size:13px;font-weight:700;color:var(--text2);margin:14px 0 6px;}
 .jr-card-wrap{position:relative;margin-bottom:10px;border-radius:var(--radius-input);overflow:hidden;}
 .jr-card-del-bg{position:absolute;inset:0;background:var(--red);display:flex;align-items:center;justify-content:flex-end;}
 .jr-card-del-btn{color:white;font-weight:700;font-size:14px;padding:0 22px;height:100%;display:flex;align-items:center;cursor:pointer;}
@@ -870,7 +869,8 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg>
     </div>
   </div>
-  <div id="jr-editor-body" class="jr-editor-body" onclick="jrEditorBodyClick(event)">
+  <div id="jr-editor-body" class="jr-editor-body" onclick="jrEditorBodyClick(event)"
+    ontouchstart="jrEditSwipeStart(event)" ontouchmove="jrEditSwipeMove(event)" ontouchend="jrEditSwipeEnd(event)">
     <textarea id="jr-title-input" class="jr-title-input" rows="1" placeholder="我是標題"
       oninput="jrAutoGrow(this);jrUpdateSaveBtnState()" onclick="event.stopPropagation()"></textarea>
     <div id="jr-blocks-container"></div>
@@ -1574,8 +1574,7 @@ function switchTab(name,el){
   if(shootResetBtn) shootResetBtn.style.display = (name === 'single' || name === 'between') ? 'flex' : 'none';
   const srchBtn = document.getElementById('train-search-btn');
   if(srchBtn) srchBtn.style.display = name === 'tt' ? 'flex' : 'none';
-  const jrTodayBtn = document.getElementById('jr-today-header-btn');
-  if(jrTodayBtn) jrTodayBtn.style.display = name === 'journal' ? 'flex' : 'none';
+  jrUpdateTodayBtnVisibility();
 
   // 點同一個 tab icon → 滾回最頂部
   if(isSameTab){
@@ -5352,13 +5351,19 @@ function jrRenderCalendar(){
   }
   const grid = document.getElementById('jr-cal-grid');
   if (grid) grid.innerHTML = html;
+  jrUpdateTodayBtnVisibility();
+}
+// 今天按鈕：只有在日誌頁、且目前月曆顯示的月份不是「今天所在月份」時才顯示
+function jrUpdateTodayBtnVisibility(){
+  const btn = document.getElementById('jr-today-header-btn');
+  if (!btn) return;
+  const onJournalTab = document.getElementById('tab-journal')?.classList.contains('active');
+  const now = new Date();
+  const isCurrentMonth = jrViewYear === now.getFullYear() && jrViewMonth === now.getMonth();
+  btn.style.display = (onJournalTab && !isCurrentMonth) ? 'flex' : 'none';
 }
 
 const JR_WEEKDAY_ZH = ['日','一','二','三','四','五','六'];
-function jrDateLabel(dateStr){
-  const d = new Date(dateStr + 'T00:00:00');
-  return `${dateStr.slice(0,4)}年${Number(dateStr.slice(5,7))}月${Number(dateStr.slice(8,10))}日（週${JR_WEEKDAY_ZH[d.getDay()]}）`;
-}
 function jrTimeAmPm(time){
   const [h, m] = (time || '00:00').split(':').map(Number);
   const ampm = h < 12 ? 'AM' : 'PM';
@@ -5387,18 +5392,17 @@ function jrRenderEntryList(){
     if (e.date !== lastDate) { groups.push({ date: e.date, entries: [] }); lastDate = e.date; }
     groups[groups.length - 1].entries.push(e);
   }
-  el.innerHTML = groups.map(g => `
-    <div id="jr-group-${g.date}" class="jr-date-group-hdr">${jrDateLabel(g.date)}</div>
-    ${g.entries.map(e => jrCardHtml(e)).join('')}
-  `).join('');
+  el.innerHTML = groups.map(g =>
+    g.entries.map((e,i) => jrCardHtml(e, i===0 ? g.date : null)).join('')
+  ).join('');
   sorted.forEach(e => jrRenderCardThumb(e));
 }
-function jrCardHtml(e){
+function jrCardHtml(e, groupDate){
   const title = e.title || '';
   const body = jrBodyPreview(e.content);
   const d = new Date(e.date + 'T00:00:00');
   const photoIds = jrPhotoIdsOf(e);
-  return `<div class="jr-card-wrap">
+  return `<div class="jr-card-wrap"${groupDate ? ` id="jr-group-${groupDate}"` : ''}>
     <div class="jr-card-del-bg"><div class="jr-card-del-btn" onclick="jrDeleteEntryById('${e.id}')">刪除</div></div>
     <div class="jr-card2" id="jr-card-${e.id}" data-id="${e.id}"
       onclick="jrCardClick(event,'${e.id}')"
@@ -5711,7 +5715,7 @@ function jrDeleteImageBlock(idx){
   jrRenderEditorBody();
 }
 
-async function jrSaveEntry(){
+async function jrPersistCurrentEntry(){
   if (!jrHasContent()) return;
   const date = document.getElementById('jr-edit-date-input').value;
   const time = document.getElementById('jr-edit-time-input').value || '00:00';
@@ -5736,13 +5740,51 @@ async function jrSaveEntry(){
   if (oldEntry) {
     oldEntry.date = date; oldEntry.time = time; oldEntry.title = title; oldEntry.content = content; oldEntry.updatedAt = Date.now();
   } else {
-    journalEntries.push({ id: 'jr_' + Date.now() + '_' + Math.random().toString(36).slice(2,8), date, time, title, content, createdAt: Date.now() });
+    jrEditingId = 'jr_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+    journalEntries.push({ id: jrEditingId, date, time, title, content, createdAt: Date.now() });
   }
   saveJournalEntries();
-  jrCloseEditor();
   jrRenderCalendar();
   jrRenderEntryList();
+}
+async function jrSaveEntry(){
+  if (!jrHasContent()) return;
+  await jrPersistCurrentEntry();
+  jrCloseEditor();
   showToast('已儲存');
+}
+// ── 編輯頁左右滑動切換到前一筆／後一筆日誌（依日期時間排序，只在正在編輯「已存在」的紀錄時可用）──
+let jrEditSwipeState = { active:false, dragging:false, startX:0, startY:0 };
+function jrAllEntriesSortedAsc(){ return [...journalEntries].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time)); }
+async function jrSwipeToAdjacent(dir){
+  if (!jrEditingId) return;
+  const list = jrAllEntriesSortedAsc();
+  const idx = list.findIndex(e => e.id === jrEditingId);
+  if (idx === -1) return;
+  const target = list[idx + dir];
+  if (!target) return;
+  await jrPersistCurrentEntry();
+  jrOpenEditor(target.id, null);
+}
+function jrEditSwipeStart(e){
+  const t = e.touches[0];
+  jrEditSwipeState = { active:true, dragging:false, startX:t.clientX, startY:t.clientY };
+}
+function jrEditSwipeMove(e){
+  const s = jrEditSwipeState;
+  if (!s.active) return;
+  const t = e.touches[0];
+  const dx = t.clientX - s.startX, dy = t.clientY - s.startY;
+  if (!s.dragging && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.8) s.dragging = true;
+  if (s.dragging) e.preventDefault();
+}
+function jrEditSwipeEnd(e){
+  const s = jrEditSwipeState;
+  if (s.active && s.dragging) {
+    const dx = (e.changedTouches[0].clientX - s.startX);
+    if (Math.abs(dx) > 70) jrSwipeToAdjacent(dx < 0 ? 1 : -1);
+  }
+  jrEditSwipeState = { active:false, dragging:false, startX:0, startY:0 };
 }
 
 if ('serviceWorker' in navigator) {
