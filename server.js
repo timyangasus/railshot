@@ -44,13 +44,13 @@ async function getToken() {
   return cachedToken;
 }
 
-async function tdxFetch(urlPath, retries = 3) {
+async function tdxFetch(urlPath, retries = 3, timeoutMs = 8000) {
   for (let i = 0; i <= retries; i++) {
     try {
       const token = await getToken();
       const res = await fetchWithTimeout(`https://tdx.transportdata.tw${urlPath}`, {
         headers: { Authorization: `Bearer ${token}` }
-      });
+      }, timeoutMs);
       if (res.status === 429) {
         const wait = (i + 1) * 3000;
         console.log(`429 retry ${i+1} after ${wait}ms`);
@@ -84,11 +84,16 @@ function getTrainType(info) {
 // ── Timetable cache & index (多日期快取) ───────────────
 // gttCacheMap: { '2026-07-01': { trains, trainIndex, stationIndex, builtAt, source } }
 const gttCacheMap = {};
-const CACHE_TTL = 20 * 60 * 60 * 1000; // 20hr
+// 台鐵常在前一天甚至當天才臨時加開班次（連假疏運尤其多），TDX 的 DailyTrainTimetable 會隨之更新，
+// 快取 20 小時會讓這些加開車次一直查不到，所以縮短為 1 小時。
+const CACHE_TTL = 60 * 60 * 1000; // 1hr
+// DailyTrainTimetable 失敗時退回的 GeneralTrainTimetable 不含加開車次，只短暫快取，盡快再試真正的當日班表
+const FALLBACK_CACHE_TTL = 10 * 60 * 1000; // 10min
 const MAX_CACHED_DATES = 5; // 最多同時快取幾天，避免記憶體無限增長
 
+// 伺服器在 Render 上跑的是 UTC，台灣早上 8 點前 toISOString() 會拿到「昨天」，改用台灣時間
 function todayStr() {
-  return new Date().toISOString().split('T')[0];
+  return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().split('T')[0];
 }
 
 function isValidDateStr(d) {
@@ -106,7 +111,8 @@ function pruneCacheIfNeeded() {
 async function buildIndex(dateStr) {
   const date = isValidDateStr(dateStr) ? dateStr : todayStr();
   const cached = gttCacheMap[date];
-  if (cached && Date.now() - cached.builtAt < CACHE_TTL) return cached;
+  const ttl = cached && cached.source.includes('fallback') ? FALLBACK_CACHE_TTL : CACHE_TTL;
+  if (cached && Date.now() - cached.builtAt < ttl) return cached;
 
   console.log(`Building timetable index for ${date}...`);
 
@@ -114,14 +120,15 @@ async function buildIndex(dateStr) {
   let source = '';
   try {
     const data = await tdxFetch(
-      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainDate/${date}?$format=JSON`
+      `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainDate/${date}?$format=JSON`,
+      2, 25000 // 全日班表資料量大，連假 TDX 壅塞時 8 秒常不夠，放寬到 25 秒
     );
     timetables = data.TrainTimetables || data || [];
     source = 'DailyTrainTimetable';
     console.log(`DailyTrainTimetable[${date}]: ${timetables.length} trains`);
   } catch(e) {
     console.warn(`DailyTrainTimetable[${date}] failed (${e.message}), fallback to GeneralTrainTimetable`);
-    const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON');
+    const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON', 2, 25000);
     timetables = data.TrainTimetables || data || [];
     source = 'GeneralTrainTimetable(fallback)';
     console.log(`GeneralTrainTimetable fallback: ${timetables.length} trains`);
