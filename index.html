@@ -5641,6 +5641,7 @@ function jrChangeMonth(delta){
   if (jrViewMonth < 0) { jrViewMonth = 11; jrViewYear--; }
   else if (jrViewMonth > 11) { jrViewMonth = 0; jrViewYear++; }
   jrRenderCalendar();
+  jrRenderEntryList();
 }
 function jrGoToday(){
   const now = new Date();
@@ -5648,6 +5649,7 @@ function jrGoToday(){
   jrViewMonth = now.getMonth();
   jrSelectedDate = localDateStr();
   jrRenderCalendar();
+  jrRenderEntryList();
   const hdr = document.getElementById('jr-group-' + jrSelectedDate);
   if (hdr) hdr.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -5730,7 +5732,16 @@ function jrRenderEntryList(){
     el.innerHTML = `<div class="empty-state"><div class="empty-text">尚無紀錄，點右下角＋開始記錄</div></div>`;
     return;
   }
-  const sorted = [...journalEntries].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+  // 只列出月曆目前所在月份的紀錄，切換月份時跟著換
+  const now = new Date();
+  const y = jrViewYear ?? now.getFullYear(), m = jrViewMonth ?? now.getMonth();
+  const monthPrefix = `${y}-${String(m + 1).padStart(2,'0')}-`;
+  const monthEntries = journalEntries.filter(e => e.date.startsWith(monthPrefix));
+  if (!monthEntries.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-text">這個月還沒有紀錄</div></div>`;
+    return;
+  }
+  const sorted = monthEntries.sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
   const groups = [];
   let lastDate = null;
   for (const e of sorted) {
