@@ -196,6 +196,12 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .sh-title{font-size:17px;font-weight:700;color:var(--text);}
 .sh-close{width:30px;height:30px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);}
 .sh-body{padding:14px 18px;}
+.bk-row{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--border);cursor:pointer;}
+.bk-row:active{background:var(--bg3);}
+.bk-row.busy{opacity:.5;pointer-events:none;}
+.bk-ic{width:40px;height:40px;border-radius:50%;background:#e8f1fd;color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bk-label{font-size:16px;font-weight:600;color:var(--text);}
+.bk-sub{font-size:13px;color:var(--text3);margin-top:2px;}
 
 /* ── STATION PICKER ── */
 /* ── LOC SHEET: compact mode tabs ── */
@@ -570,6 +576,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       </button>
       <button onclick="resetShootForm()" id="shoot-reset-btn" title="清除資料" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+      </button>
+      <button onclick="openBackupSheet()" id="backup-btn" title="備份與還原" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20V5M4 9l4-4 4 4M16 4v15M12 15l4 4 4-4"/></svg>
       </button>
       <div onclick="jrGoToday()" id="jr-today-header-btn" style="display:none;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;padding:5px 12px;border:1px solid var(--border2);border-radius:20px;">今天</div>
     </div>
@@ -994,6 +1003,37 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   </div>
 </div>
 
+
+<!-- SHEET: 備份與還原 -->
+<div class="sheet-ov" id="backup-sheet" onclick="closeOv(event,'backup-sheet')">
+  <div class="sheet">
+    <div class="sh-handle"></div>
+    <div class="sh-hdr">
+      <div class="sh-title">備份與還原</div>
+      <div class="sh-close" onclick="closeSheet('backup-sheet')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>
+      </div>
+    </div>
+    <div class="sh-body" style="padding-top:6px;">
+      <div class="bk-row" id="bk-export-row" onclick="backupExport()">
+        <div class="bk-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></div>
+        <div style="flex:1;min-width:0;">
+          <div class="bk-label" id="bk-export-label">匯出備份檔</div>
+          <div class="bk-sub" id="bk-last-backup"></div>
+        </div>
+      </div>
+      <div class="bk-row" id="bk-import-row" onclick="document.getElementById('backup-file-input').click()">
+        <div class="bk-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div>
+        <div style="flex:1;min-width:0;">
+          <div class="bk-label" id="bk-import-label">從備份檔還原</div>
+          <div class="bk-sub">跟目前資料合併，不會刪掉手機上的紀錄</div>
+        </div>
+      </div>
+      <button onclick="closeSheet('backup-sheet')" style="width:100%;margin-top:10px;padding:14px;background:var(--bg3);color:var(--text2);border:none;border-radius:12px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;">取消</button>
+      <input type="file" id="backup-file-input" accept=".zip,application/zip" style="display:none;" onchange="backupImport(event)"/>
+    </div>
+  </div>
+</div>
 
 <!-- SHEET: 建立/編輯行程 -->
 <div class="sheet-ov" id="trip-sheet" onclick="tripSheetOvClick(event)">
@@ -1619,6 +1659,8 @@ function switchTab(name,el){
   if(shootResetBtn) shootResetBtn.style.display = (name === 'single' || name === 'between') ? 'flex' : 'none';
   const srchBtn = document.getElementById('train-search-btn');
   if(srchBtn) srchBtn.style.display = name === 'tt' ? 'flex' : 'none';
+  const backupBtn = document.getElementById('backup-btn');
+  if(backupBtn) backupBtn.style.display = (name === 'fav' || name === 'journal') ? 'flex' : 'none';
   jrUpdateTodayBtnVisibility();
 
   // 點同一個 tab icon → 滾回最頂部
@@ -3525,6 +3567,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
   initTTTimeToNow();
   updateAlldayBtn();
+  // 從備份還原後會重新載入，回到還原前所在的分頁
+  try {
+    const tab = sessionStorage.getItem('rs_after_restore_tab');
+    sessionStorage.removeItem('rs_after_restore_tab');
+    if (tab) document.getElementById(tab)?.click();
+  } catch(e) {}
 });
 
 document.addEventListener('visibilitychange', ()=>{
@@ -4944,6 +4992,182 @@ function openGeneralTrainDetail(g, opts){
     refDateNote: opts?.refDate ? `以下是 ${opts.refDate} 的參考班表，並非查詢日期，實際行駛日請看下方說明` : '',
     stops: stops.map(s => ({ s: s.stn, dep: s.dep || s.arr, late: 0, mj: MAJOR.has(s.stn) })),
   });
+}
+
+// ===== 備份與還原 =====
+// 備份檔是一個 .zip：data.json（收藏、行程、日誌文字、常用車站、提醒）＋ photos/<id>.jpg（日誌照片）。
+// 照片本身已經是壓縮過的 JPEG，zip 裡直接「不壓縮」存放，所以自己寫一個最小的 zip 打包/解包就好，不用外部套件、離線也能用。
+const BACKUP_LAST_KEY = 'rs_last_backup';
+function openBackupSheet(){
+  const last = localStorage.getItem(BACKUP_LAST_KEY);
+  const d = last ? new Date(Number(last)) : null;
+  document.getElementById('bk-last-backup').textContent = d ? `上次備份：${d.getMonth()+1}/${d.getDate()}` : '尚未備份';
+  openSheet('backup-sheet');
+}
+
+const BK_CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; }
+  return t;
+})();
+function bkCrc32(bytes){
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = BK_CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+// files: [{ name, data: Uint8Array }] → zip Blob（store、不壓縮）
+function bkZip(files){
+  const enc = new TextEncoder();
+  const parts = [], central = [];
+  let offset = 0;
+  for (const f of files) {
+    const name = enc.encode(f.name), crc = bkCrc32(f.data), size = f.data.length;
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, size, true); lh.setUint32(22, size, true);
+    lh.setUint16(26, name.length, true);
+    parts.push(lh.buffer, name, f.data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, size, true); ch.setUint32(24, size, true);
+    ch.setUint16(28, name.length, true); ch.setUint32(42, offset, true);
+    central.push(ch.buffer, name);
+    offset += 30 + name.length + size;
+  }
+  const cdSize = central.reduce((n, p) => n + p.byteLength, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, end.buffer], { type: 'application/zip' });
+}
+// zip ArrayBuffer → { name: Uint8Array }。支援不壓縮和 deflate（檔案被別的工具重新打包過也讀得到）
+async function bkUnzip(buf){
+  const v = new DataView(buf), u8 = new Uint8Array(buf), dec = new TextDecoder();
+  let eocd = -1;
+  for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 65557); i--) {
+    if (v.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error('不是有效的備份檔');
+  const count = v.getUint16(eocd + 10, true);
+  let p = v.getUint32(eocd + 16, true);
+  const out = {};
+  for (let i = 0; i < count; i++) {
+    if (v.getUint32(p, true) !== 0x02014b50) throw new Error('備份檔已損毀');
+    const method = v.getUint16(p + 10, true), csize = v.getUint32(p + 20, true);
+    const nlen = v.getUint16(p + 28, true), xlen = v.getUint16(p + 30, true), clen = v.getUint16(p + 32, true);
+    const lho = v.getUint32(p + 42, true);
+    const name = dec.decode(u8.subarray(p + 46, p + 46 + nlen));
+    p += 46 + nlen + xlen + clen;
+    if (name.endsWith('/')) continue;
+    const start = lho + 30 + v.getUint16(lho + 26, true) + v.getUint16(lho + 28, true);
+    const raw = u8.subarray(start, start + csize);
+    if (method === 0) out[name] = raw;
+    else if (method === 8) out[name] = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    else throw new Error('不支援的壓縮格式');
+  }
+  return out;
+}
+
+async function backupExport(){
+  const row = document.getElementById('bk-export-row');
+  const label = document.getElementById('bk-export-label');
+  if (row.classList.contains('busy')) return;
+  row.classList.add('busy'); label.textContent = '打包中…';
+  try {
+    const data = {
+      app: 'railshot', version: 1, exportedAt: Date.now(),
+      ttFavs, trips, journal: journalEntries, freqStns, reminders,
+    };
+    const files = [{ name: 'data.json', data: new TextEncoder().encode(JSON.stringify(data)) }];
+    const photoIds = [...new Set(journalEntries.flatMap(jrPhotoIdsOf))];
+    for (const id of photoIds) {
+      const blob = await jrGetPhotoBlob(id).catch(() => null);
+      if (blob) files.push({ name: `photos/${id}.jpg`, data: new Uint8Array(await blob.arrayBuffer()) });
+    }
+    const fileName = `railshot-backup-${localDateStr()}.zip`;
+    const zip = bkZip(files);
+    const file = new File([zip], fileName, { type: 'application/zip' });
+    // iPhone 上用系統分享選單，才能「儲存到檔案」/ AirDrop；不支援分享檔案的瀏覽器就直接下載
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: fileName }); }
+      catch (e) { if (e.name === 'AbortError') return; throw e; }
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(zip); a.download = fileName;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    }
+    localStorage.setItem(BACKUP_LAST_KEY, String(Date.now()));
+    closeSheet('backup-sheet');
+    showToast('已匯出備份檔');
+  } catch (e) {
+    console.log('匯出失敗', e);
+    showToast('匯出失敗：' + e.message);
+  } finally {
+    row.classList.remove('busy'); label.textContent = '匯出備份檔';
+  }
+}
+
+// 還原＝合併：備份裡有、手機上沒有的加進來；兩邊都有的日誌保留比較新的那筆，其他資料以手機上的為準
+async function backupImport(event){
+  const file = event.target.files && event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  const row = document.getElementById('bk-import-row');
+  const label = document.getElementById('bk-import-label');
+  row.classList.add('busy'); label.textContent = '還原中…';
+  try {
+    const entries = await bkUnzip(await file.arrayBuffer());
+    if (!entries['data.json']) throw new Error('不是有效的備份檔');
+    const data = JSON.parse(new TextDecoder().decode(entries['data.json']));
+    if (data.app !== 'railshot') throw new Error('不是 Railshot 的備份檔');
+
+    // 照片先寫進 IndexedDB，確保日誌引用到的照片都在
+    for (const [name, bytes] of Object.entries(entries)) {
+      const m = name.match(/^photos\/(.+)\.jpg$/);
+      if (m && !(await jrGetPhotoBlob(m[1]).catch(() => null))) {
+        await jrSavePhotoBlob(m[1], new Blob([bytes], { type: 'image/jpeg' }));
+      }
+    }
+
+    const stamp = e => e.updatedAt || e.createdAt || 0;
+    const jrById = new Map(journalEntries.map(e => [e.id, e]));
+    let addedJr = 0;
+    for (const e of (data.journal || [])) {
+      const cur = jrById.get(e.id);
+      if (!cur) { jrById.set(e.id, e); addedJr++; }
+      else if (stamp(e) > stamp(cur)) jrById.set(e.id, e);
+    }
+    const favKeys = new Set(ttFavs.map(favKey));
+    const newFavs = (data.ttFavs || []).filter(f => !favKeys.has(favKey(f)));
+    const tripById = new Map(trips.map(t => [t.id, t]));
+    let addedTrips = 0;
+    for (const t of (data.trips || [])) {
+      const cur = tripById.get(t.id);
+      if (!cur) { tripById.set(t.id, t); addedTrips++; }
+      else cur.trainNos = [...new Set([...(cur.trainNos || []), ...(t.trainNos || [])])];
+    }
+    const remIds = new Set(reminders.map(r => r.id));
+
+    localStorage.setItem('rs_journal', JSON.stringify([...jrById.values()]));
+    localStorage.setItem('rs_ttfavs', JSON.stringify([...ttFavs, ...newFavs]));
+    localStorage.setItem('rs_trips', JSON.stringify([...tripById.values()]));
+    localStorage.setItem('rs_freqstns', JSON.stringify([...new Set([...freqStns, ...(data.freqStns || [])])]));
+    localStorage.setItem('rs_rem', JSON.stringify([...reminders, ...(data.reminders || []).filter(r => !remIds.has(r.id))]));
+
+    const parts = [];
+    if (addedJr) parts.push(`${addedJr} 篇日誌`);
+    if (newFavs.length) parts.push(`${newFavs.length} 筆收藏`);
+    if (addedTrips) parts.push(`${addedTrips} 個行程`);
+    showToast(parts.length ? `已還原：新增 ${parts.join('、')}` : '已還原，沒有新的資料');
+    // 資料散在很多變數和畫面裡，重新載入最保險；記住目前在哪個分頁，載入後回到同一頁
+    try { sessionStorage.setItem('rs_after_restore_tab', document.querySelector('.tab-item.active')?.id || ''); } catch(e) {}
+    setTimeout(() => location.reload(), 1200);
+  } catch (e) {
+    console.log('還原失敗', e);
+    showToast('還原失敗：' + e.message);
+    row.classList.remove('busy'); label.textContent = '從備份檔還原';
+  }
 }
 
 // ===== 行程管理 =====
