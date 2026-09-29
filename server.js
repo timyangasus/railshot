@@ -44,6 +44,16 @@ async function getToken() {
   return cachedToken;
 }
 
+// ── TDX 用量統計（伺服器啟動以來）──────────────────────
+// TDX 是依「呼叫次數」和「資料量」計費，記下每種 API 各打了幾次、下載多少，/api/health 可以直接看
+const tdxUsage = { since: new Date().toISOString(), calls: 0, bytes: 0, byApi: {} };
+function recordTdxUsage(urlPath, bytes){
+  const api = urlPath.split('?')[0].replace(/\/TrainDate\/.*/, '').split('/').pop();
+  const u = tdxUsage.byApi[api] || (tdxUsage.byApi[api] = { calls: 0, bytes: 0 });
+  u.calls++; u.bytes += bytes;
+  tdxUsage.calls++; tdxUsage.bytes += bytes;
+}
+
 async function tdxFetch(urlPath, retries = 3, timeoutMs = 8000) {
   for (let i = 0; i <= retries; i++) {
     try {
@@ -51,6 +61,7 @@ async function tdxFetch(urlPath, retries = 3, timeoutMs = 8000) {
       const res = await fetchWithTimeout(`https://tdx.transportdata.tw${urlPath}`, {
         headers: { Authorization: `Bearer ${token}` }
       }, timeoutMs);
+      recordTdxUsage(urlPath, Number(res.headers.get('content-length')) || 0);
       if (res.status === 429) {
         const wait = (i + 1) * 3000;
         console.log(`429 retry ${i+1} after ${wait}ms`);
@@ -58,7 +69,14 @@ async function tdxFetch(urlPath, retries = 3, timeoutMs = 8000) {
         continue;
       }
       if (!res.ok) throw new Error(`TDX ${res.status}: ${urlPath}`);
-      return res.json();
+      const text = await res.text();
+      // 沒有 content-length 時（分段傳輸）改用實際收到的大小補記
+      if (!Number(res.headers.get('content-length'))) {
+        const api = urlPath.split('?')[0].replace(/\/TrainDate\/.*/, '').split('/').pop();
+        const b = Buffer.byteLength(text);
+        tdxUsage.bytes += b; tdxUsage.byApi[api].bytes += b;
+      }
+      return JSON.parse(text);
     } catch(e) {
       if (i === retries) throw e;
       await new Promise(r => setTimeout(r, 1000));
@@ -84,9 +102,10 @@ function getTrainType(info) {
 // ── Timetable cache & index (多日期快取) ───────────────
 // gttCacheMap: { '2026-07-01': { trains, trainIndex, stationIndex, builtAt, source } }
 const gttCacheMap = {};
-// 台鐵常在前一天甚至當天才臨時加開班次（連假疏運尤其多），TDX 的 DailyTrainTimetable 會隨之更新，
-// 快取 20 小時會讓這些加開車次一直查不到，所以縮短為 1 小時。
-const CACHE_TTL = 60 * 60 * 1000; // 1hr
+// 全日班表是最大的一筆資料（每次好幾 MB），TDX 依資料量計費，重抓越頻繁越貴；快取越久查詢也越快。
+// 今天的班表 3 小時更新一次（臨時加開的車次最晚 3 小時內看得到），其他日期變動少，12 小時更新一次
+const CACHE_TTL_TODAY = 3 * 60 * 60 * 1000;  // 3hr
+const CACHE_TTL_OTHER = 12 * 60 * 60 * 1000; // 12hr
 // DailyTrainTimetable 失敗時退回的 GeneralTrainTimetable 不含加開車次，只短暫快取，盡快再試真正的當日班表
 const FALLBACK_CACHE_TTL = 10 * 60 * 1000; // 10min
 const MAX_CACHED_DATES = 5; // 最多同時快取幾天，避免記憶體無限增長
@@ -108,12 +127,22 @@ function pruneCacheIfNeeded() {
   delete gttCacheMap[keys[0]];
 }
 
-async function buildIndex(dateStr) {
+// 同一個日期正在向 TDX 抓的話，後來的請求直接等同一份結果，不要重複下載好幾 MB
+const buildingIndex = {};
+function buildIndex(dateStr) {
   const date = isValidDateStr(dateStr) ? dateStr : todayStr();
   const cached = gttCacheMap[date];
-  const ttl = cached && cached.source.includes('fallback') ? FALLBACK_CACHE_TTL : CACHE_TTL;
-  if (cached && Date.now() - cached.builtAt < ttl) return cached;
+  const ttl = !cached ? 0
+    : cached.source.includes('fallback') ? FALLBACK_CACHE_TTL
+    : date === todayStr() ? CACHE_TTL_TODAY : CACHE_TTL_OTHER;
+  if (cached && Date.now() - cached.builtAt < ttl) return Promise.resolve(cached);
+  if (!buildingIndex[date]) {
+    buildingIndex[date] = fetchAndBuildIndex(date).finally(() => { delete buildingIndex[date]; });
+  }
+  return buildingIndex[date];
+}
 
+async function fetchAndBuildIndex(date) {
   console.log(`Building timetable index for ${date}...`);
 
   let timetables = [];
@@ -121,14 +150,14 @@ async function buildIndex(dateStr) {
   try {
     const data = await tdxFetch(
       `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainDate/${date}?$format=JSON`,
-      2, 25000 // 全日班表資料量大，連假 TDX 壅塞時 8 秒常不夠，放寬到 25 秒
+      1, 25000 // 全日班表資料量大，連假 TDX 壅塞時 8 秒常不夠，放寬到 25 秒；每次重試都是好幾 MB，只重試 1 次
     );
     timetables = data.TrainTimetables || data || [];
     source = 'DailyTrainTimetable';
     console.log(`DailyTrainTimetable[${date}]: ${timetables.length} trains`);
   } catch(e) {
     console.warn(`DailyTrainTimetable[${date}] failed (${e.message}), fallback to GeneralTrainTimetable`);
-    const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON', 2, 25000);
+    const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON', 1, 25000);
     timetables = data.TrainTimetables || data || [];
     source = 'GeneralTrainTimetable(fallback)';
     console.log(`GeneralTrainTimetable fallback: ${timetables.length} trains`);
@@ -196,11 +225,15 @@ async function buildIndex(dateStr) {
 let generalIndexCache = null;
 const GENERAL_CACHE_TTL = 24 * 60 * 60 * 1000; // 24hr
 
-async function buildGeneralIndex() {
-  if (generalIndexCache && Date.now() - generalIndexCache.builtAt < GENERAL_CACHE_TTL) return generalIndexCache;
-
+let buildingGeneral = null;
+function buildGeneralIndex() {
+  if (generalIndexCache && Date.now() - generalIndexCache.builtAt < GENERAL_CACHE_TTL) return Promise.resolve(generalIndexCache);
+  if (!buildingGeneral) buildingGeneral = fetchAndBuildGeneralIndex().finally(() => { buildingGeneral = null; });
+  return buildingGeneral;
+}
+async function fetchAndBuildGeneralIndex() {
   console.log('Building general timetable index...');
-  const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON');
+  const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON', 1, 25000);
   const timetables = data.TrainTimetables || data || [];
 
   const trainIndex = {};
@@ -237,8 +270,13 @@ async function buildGeneralIndex() {
 let liveCache = null;
 let liveCacheAt = 0;
 
-async function getLiveMap() {
-  if (liveCache && Date.now() - liveCacheAt < 60000) return liveCache;
+let fetchingLive = null;
+function getLiveMap() {
+  if (liveCache && Date.now() - liveCacheAt < 60000) return Promise.resolve(liveCache);
+  if (!fetchingLive) fetchingLive = fetchLiveMap().finally(() => { fetchingLive = null; });
+  return fetchingLive;
+}
+async function fetchLiveMap() {
   try {
     const data = await tdxFetch('/api/basic/v3/Rail/TRA/TrainLiveBoard?$format=JSON&$top=500');
     const map = {};
@@ -268,6 +306,12 @@ app.get('/api/health', (req, res) => {
     trains: todayEntry ? todayEntry.trains.length : 0,
     stations: todayEntry ? Object.keys(todayEntry.stationIndex).length : 0,
     builtAt: todayEntry ? new Date(todayEntry.builtAt).toISOString() : null,
+    tdxUsage: {
+      since: tdxUsage.since,
+      calls: tdxUsage.calls,
+      mb: +(tdxUsage.bytes / 1048576).toFixed(1),
+      byApi: Object.fromEntries(Object.entries(tdxUsage.byApi).map(([k, v]) => [k, { calls: v.calls, mb: +(v.bytes / 1048576).toFixed(1) }])),
+    },
   });
 });
 

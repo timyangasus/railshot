@@ -4347,7 +4347,8 @@ function updateShootResetBtn(){
 }
 updateBell();
 setInterval(checkReminders,30000);
-setInterval(()=>fetch('https://railshot.onrender.com/api/live?train=0000').catch(()=>{}), 14*60*1000);
+// 每 14 分鐘叫一下伺服器，避免 Render 免費方案閒置休眠；打 /api/health 不會呼叫 TDX，不佔 TDX 用量
+setInterval(()=>fetch(`${API_BASE}/api/health`).catch(()=>{}), 14*60*1000);
 checkReminders();
 
 // ===== 單點 Tab =====
