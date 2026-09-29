@@ -82,6 +82,8 @@ async function tdxFetch(urlPath, retries = 3, timeoutMs = 8000) {
       await new Promise(r => setTimeout(r, 1000));
     }
   }
+  // 每次都被 429（請求太頻繁）擋下時會跑到這裡；要丟錯誤，不然呼叫端拿到 undefined 會在別處莫名壞掉
+  throw new Error(`TDX 429 rate limited: ${urlPath}`);
 }
 
 // ── Train type mapping ────────────────────────────────
@@ -157,8 +159,7 @@ async function fetchAndBuildIndex(date) {
     console.log(`DailyTrainTimetable[${date}]: ${timetables.length} trains`);
   } catch(e) {
     console.warn(`DailyTrainTimetable[${date}] failed (${e.message}), fallback to GeneralTrainTimetable`);
-    const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON', 1, 25000);
-    timetables = data.TrainTimetables || data || [];
+    timetables = await getGeneralTimetables();
     source = 'GeneralTrainTimetable(fallback)';
     console.log(`GeneralTrainTimetable fallback: ${timetables.length} trains`);
   }
@@ -225,6 +226,24 @@ async function fetchAndBuildIndex(date) {
 let generalIndexCache = null;
 const GENERAL_CACHE_TTL = 24 * 60 * 60 * 1000; // 24hr
 
+// 一般時刻表原始資料快取 24 小時：當日班表抓不到時的備援、查車次的一般班表都共用這一份，
+// 不要每次備援（每 10 分鐘）都重新下載一次
+let generalRawCache = null;
+let fetchingGeneralRaw = null;
+function getGeneralTimetables() {
+  if (generalRawCache && Date.now() - generalRawCache.at < GENERAL_CACHE_TTL) return Promise.resolve(generalRawCache.timetables);
+  if (!fetchingGeneralRaw) {
+    fetchingGeneralRaw = tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON', 1, 25000)
+      .then(data => {
+        const timetables = data.TrainTimetables || data || [];
+        generalRawCache = { timetables, at: Date.now() };
+        return timetables;
+      })
+      .finally(() => { fetchingGeneralRaw = null; });
+  }
+  return fetchingGeneralRaw;
+}
+
 let buildingGeneral = null;
 function buildGeneralIndex() {
   if (generalIndexCache && Date.now() - generalIndexCache.builtAt < GENERAL_CACHE_TTL) return Promise.resolve(generalIndexCache);
@@ -233,8 +252,7 @@ function buildGeneralIndex() {
 }
 async function fetchAndBuildGeneralIndex() {
   console.log('Building general timetable index...');
-  const data = await tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON', 1, 25000);
-  const timetables = data.TrainTimetables || data || [];
+  const timetables = await getGeneralTimetables();
 
   const trainIndex = {};
   for (const tt of timetables) {
