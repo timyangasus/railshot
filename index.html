@@ -1635,8 +1635,21 @@ function renderPokemonList(){
     return `<div class="pk-day${date === today ? ' today' : ''}">${label}</div>${rows}`;
   }).join('');
 }
-// 點班次：載入那一天的班表後打開車次頁，看完整停靠站
+// 點班次打開車次頁看完整停靠站。
+// 彩繪車跑的都是固定班次，停靠站和時間每天一樣：直接拿伺服器快取 24 小時的一般時刻表裡這一班（幾 KB），
+// 不用下載整天班表，點下去幾乎立刻打開，也不會多打 TDX。6725 專車不在一般時刻表裡，才載入當天班表
 async function pkOpenTrain(no, date){
+  if (!POKEMON_SPECIAL_DATES.includes(date) && API_BASE) {
+    try {
+      const resp = await fetchWithTimeout(`${API_BASE}/api/train-general/${no}`, {}, 8000);
+      if (resp.ok) {
+        const g = await resp.json();
+        const d = new Date(date + 'T00:00:00');
+        openDetailByNo(no, '', '', '', '', { train: g, date, note: `${d.getMonth()+1}/${d.getDate()}（${JR_WEEKDAY_ZH[d.getDay()]}）· 依一般時刻表` });
+        return;
+      }
+    } catch (e) {} // 抓不到就退回下面載入當天班表
+  }
   const detPage = document.getElementById('detail-page');
   detailNavStack = [];
   hideDetailFav();
@@ -1656,13 +1669,15 @@ function paintedTrainName(no, date){
   return list && list.split(' ').includes(String(no)) ? '寶可夢列車' : null;
 }
 // date：這班車是哪一天的。沒傳就用目前載入的班表日期（也就是查詢的日期）；傳 null 代表不綁日期（例如收藏），不標彩繪列車
-function namedTrainBadge(no, color, date){
+function namedTrainBadge(no, color, date, padding){
   if (date === undefined) date = gttData?.date;
   const painted = paintedTrainName(no, date);
-  // 彩繪車跑的一般班次：前面照常顯示區間/區間快，後面加一顆紫色膠囊標籤，比純文字醒目
+  // 彩繪車跑的一般班次：前面照常顯示區間/區間快，後面加一顆膠囊標籤，比純文字醒目。
+  // 規則：詳細頁 banner（color === 'white'）已經依車種上色，banner 上的標籤一律跟車種標籤一樣用半透明白底，
+  // 不另外加紫色底；紫色膠囊只用在清單卡片這種白底的地方
   if (!NAMED_TRAINS[no] && painted) {
     return color === 'white'
-      ? `<span style="background:#8B5CF6;color:white;font-size:13px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;">${painted}</span>`
+      ? `<span style="background:rgba(255,255,255,0.15);color:white;font-size:13px;font-weight:500;padding:${padding || '5px 14px'};border-radius:20px;white-space:nowrap;">${painted}</span>`
       : `<span class="badge" style="background:#8B5CF6;color:white;white-space:nowrap;">${painted}</span>`;
   }
   const info = NAMED_TRAINS[no];
@@ -3580,7 +3595,9 @@ function renderTrainList(list) {
 }
 
 // ===== DETAIL =====
-async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2TimeOverride) {
+// opts.train：呼叫端已經有列車資料（例如寶可夢分頁用一般時刻表抓好的），直接用，不再查班表或即時誤點
+// opts.date：這班車是哪一天的（決定要不要標寶可夢彩繪列車）；opts.note：banner 下方的補充說明
+async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2TimeOverride, opts) {
   const isBetween = !!s2Station;
   const detPage = document.getElementById('detail-page');
   detailNavStack = [];
@@ -3591,10 +3608,12 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
 
   try {
     // 從 gttData 直接取
-    let train = gttData?.trains.find(t => t.no === trainNo);
+    let train = opts?.train || gttData?.trains.find(t => t.no === trainNo);
     let delay = 0;
 
-    if (!train && API_BASE) {
+    if (opts?.train) {
+      // 已經有資料，不用再抓
+    } else if (!train && API_BASE) {
       const resp = await fetchWithTimeout(`${API_BASE}/api/train/${trainNo}`, {}, 8000);
       const data = await resp.json();
       train = data; delay = data.delay || 0;
@@ -3625,9 +3644,10 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
           <span style="font-size:30px;font-weight:700;color:white;letter-spacing:-1px;">${trainNo}</span>
-          ${detailTypeBadgeHtml(train.no, train.type, ti, '5px 14px')}${namedTrainBadge(train.no, 'white')}
+          ${detailTypeBadgeHtml(train.no, train.type, ti, '5px 14px')}${namedTrainBadge(train.no, 'white', opts?.date, '5px 14px')}
         </div>
         <div style="font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:6px;">${train.from} → ${train.to}</div>
+        ${opts?.note ? `<div style="font-size:12px;color:rgba(255,255,255,0.7);margin-bottom:6px;">${opts.note}</div>` : ''}
         ${atStation ? `<div style="font-size:17px;font-weight:700;color:rgba(255,255,255,0.8);margin-top:4px;">${atStation}站</div>` : ''}
         ${dailyFlagHtml(train)}
       </div>
@@ -4279,7 +4299,7 @@ async function _openTTDetailObj(t){
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
           <span style="font-size:30px;font-weight:700;color:white;letter-spacing:-1px;">${t.no}</span>
-          ${detailTypeBadgeHtml(t.no, t.type, ti, '3px 10px')}${namedTrainBadge(t.no, 'white', document.getElementById('tt-date')?.value || gttData?.date)}
+          ${detailTypeBadgeHtml(t.no, t.type, ti, '3px 10px')}${namedTrainBadge(t.no, 'white', document.getElementById('tt-date')?.value || gttData?.date, '3px 10px')}
         </div>
         <div style="font-size:15px;color:rgba(255,255,255,0.65);margin-bottom:12px;">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
         <div style="display:flex;align-items:baseline;gap:8px;">

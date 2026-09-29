@@ -559,4 +559,6 @@ app.listen(PORT, () => {
   console.log(`Railshot server on port ${PORT}`);
   // 啟動時預先建立索引
   buildIndex().catch(e => console.error('Index build failed:', e.message));
+  // 一般時刻表也先準備好（寶可夢分頁、查車次用），第一個點進去的人不用等伺服器去 TDX 抓
+  buildGeneralIndex().catch(e => console.error('General index build failed:', e.message));
 });
