@@ -5084,7 +5084,10 @@ async function backupExport(){
       const blob = await jrGetPhotoBlob(id).catch(() => null);
       if (blob) files.push({ name: `photos/${id}.jpg`, data: new Uint8Array(await blob.arrayBuffer()) });
     }
-    const fileName = `railshot-backup-${localDateStr()}.zip`;
+    // 檔名用中文比較好認；時間不用冒號（iPhone「檔案」不允許），同一天備份多次也不會撞名
+    const now = new Date();
+    const hhmm = String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0');
+    const fileName = `Railshot備份_${localDateStr(now)}_${hhmm}.zip`;
     const zip = bkZip(files);
     const file = new File([zip], fileName, { type: 'application/zip' });
     // iPhone 上用系統分享選單，才能「儲存到檔案」/ AirDrop；不支援分享檔案的瀏覽器就直接下載
