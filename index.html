@@ -479,6 +479,15 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 /* ── FAV SUB-TABS ── */
 .fav-subtabs{display:flex;gap:0;background:#E0E0E5;border-radius:10px;padding:3px;margin-bottom:14px;}
 .fav-subtab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border-radius:8px;font-size:13px;font-weight:500;font-family:inherit;border:none;background:transparent;color:#6e7a8a;cursor:pointer;transition:all .15s;}
+.pk-day{font-size:14px;font-weight:700;color:var(--text2);margin:14px 4px 6px;display:flex;align-items:center;gap:6px;}
+.pk-day.today{color:#8B5CF6;}
+.pk-row{background:white;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;box-shadow:0 1px 3px rgba(26,37,64,0.06);}
+.pk-row:active{transform:scale(0.98);}
+.pk-row.done{opacity:.45;}
+.pk-row.special{background:linear-gradient(135deg,#F3EEFF,#FDECF5);}
+.pk-no{font-size:17px;font-weight:800;color:#8B5CF6;min-width:48px;}
+.pk-route{font-size:15px;font-weight:600;color:var(--text);}
+.pk-time{font-size:13px;color:var(--text2);margin-top:2px;}
 .fav-subtab.active{background:white;color:var(--accent);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,0.12);}
 
 /* ── TT CARD HEART ── */
@@ -814,6 +823,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
         常用車站
       </button>
+      <button class="fav-subtab" id="fst-pk" onclick="switchFavSubTab('pk',this)" style="display:none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M3 12h6M15 12h6" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
+        寶可夢
+      </button>
     </div>
   </div>
   <!-- TT Favs -->
@@ -823,6 +836,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   <!-- 行程 -->
   <div id="fav-trip-panel" style="flex:1;overflow-y:auto;padding:12px 8px;">
     <div id="trip-list"></div>
+  </div>
+  <!-- 寶可夢列車班次表（到最後一個行駛日之後自動隱藏） -->
+  <div id="fav-pk-panel" style="display:none;flex:1;overflow-y:auto;padding:12px 8px 90px;">
+    <div id="pk-list"></div>
   </div>
   <!-- 常用車站 -->
   <div id="fav-stn-panel" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
@@ -1553,6 +1570,87 @@ const POKEMON_TRAIN_DATES = {
   '2026-12-12': '2128 3177 3228 2257',
   '2026-12-13': '2144 2203 2264',
 };
+// 各車次固定的起訖站與時間（照班次表；每次開都一樣，所以只記一份）
+const POKEMON_TRAIN_INFO = {
+  '2183': ['北湖','12:08','斗南','15:59'], '3231': ['斗南','16:05','潮州','19:35'],
+  '3010': ['潮州','11:03','豐原','16:10'], '3035': ['豐原','16:43','潮州','21:05'],
+  '3001': ['潮州','05:52','臺東','08:23'], '3018': ['臺東','11:08','新左營','14:10'], '3021': ['新左營','17:13','臺東','20:20'],
+  '3006': ['臺東','06:20','潮州','08:27'], '1038': ['潮州','14:31','七堵','22:04'],
+  '2013': ['七堵','10:47','嘉義','15:58'], '2244': ['嘉義','16:29','北湖','20:57'],
+  '2123': ['北湖','06:24','嘉義','10:34'], '2184': ['嘉義','10:45','北湖','14:45'], '2223': ['北湖','16:31','嘉義','21:04'],
+  '2128': ['嘉義','05:16','銅鑼','07:51'], '3177': ['銅鑼','08:08','潮州','14:14'], '3228': ['潮州','14:40','后里','20:48'], '2257': ['后里','21:10','嘉義','23:45'],
+  '2144': ['嘉義','06:44','北湖','10:39'], '2203': ['北湖','14:11','嘉義','18:21'], '2264': ['嘉義','18:44','北湖','22:46'],
+  '2143': ['北湖','08:17','嘉義','12:17'], '2204': ['嘉義','12:39','北湖','16:41'], '2263': ['北湖','20:14','嘉義','00:11'],
+  '2124': ['嘉義','04:53','北湖','08:45'], '2163': ['北湖','10:05','嘉義','14:17'], '2224': ['嘉義','14:27','北湖','18:49'],
+  '6725': ['臺北','10:37','新左營','16:44'],
+};
+// 6725 寶可夢專車的行駛日（6725A/6725B 是回送，一般時刻表查不到，不列）
+const POKEMON_SPECIAL_DATES = ['2026-10-03','2026-10-18','2026-10-31','2026-11-14','2026-11-29','2026-12-05'];
+
+// 今天起還有哪些寶可夢列車行駛日（含專車），依日期排序
+function pokemonUpcomingDays(){
+  const today = localDateStr();
+  const days = {};
+  Object.entries(POKEMON_TRAIN_DATES).forEach(([d, list]) => { if (d >= today) days[d] = list.split(' '); });
+  POKEMON_SPECIAL_DATES.forEach(d => { if (d >= today) days[d] = ['6725']; });
+  return Object.keys(days).sort().map(d => ({ date: d, trains: days[d], special: POKEMON_SPECIAL_DATES.includes(d) }));
+}
+// 最後一個行駛日過了就整個分頁藏起來；有新的班次表加進來會自動再出現
+function updatePokemonTabVisibility(){
+  const btn = document.getElementById('fst-pk');
+  if (!btn) return;
+  const has = pokemonUpcomingDays().length > 0;
+  btn.style.display = has ? '' : 'none';
+  if (!has && btn.classList.contains('active')) switchFavSubTab('trip', document.getElementById('fst-trip'));
+}
+function renderPokemonList(){
+  const el = document.getElementById('pk-list');
+  if (!el) return;
+  const days = pokemonUpcomingDays();
+  if (!days.length) { el.innerHTML = `<div class="empty-state"><div class="empty-text">目前沒有寶可夢列車班次</div></div>`; return; }
+  const today = localDateStr();
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const toMin = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  el.innerHTML = days.map(({ date, trains, special }) => {
+    const d = new Date(date + 'T00:00:00');
+    const label = `${date === today ? '今天 ' : ''}${d.getMonth()+1}/${d.getDate()}（${JR_WEEKDAY_ZH[d.getDay()]}）`;
+    const rows = trains.map(no => {
+      const info = POKEMON_TRAIN_INFO[no];
+      if (!info) return '';
+      const [from, dep, to, arr] = info;
+      let arrMin = toMin(arr);
+      if (arrMin < toMin(dep)) arrMin += 24 * 60; // 跨日（例如 2263 20:14 → 00:11）
+      const done = date === today && nowMin > arrMin; // 今天已經開完的變淡，但整天都留著
+      return `<div class="pk-row${special ? ' special' : ''}${done ? ' done' : ''}" onclick="pkOpenTrain('${no}','${date}')">
+        <div class="pk-no">${no}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="pk-route">${from} → ${to}</div>
+          <div class="pk-time">${dep} → ${arr}${arrMin >= 24 * 60 ? '（跨日）' : ''}</div>
+        </div>
+        ${special ? `<span class="badge" style="background:linear-gradient(135deg,#8B5CF6,#EC4899);color:white;">專車</span>` : ''}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#c8d0dc"/></svg>
+      </div>`;
+    }).join('');
+    return `<div class="pk-day${date === today ? ' today' : ''}">${label}</div>${rows}`;
+  }).join('');
+}
+// 點班次：載入那一天的班表後打開車次頁，看完整停靠站
+async function pkOpenTrain(no, date){
+  const detPage = document.getElementById('detail-page');
+  detailNavStack = [];
+  hideDetailFav();
+  document.getElementById('det-body').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text3);">載入 ${Number(date.slice(5,7))}/${Number(date.slice(8,10))} 班表中…</div>`;
+  detPage.classList.add('open');
+  try {
+    await ensureGTT(date);
+  } catch (e) {
+    document.getElementById('det-body').innerHTML = `<div style="padding:16px;color:var(--red);">⚠️ 載入失敗：${e.message}</div>`;
+    return;
+  }
+  if (!detPage.classList.contains('open')) return; // 載入中就按了返回
+  openDetailByNo(no, '', '', '', '');
+}
 function paintedTrainName(no, date){
   const list = date && POKEMON_TRAIN_DATES[date];
   return list && list.split(' ').includes(String(no)) ? '寶可夢列車' : null;
@@ -1561,7 +1659,13 @@ function paintedTrainName(no, date){
 function namedTrainBadge(no, color, date){
   if (date === undefined) date = gttData?.date;
   const painted = paintedTrainName(no, date);
-  const info = NAMED_TRAINS[no] || (painted ? { name: painted } : null);
+  // 彩繪車跑的一般班次：前面照常顯示區間/區間快，後面加一顆紫色膠囊標籤，比純文字醒目
+  if (!NAMED_TRAINS[no] && painted) {
+    return color === 'white'
+      ? `<span style="background:#8B5CF6;color:white;font-size:13px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;">${painted}</span>`
+      : `<span class="badge" style="background:#8B5CF6;color:white;white-space:nowrap;">${painted}</span>`;
+  }
+  const info = NAMED_TRAINS[no];
   if (!info) return '';
   const noteHtml = info.note ? `<span style="font-size:11px;font-weight:500;color:${color || '#8B5CF6'};opacity:.7;margin-left:3px;">（${info.note}）</span>` : '';
   return `<span style="font-size:12px;font-weight:700;color:${color || '#8B5CF6'};margin-left:4px;white-space:nowrap;">${info.name}</span>${noteHtml}`;
@@ -1730,6 +1834,7 @@ function switchTab(name,el){
     if(betweenState.applied.s1 && betweenState.applied.s2){ isLocalRefresh=true; setTimeout(()=>doBetweenSearch().finally(()=>{isLocalRefresh=false;}),50); }
   }
   if(name==='fav'){
+    updatePokemonTabVisibility();
     renderTTFavs();
     renderTripList();
     if(document.getElementById('fav-stn-panel')?.classList.contains('visible')) favStnRenderStns();
@@ -1803,7 +1908,9 @@ function switchFavSubTab(sub, btn){
   const ttPanel   = document.getElementById('fav-tt-panel');
   const tripPanel = document.getElementById('fav-trip-panel');
   const stnPanel  = document.getElementById('fav-stn-panel');
+  const pkPanel   = document.getElementById('fav-pk-panel');
 
+  pkPanel.style.display   = 'none';
   ttPanel.style.display   = 'none';
   tripPanel.style.display = 'none';
   stnPanel.style.display  = 'none';
@@ -1814,6 +1921,9 @@ function switchFavSubTab(sub, btn){
   } else if(sub === 'trip'){
     tripPanel.style.display = '';
     renderTripList();
+  } else if(sub === 'pk'){
+    pkPanel.style.display = '';
+    renderPokemonList();
   } else {
     stnPanel.style.display = '';
     stnPanel.classList.add('visible');
