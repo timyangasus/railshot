@@ -197,9 +197,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .sh-close{width:30px;height:30px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);}
 .sh-body{padding:14px 18px;}
 .bk-row{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--border);cursor:pointer;}
+.bk-row:last-of-type{border-bottom:none;}
 .bk-row:active{background:var(--bg3);}
 .bk-row.busy{opacity:.5;pointer-events:none;}
-.bk-ic{width:40px;height:40px;border-radius:50%;background:#e8f1fd;color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.bk-ic{width:40px;height:40px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .bk-label{font-size:16px;font-weight:600;color:var(--text);}
 .bk-sub{font-size:13px;color:var(--text3);margin-top:2px;}
 
@@ -1014,20 +1015,18 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     </div>
     <div class="sh-body" style="padding-top:6px;">
       <div class="bk-row" id="bk-export-row" onclick="backupExport()">
-        <div class="bk-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></div>
+        <div class="bk-ic" style="background:#5B8EC2;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></div>
         <div style="flex:1;min-width:0;">
           <div class="bk-label" id="bk-export-label">匯出備份檔</div>
           <div class="bk-sub" id="bk-last-backup"></div>
         </div>
       </div>
       <div class="bk-row" id="bk-import-row" onclick="document.getElementById('backup-file-input').click()">
-        <div class="bk-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div>
+        <div class="bk-ic" style="background:#5FA37F;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div>
         <div style="flex:1;min-width:0;">
           <div class="bk-label" id="bk-import-label">從備份檔還原</div>
-          <div class="bk-sub">跟目前資料合併，不會刪掉手機上的紀錄</div>
         </div>
       </div>
-      <button onclick="closeSheet('backup-sheet')" style="width:100%;margin-top:10px;padding:14px;background:var(--bg3);color:var(--text2);border:none;border-radius:12px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;">取消</button>
       <input type="file" id="backup-file-input" accept=".zip,application/zip" style="display:none;" onchange="backupImport(event)"/>
     </div>
   </div>
