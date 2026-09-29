@@ -1470,8 +1470,77 @@ const NAMED_TRAINS = {
   '6677': { name: '山嵐號', note: '限定日期行駛' },  // 花蓮↔池上（花東縱谷線），實際查證會滾動延伸到隔年1月，別在這裡寫死結束日期
   '6725': { name: '寶可夢列車' }, // 台北→新左營，新光三越×寶可夢30週年特別班，行駛日太長改看詳細頁的「行駛日」說明，不塞在這裡的 note 擠版面
 };
-function namedTrainBadge(no, color){
-  const info = NAMED_TRAINS[no];
+// 新光三越×寶可夢彩繪列車：這些車次平常是一般列車，只有下表的日期才由彩繪車跑，所以要依「查詢日期」判斷。
+// 來源：台鐵公告的「2026新光三越彩繪列車 10月/11月份運用班次表」。之後有新的月份，照格式往下加就好
+const POKEMON_TRAIN_DATES = {
+  // 10 月
+  '2026-10-01': '2128 3177 3228 2257',
+  '2026-10-02': '2144 2203 2264',
+  '2026-10-04': '2183 3231',
+  '2026-10-05': '3010 3035',
+  '2026-10-06': '3001 3018 3021',
+  '2026-10-07': '3006 1038',
+  '2026-10-08': '2013 2244',
+  '2026-10-09': '2183 3231',
+  '2026-10-10': '3010 3035',
+  '2026-10-11': '3001 3018 3021',
+  '2026-10-12': '3006 1038',
+  '2026-10-13': '2013 2244',
+  '2026-10-14': '2143 2204 2263',
+  '2026-10-15': '2124 2163 2224',
+  '2026-10-16': '2143 2204 2263',
+  '2026-10-17': '2124 2163 2224',
+  '2026-10-19': '2183 3231',
+  '2026-10-20': '3010 3035',
+  '2026-10-21': '3001 3018 3021',
+  '2026-10-22': '3006 1038',
+  '2026-10-23': '2013 2244',
+  '2026-10-24': '2183 3231',
+  '2026-10-25': '3010 3035',
+  '2026-10-26': '3001 3018 3021',
+  '2026-10-27': '3006 1038',
+  '2026-10-28': '2013 2244',
+  '2026-10-29': '2143 2204 2263',
+  '2026-10-30': '2124 2163 2224',
+  // 11 月
+  '2026-11-01': '2183 3231',
+  '2026-11-02': '3010 3035',
+  '2026-11-03': '3001 3018 3021',
+  '2026-11-04': '3006 1038',
+  '2026-11-05': '2013 2244',
+  '2026-11-06': '2183 3231',
+  '2026-11-07': '3010 3035',
+  '2026-11-08': '3001 3018 3021',
+  '2026-11-09': '3006 1038',
+  '2026-11-10': '2013 2244',
+  '2026-11-11': '2123 2184 2223',
+  '2026-11-12': '2128 3177 3228 2257',
+  '2026-11-13': '2144 2203 2264',
+  '2026-11-15': '2183 3231',
+  '2026-11-16': '3010 3035',
+  '2026-11-17': '3001 3018 3021',
+  '2026-11-18': '3006 1038',
+  '2026-11-19': '2013 2244',
+  '2026-11-20': '2183 3231',
+  '2026-11-21': '3010 3035',
+  '2026-11-22': '3001 3018 3021',
+  '2026-11-23': '3006 1038',
+  '2026-11-24': '2013 2244',
+  '2026-11-25': '2143 2204 2263',
+  '2026-11-26': '2124 2163 2224',
+  '2026-11-27': '2143 2204 2263',
+  '2026-11-28': '2124 2163 2224',
+  '2026-11-30': '2183 3231',
+};
+function paintedTrainName(no, date){
+  const list = date && POKEMON_TRAIN_DATES[date];
+  return list && list.split(' ').includes(String(no)) ? '寶可夢列車' : null;
+}
+// date：這班車是哪一天的。沒傳就用目前載入的班表日期（也就是查詢的日期）；傳 null 代表不綁日期（例如收藏），不標彩繪列車
+function namedTrainBadge(no, color, date){
+  if (date === undefined) date = gttData?.date;
+  const painted = paintedTrainName(no, date);
+  const info = NAMED_TRAINS[no] || (painted ? { name: painted } : null);
   if (!info) return '';
   const noteHtml = info.note ? `<span style="font-size:11px;font-weight:500;color:${color || '#8B5CF6'};opacity:.7;margin-left:3px;">（${info.note}）</span>` : '';
   return `<span style="font-size:12px;font-weight:700;color:${color || '#8B5CF6'};margin-left:4px;white-space:nowrap;">${info.name}</span>${noteHtml}`;
@@ -4079,7 +4148,7 @@ async function _openTTDetailObj(t){
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
           <span style="font-size:30px;font-weight:700;color:white;letter-spacing:-1px;">${t.no}</span>
-          ${detailTypeBadgeHtml(t.no, t.type, ti, '3px 10px')}${namedTrainBadge(t.no, 'white')}
+          ${detailTypeBadgeHtml(t.no, t.type, ti, '3px 10px')}${namedTrainBadge(t.no, 'white', document.getElementById('tt-date')?.value || gttData?.date)}
         </div>
         <div style="font-size:15px;color:rgba(255,255,255,0.65);margin-bottom:12px;">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
         <div style="display:flex;align-items:baseline;gap:8px;">
@@ -4230,7 +4299,7 @@ function renderTTFavs(){
           <span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:6px;">${t.dur}</span>
         </div>
         <div class="tt-fav-mid">
-          ${typeBadgeHtml(t.no, ti)}${namedTrainBadge(t.no)}
+          ${typeBadgeHtml(t.no, ti)}${namedTrainBadge(t.no, undefined, null)}
           <span style="font-size:13px;font-weight:600;color:var(--text);">${t.no}</span>
         </div>
         <div class="tt-fav-route">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
@@ -5302,7 +5371,7 @@ function renderTripTTSelectList(selectedKeys){
       </div>
       <div style="flex:1;min-width:0;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-          ${typeBadgeHtml(t.no, ti, 'font-size:11px;')}${namedTrainBadge(t.no)}
+          ${typeBadgeHtml(t.no, ti, 'font-size:11px;')}${namedTrainBadge(t.no, undefined, null)}
           <span style="font-size:14px;font-weight:600;color:var(--text);">${t.no}</span>
         </div>
         <div style="font-size:13px;color:var(--text2);">${t.dep} → ${t.arr} · ${(t.queryFrom||t.from)}→${(t.queryTo||t.to)}</div>
@@ -5499,7 +5568,7 @@ function openTripDetail(id){
             <span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur||''}</span>
           </div>
           <div class="tt-mid" style="margin-bottom:3px;">
-            ${typeBadgeHtml(t.no, ti)}${namedTrainBadge(t.no)}
+            ${typeBadgeHtml(t.no, ti)}${namedTrainBadge(t.no, undefined, null)}
             <span class="tt-no">${t.no}</span>
           </div>
         </div>
