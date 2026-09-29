@@ -523,7 +523,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .jr-card2-day{font-size:24px;font-weight:800;color:var(--text);line-height:1.15;}
 .jr-card2-time{font-size:12px;color:var(--text2);margin-top:2px;}
 .jr-card2-mid{flex:1;min-width:0;}
-.jr-card2-title{font-size:19px;font-weight:700;color:#006CE1;margin-bottom:3px;}
+.jr-card2-title{font-size:19px;font-weight:700;color:#006CE1;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .jr-card2-body{font-size:15px;color:var(--text2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;}
 .jr-card2-thumb{flex-shrink:0;width:76px;height:76px;overflow:hidden;background:var(--bg3);}
 .jr-card2-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -877,7 +877,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   <div id="jr-editor-body" class="jr-editor-body" onclick="jrEditorBodyClick(event)"
     ontouchstart="jrEditSwipeStart(event)" ontouchmove="jrEditSwipeMove(event)" ontouchend="jrEditSwipeEnd(event)">
     <textarea id="jr-title-input" class="jr-title-input" rows="1" placeholder="我是標題"
-      oninput="jrAutoGrow(this);jrUpdateSaveBtnState()" onclick="event.stopPropagation()"></textarea>
+      onkeydown="jrTitleKeydown(event)" oninput="jrTitleInput(this)" onclick="event.stopPropagation()"></textarea>
     <div id="jr-blocks-container"></div>
   </div>
   <div class="jr-toolbar" id="jr-toolbar">
@@ -5514,7 +5514,8 @@ function jrRenderEntryList(){
   sorted.forEach(e => jrRenderCardThumb(e));
 }
 function jrCardHtml(e, groupDate){
-  const title = e.title || '';
+  // 舊資料的標題可能含換行（之前標題可以按 Enter），卡片上只顯示第一行
+  const title = (e.title || '').split('\n')[0];
   const body = jrBodyPreview(e.content);
   const d = new Date(e.date + 'T00:00:00');
   const photoIds = jrPhotoIdsOf(e);
@@ -5640,8 +5641,10 @@ function jrOpenEditor(entryId, defaultDate){
   jrRenderDateTimeLabels();
 
   const titleInput = document.getElementById('jr-title-input');
-  titleInput.value = entry ? (entry.title || '') : '';
-  jrAutoGrow(titleInput);
+  // 標題只能一行：舊資料的標題若含換行，第一行留在標題，其餘搬到內文開頭
+  const titleLines = (entry ? (entry.title || '') : '').split('\n');
+  titleInput.value = titleLines[0];
+  const titleOverflow = titleLines.slice(1).join('\n');
 
   jrBlobsById = {};
   jrUndoStack = []; jrRedoStack = [];
@@ -5654,8 +5657,13 @@ function jrOpenEditor(entryId, defaultDate){
   } else {
     jrBlocks = [{ type: 'text', value: '' }];
   }
+  if (titleOverflow) jrPrependToBody(titleOverflow);
   jrRenderEditorBody();
   document.getElementById('jr-editor-page').classList.add('open');
+  // 編輯頁關著（display:none）時量到的 scrollHeight 是 0，標題和內文都會被壓成一行；
+  // 打開之後再量一次才是正確高度
+  jrAutoGrow(titleInput);
+  document.querySelectorAll('#jr-blocks-container textarea').forEach(jrAutoGrow);
   // 開啟當下（鍵盤必定還沒開）先記一次可視範圍高度當基準值，判斷鍵盤是否開啟時
   // 用這個固定基準比對，不要每次都重讀 window.innerHeight——有些 iOS 版本搭配
   // <meta interactive-widget=resizes-content> 鍵盤跳出時 window.innerHeight 本身
@@ -5806,6 +5814,43 @@ function jrUpdateSaveBtnState(){
   btn.style.background = has ? '#006CE1' : '#c8d0dc';
   btn.style.pointerEvents = has ? 'auto' : 'none';
 }
+// 標題只能有一行：按 Enter 時游標後面的字搬到內文開頭，並把游標移到內文
+function jrTitleKeydown(event){
+  // 注音/拼音選字時按 Enter 是確認候選字，不能攔
+  if (event.key !== 'Enter' || event.isComposing || event.keyCode === 229) return;
+  event.preventDefault();
+  const ta = event.target;
+  const rest = ta.value.slice(ta.selectionEnd);
+  ta.value = ta.value.slice(0, ta.selectionStart);
+  jrMoveTitleRestToBody(rest);
+}
+// 貼上或輸入法（例如 iOS 預測字）直接塞進換行時，也一樣把第一行以後的內容搬到內文
+function jrTitleInput(ta){
+  const nl = ta.value.indexOf('\n');
+  if (nl !== -1) {
+    const rest = ta.value.slice(nl + 1).replace(/^\n+/, '');
+    ta.value = ta.value.slice(0, nl);
+    jrMoveTitleRestToBody(rest);
+    return;
+  }
+  jrAutoGrow(ta);
+  jrUpdateSaveBtnState();
+}
+function jrPrependToBody(text){
+  if (!jrBlocks.length || jrBlocks[0].type !== 'text') jrBlocks.unshift({ type:'text', value:'' });
+  const cur = jrBlocks[0].value;
+  // 內文已有字時一定補一個換行，按 Enter 才會在標題下方多出一行空行，而不是直接接在第一行前面
+  jrBlocks[0].value = text + (cur ? '\n' : '') + cur;
+}
+function jrMoveTitleRestToBody(rest){
+  const titleInput = document.getElementById('jr-title-input');
+  jrAutoGrow(titleInput);
+  jrPrependToBody(rest);
+  jrRenderEditorBody();
+  jrActiveTextIdx = 0;
+  const first = document.querySelector('textarea[data-idx="0"]');
+  if (first) { first.focus(); first.setSelectionRange(0, 0); }
+}
 function jrAutoGrow(ta){
   ta.style.height = 'auto';
   ta.style.height = ta.scrollHeight + 'px';
@@ -5815,9 +5860,11 @@ function jrRenderEditorBody(){
   if (!el) return;
   el.innerHTML = jrBlocks.map((b, i) => {
     if (b.type === 'text') {
+      // HTML 解析器會吃掉 <textarea> 開頭緊接的第一個換行，所以固定先補一個 \n 給它吃，
+      // 否則內文第一行是空行時（例如在標題按 Enter），重繪後那個空行就不見了
       return `<textarea class="jr-block-text" data-idx="${i}" rows="1"
         oninput="jrOnBlockTextInput(${i}, this)" onfocus="jrActiveTextIdx=${i}"
-        >${jrEsc(b.value)}</textarea>`;
+        >\n${jrEsc(b.value)}</textarea>`;
     }
     const info = jrBlobsById[b.id];
     return `<div class="jr-block-img-wrap">
