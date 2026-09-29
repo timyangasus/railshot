@@ -4209,16 +4209,23 @@ function renderTTFavs(){
     </div>`;
     return;
   }
-  el.innerHTML=ttFavs.slice().sort((a,b)=>(a.dep||'').localeCompare(b.dep||'')).map(t=>{
+  // 依行程分組：同一個行程的排在一起（行程順序跟「行程」分頁一樣），組內依出發時間；
+  // 沒加入任何行程的放最後。一筆收藏加入多個行程時，以第一個行程分組，名稱全部列出
+  const tripOrder = new Map(trips.map((trip, i) => [trip.name, i]));
+  const sorted = ttFavs.map(t => ({ t, names: tripNamesForFav(t) })).sort((a, b) => {
+    const ga = a.names.length ? (tripOrder.get(a.names[0]) ?? 0) : Infinity;
+    const gb = b.names.length ? (tripOrder.get(b.names[0]) ?? 0) : Infinity;
+    if (ga !== gb) return ga - gb;
+    return (a.t.dep||'').localeCompare(b.t.dep||'');
+  });
+  el.innerHTML=sorted.map(({ t, names: tripNames })=>{
     const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
     const hasQuery = t.queryFrom && t.queryTo;
-    const delKey = JSON.stringify({no:t.no,qFrom:t.queryFrom||'',qTo:t.queryTo||''}).replace(/"/g,'&quot;');
-    const tripNames = tripNamesForFav(t);
-    const tripNameRows = tripNames.map(n => `<div style="font-size:12px;font-weight:600;color:#258EFF;margin-bottom:3px;">（${n}）</div>`).join('');
+    const tripNameRow = tripNames.length ? `<div style="font-size:14px;font-weight:600;color:#258EFF;margin-bottom:3px;">${tripNames.join('、')}</div>` : '';
     return `<div class="tt-fav-card" style="position:relative;" onclick="openTTDetailObj(${JSON.stringify(t).replace(/"/g,'&quot;')})">
       <div class="tt-fav-body">
-                        ${hasQuery ? '<div class=\"tt-fav-query\">' + t.queryFrom + ' → ' + t.queryTo + '</div>' : ''}
-        ${tripNameRows}
+        ${tripNameRow}
+        ${hasQuery ? '<div class=\"tt-fav-query\">' + t.queryFrom + ' → ' + t.queryTo + '</div>' : ''}
         <div class="tt-fav-times">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:15px;">→</span> ${t.arr}
           <span style="font-size:12px;color:var(--text3);font-weight:400;margin-left:6px;">${t.dur}</span>
         </div>
