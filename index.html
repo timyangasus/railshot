@@ -577,10 +577,8 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <button onclick="resetShootForm()" id="shoot-reset-btn" title="清除資料" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
       </button>
-      <button onclick="openBackupSheet()" id="backup-btn" title="備份與還原" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20V5M4 9l4-4 4 4M16 4v15M12 15l4 4 4-4"/></svg>
-      </button>
       <div onclick="jrGoToday()" id="jr-today-header-btn" style="display:none;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;padding:5px 12px;border:1px solid var(--border2);border-radius:20px;">今天</div>
+      <div onclick="openBackupSheet()" id="backup-btn" style="display:none;margin-left:6px;font-size:12px;font-weight:600;color:var(--accent);cursor:pointer;padding:5px 12px;border:1px solid var(--border2);border-radius:20px;">備份</div>
     </div>
   </div>
 </div>
@@ -5084,10 +5082,8 @@ async function backupExport(){
       const blob = await jrGetPhotoBlob(id).catch(() => null);
       if (blob) files.push({ name: `photos/${id}.jpg`, data: new Uint8Array(await blob.arrayBuffer()) });
     }
-    // 檔名用中文比較好認；時間不用冒號（iPhone「檔案」不允許），同一天備份多次也不會撞名
-    const now = new Date();
-    const hhmm = String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0');
-    const fileName = `Railshot備份_${localDateStr(now)}_${hhmm}.zip`;
+    // 檔名固定不帶日期：存到「檔案」時直接覆蓋舊的，永遠只留最新一份；想留多份再自己改名
+    const fileName = 'Railshot備份.zip';
     const zip = bkZip(files);
     const file = new File([zip], fileName, { type: 'application/zip' });
     // iPhone 上用系統分享選單，才能「儲存到檔案」/ AirDrop；不支援分享檔案的瀏覽器就直接下載
