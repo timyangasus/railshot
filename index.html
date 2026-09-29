@@ -5114,65 +5114,67 @@ async function backupExport(){
   }
 }
 
-// 還原＝合併：備份裡有、手機上沒有的加進來；兩邊都有的日誌保留比較新的那筆，其他資料以手機上的為準
+// 還原＝覆蓋：手機上的收藏、行程、日誌（含照片）、常用車站、提醒全部換成備份檔的內容。
+// 會蓋掉資料，所以讀完檔案、確認是有效的備份之後，先跳確認視窗再動手
 async function backupImport(event){
   const file = event.target.files && event.target.files[0];
   event.target.value = '';
   if (!file) return;
   const row = document.getElementById('bk-import-row');
   const label = document.getElementById('bk-import-label');
-  row.classList.add('busy'); label.textContent = '還原中…';
+  row.classList.add('busy'); label.textContent = '讀取中…';
+  let entries, data;
   try {
-    const entries = await bkUnzip(await file.arrayBuffer());
+    entries = await bkUnzip(await file.arrayBuffer());
     if (!entries['data.json']) throw new Error('不是有效的備份檔');
-    const data = JSON.parse(new TextDecoder().decode(entries['data.json']));
+    data = JSON.parse(new TextDecoder().decode(entries['data.json']));
     if (data.app !== 'railshot') throw new Error('不是 Railshot 的備份檔');
-
-    // 照片先寫進 IndexedDB，確保日誌引用到的照片都在
+  } catch (e) {
+    console.log('讀取備份檔失敗', e);
+    showToast('還原失敗：' + e.message);
+    return;
+  } finally {
+    row.classList.remove('busy'); label.textContent = '從備份檔還原';
+  }
+  const d = data.exportedAt ? new Date(data.exportedAt) : null;
+  const when = d ? `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} 的` : '';
+  closeSheet('backup-sheet');
+  showConfirm('用備份檔覆蓋？',
+    `手機上的收藏、行程和日誌會全部換成${when}備份內容（共 ${(data.journal||[]).length} 篇日誌），備份之後新增或修改的資料會不見。`,
+    '覆蓋還原', () => backupRestoreOverwrite(entries, data));
+}
+async function backupRestoreOverwrite(entries, data){
+  try {
+    showToast('還原中…');
+    // 先把備份裡的照片全部寫進去，再刪掉備份裡沒有的，中途失敗也不會把照片清光
+    const keep = new Set();
     for (const [name, bytes] of Object.entries(entries)) {
       const m = name.match(/^photos\/(.+)\.jpg$/);
-      if (m && !(await jrGetPhotoBlob(m[1]).catch(() => null))) {
-        await jrSavePhotoBlob(m[1], new Blob([bytes], { type: 'image/jpeg' }));
-      }
+      if (!m) continue;
+      keep.add(m[1]);
+      await jrSavePhotoBlob(m[1], new Blob([bytes], { type: 'image/jpeg' }));
     }
+    const db = await jrOpenDB();
+    const allIds = await new Promise((resolve, reject) => {
+      const req = db.transaction('photos', 'readonly').objectStore('photos').getAllKeys();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+    for (const id of allIds) if (!keep.has(id)) await jrDeletePhotoBlob(id).catch(() => {});
 
-    const stamp = e => e.updatedAt || e.createdAt || 0;
-    const jrById = new Map(journalEntries.map(e => [e.id, e]));
-    let addedJr = 0;
-    for (const e of (data.journal || [])) {
-      const cur = jrById.get(e.id);
-      if (!cur) { jrById.set(e.id, e); addedJr++; }
-      else if (stamp(e) > stamp(cur)) jrById.set(e.id, e);
-    }
-    const favKeys = new Set(ttFavs.map(favKey));
-    const newFavs = (data.ttFavs || []).filter(f => !favKeys.has(favKey(f)));
-    const tripById = new Map(trips.map(t => [t.id, t]));
-    let addedTrips = 0;
-    for (const t of (data.trips || [])) {
-      const cur = tripById.get(t.id);
-      if (!cur) { tripById.set(t.id, t); addedTrips++; }
-      else cur.trainNos = [...new Set([...(cur.trainNos || []), ...(t.trainNos || [])])];
-    }
-    const remIds = new Set(reminders.map(r => r.id));
+    localStorage.setItem('rs_journal', JSON.stringify(data.journal || []));
+    localStorage.setItem('rs_ttfavs', JSON.stringify(data.ttFavs || []));
+    localStorage.setItem('rs_trips', JSON.stringify(data.trips || []));
+    localStorage.setItem('rs_freqstns', JSON.stringify(data.freqStns || []));
+    localStorage.setItem('rs_rem', JSON.stringify(data.reminders || []));
 
-    localStorage.setItem('rs_journal', JSON.stringify([...jrById.values()]));
-    localStorage.setItem('rs_ttfavs', JSON.stringify([...ttFavs, ...newFavs]));
-    localStorage.setItem('rs_trips', JSON.stringify([...tripById.values()]));
-    localStorage.setItem('rs_freqstns', JSON.stringify([...new Set([...freqStns, ...(data.freqStns || [])])]));
-    localStorage.setItem('rs_rem', JSON.stringify([...reminders, ...(data.reminders || []).filter(r => !remIds.has(r.id))]));
-
-    const parts = [];
-    if (addedJr) parts.push(`${addedJr} 篇日誌`);
-    if (newFavs.length) parts.push(`${newFavs.length} 筆收藏`);
-    if (addedTrips) parts.push(`${addedTrips} 個行程`);
-    showToast(parts.length ? `已還原：新增 ${parts.join('、')}` : '已還原，沒有新的資料');
+    showToast('已還原成備份檔的內容');
     // 資料散在很多變數和畫面裡，重新載入最保險；記住目前在哪個分頁，載入後回到同一頁
     try { sessionStorage.setItem('rs_after_restore_tab', document.querySelector('.tab-item.active')?.id || ''); } catch(e) {}
     setTimeout(() => location.reload(), 1200);
   } catch (e) {
     console.log('還原失敗', e);
     showToast('還原失敗：' + e.message);
-    row.classList.remove('busy'); label.textContent = '從備份檔還原';
   }
 }
 
