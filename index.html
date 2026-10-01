@@ -102,7 +102,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .tab-item.active .tab-label{font-weight:700;}
 .tab-active-bar{width:20px;height:2.5px;border-radius:2px;background:var(--accent);margin-top:2px;opacity:0;transition:opacity .2s;}
 .tab-item.active .tab-active-bar{opacity:1;}
-.tab-dot{position:absolute;top:-2px;right:-3px;width:8px;height:8px;border-radius:50%;background:#e53935;border:1.5px solid white;}
 
 /* ── SCREENS ── */
 .page-container{flex:1;overflow:hidden;position:relative;}
@@ -945,41 +944,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   </div>
 </div>
 
-<!-- 新功能登場：日誌 -->
-<div class="alert-ov" id="jr-intro-ov">
-  <div class="alert-box" style="max-width:320px;text-align:center;">
-    <div style="width:88px;height:88px;margin:0 auto 16px;">
-      <svg width="88" height="88" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <defs><clipPath id="jrIntroClip"><circle cx="50" cy="50" r="50"/></clipPath></defs>
-        <g clip-path="url(#jrIntroClip)">
-          <rect width="100" height="100" fill="#7FDCE8"/>
-          <g fill="#fff" opacity="0.95">
-            <ellipse cx="22" cy="17" rx="8" ry="5.5"/><ellipse cx="29" cy="14" rx="6" ry="4.5"/>
-            <ellipse cx="76" cy="19" rx="8" ry="5.5"/><ellipse cx="83" cy="15" rx="6" ry="4.5"/>
-          </g>
-          <rect y="68" width="100" height="32" fill="#8FA6D8"/>
-          <rect y="68" width="100" height="8" fill="#2E3466"/>
-          <rect y="82" width="100" height="6" fill="#5470C2"/>
-          <circle cx="18" cy="65" r="4.5" fill="#2E3466"/>
-          <circle cx="35" cy="65" r="4.5" fill="#2E3466"/>
-          <circle cx="55" cy="65" r="4.5" fill="#2E3466"/>
-          <circle cx="72" cy="65" r="4.5" fill="#2E3466"/>
-          <path d="M4 38 H80 Q94 38 94 50 Q94 62 80 62 H4 Z" fill="#fff"/>
-          <rect x="4" y="54" width="90" height="10" fill="#4C7CF3"/>
-          <rect x="4" y="51" width="90" height="3.5" fill="#FCE7C0"/>
-          <rect x="10" y="42" width="16" height="10" rx="2.5" fill="#2E3466"/>
-          <rect x="30" y="35" width="4" height="19" fill="#2A2F5C"/>
-          <rect x="34" y="35" width="30" height="10" rx="2.5" fill="#2A2F5C"/>
-          <rect x="70" y="42" width="16" height="10" rx="2.5" fill="#2A2F5C"/>
-        </g>
-      </svg>
-    </div>
-    <div style="font-size:23px;font-weight:800;color:#1a2540;margin-bottom:8px;">日誌</div>
-    <div style="font-size:16px;font-weight:400;color:#4a6080;line-height:1.6;margin-bottom:22px;">可以把每次搭火車、看火車的好玩經過記錄下來了！！</div>
-    <button onclick="jrIntroGo()" style="width:100%;padding:14px;background:linear-gradient(135deg,#2d4a8a 0%,#3a5fa8 100%);color:white;border:none;border-radius:12px;font-size:16px;font-weight:600;font-family:inherit;cursor:pointer;">快來試試看</button>
-  </div>
-</div>
-
 <div class="tab-bar">
   <div class="tab-item active" onclick="switchTab('tt',this)" id="tbtn-tt">
     <svg class="tab-icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor"><path d="m612-292 56-56-148-148v-184h-80v216l172 172ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/></svg>
@@ -1002,10 +966,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div class="tab-active-bar"></div>
   </div>
   <div class="tab-item" onclick="switchTab('journal',this)" id="tbtn-journal">
-    <div style="position:relative;display:inline-flex;">
-      <svg class="tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <div class="tab-dot" id="jr-tab-dot"></div>
-    </div>
+    <svg class="tab-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
     <div class="tab-label">日誌</div>
     <div class="tab-active-bar"></div>
   </div>
@@ -1862,7 +1823,6 @@ function switchTab(name,el){
   if(name==='journal'){
     jrInitCalendar();
     try { navigator.storage?.persist?.(); } catch(e) {}
-    jrMarkVisited();
   }
 
   // reset 按鈕切換
@@ -6591,34 +6551,6 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
 }
 
-// ── 新功能登場：日誌 ──────────────────────────────────
-const JR_INTRO_SEEN_KEY = 'rs_journal_intro_seen';
-const JR_VISITED_KEY = 'rs_journal_visited';
-// 使用者第一次真的點進日誌分頁後，紅點就永久消失，跟介紹頁關閉與否分開判斷
-function jrMarkVisited(){
-  if (localStorage.getItem(JR_VISITED_KEY)) return;
-  localStorage.setItem(JR_VISITED_KEY, '1');
-  const dot = document.getElementById('jr-tab-dot');
-  if (dot) dot.style.display = 'none';
-}
-function jrIntroClose(){
-  localStorage.setItem(JR_INTRO_SEEN_KEY, '1');
-  document.getElementById('jr-intro-ov').classList.remove('open');
-}
-function jrIntroGo(){
-  jrIntroClose();
-  switchTab('journal', document.getElementById('tbtn-journal'));
-}
-(function jrInitIntro(){
-  const dot = document.getElementById('jr-tab-dot');
-  if (dot && localStorage.getItem(JR_VISITED_KEY)) dot.style.display = 'none';
-  // 網址加上 ?showIntro=1 可以隨時強制預覽介紹頁，不用清掉裝置上的已讀旗標
-  // （清旗標要連同 localStorage 一起清，會把已經寫好的日誌資料也清掉，太危險）
-  const forcePreview = new URLSearchParams(location.search).get('showIntro') === '1';
-  if (forcePreview || !localStorage.getItem(JR_INTRO_SEEN_KEY)) {
-    document.getElementById('jr-intro-ov').classList.add('open');
-  }
-})();
 </script>
 <div id="toast" class="toast"></div>
 </body>
