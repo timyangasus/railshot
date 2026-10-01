@@ -534,7 +534,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .jr-card-wrap{position:relative;margin-bottom:10px;border-radius:var(--radius-input);overflow:hidden;}
 .jr-card-del-bg{position:absolute;inset:0;background:var(--red);display:flex;align-items:center;justify-content:flex-end;}
 .jr-card-del-btn{color:white;font-weight:700;font-size:14px;padding:0 22px;height:100%;display:flex;align-items:center;cursor:pointer;}
-.jr-card2{position:relative;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:14px;min-height:120px;box-sizing:border-box;cursor:pointer;touch-action:pan-y;background-clip:padding-box;}
+.jr-card2{position:relative;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:10px;min-height:112px;box-sizing:border-box;cursor:pointer;touch-action:pan-y;background-clip:padding-box;}
 .jr-card2-left{flex-shrink:0;width:48px;text-align:center;margin-right:6px;}
 .jr-card2-wd{font-size:13px;color:var(--text2);font-weight:600;}
 .jr-card2-day{font-size:24px;font-weight:800;color:var(--text);line-height:1.15;}
@@ -6046,8 +6046,8 @@ function jrCardHtml(e, groupDate){
       onclick="jrCardClick(event,'${e.id}')"
       ontouchstart="jrSwipeStart(event,'${e.id}')" ontouchmove="jrSwipeMove(event,'${e.id}')" ontouchend="jrSwipeEnd(event,'${e.id}')">
       <div class="jr-card2-left">
-        <div class="jr-card2-wd">週${JR_WEEKDAY_ZH[d.getDay()]}</div>
         <div class="jr-card2-day">${Number(e.date.slice(8,10))}</div>
+        <div class="jr-card2-wd">週${JR_WEEKDAY_ZH[d.getDay()]}</div>
       </div>
       <div class="jr-card2-mid">
         ${title ? `<div class="jr-card2-title">${jrEsc(title)}</div>` : ''}
