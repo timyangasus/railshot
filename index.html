@@ -3598,6 +3598,28 @@ async function openDetailByNo(trainNo, atStation, s2Station, s1TimeOverride, s2T
     const passTime = s1TimeOverride || (atStop ? (atStop.dep || atStop.arr) : '');
     const displayDir = calculateDisplayDir(train);
 
+    // 單點／區間卡片點進來才給收藏愛心（帶 atStation）；車次查詢自己會在拿到資料後呼叫
+    // showDetailFav，寶可夢列車也不帶 atStation，都不會受影響。一定要在 innerHTML 組字串
+    // 之前先設好 detailFavTrain，banner 樣板裡的 detailFavBtnHtml() 才看得到。
+    if (atStation) {
+      let qFrom = atStation, qTo = s2Station || train.to;
+      let dep = passTime, arr = s2TimeOverride;
+      if (!isBetween) {
+        // 單點：從目前這站到終點站
+        const lastStop = train.stops[train.stops.length - 1];
+        arr = lastStop ? (lastStop.arr || lastStop.dep) : '';
+      } else {
+        // 區間：s1/s2 不保證誰先誰後，依時間調整成 queryFrom 先到的順序
+        const m1 = toMins(dep), m2 = toMins(arr);
+        if (m1 >= 0 && m2 >= 0 && m2 < m1) {
+          [qFrom, qTo] = [qTo, qFrom];
+          [dep, arr] = [arr, dep];
+        }
+      }
+      const favT = { ...detailFavObj(train), queryFrom: qFrom, queryTo: qTo, dep, arr, dur: calcDurStr(dep, arr), delay };
+      showDetailFavFromList(favT, qFrom, qTo);
+    }
+
     // (passTime / timeSection 已不再顯示於 banner，相關計算保留供未來擴充)
 
     document.getElementById('det-hdr-title').textContent = `${ti.label} ${trainNo}`;
