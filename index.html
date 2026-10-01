@@ -856,7 +856,8 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 <!-- TAB 5: 日誌 -->
 <div class="screen" id="tab-journal">
 <div class="sc" style="padding-bottom:90px;">
-  <div class="tt-form" style="padding:14px;border-radius:0;">
+  <div class="tt-form" style="padding:14px;border-radius:0;"
+    ontouchstart="jrCalSwipeStart(event)" ontouchmove="jrCalSwipeMove(event)" ontouchend="jrCalSwipeEnd(event)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div onclick="jrChangeMonth(-1)" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:20px;">‹</div>
       <div id="jr-month-label" style="font-size:19px;font-weight:700;color:var(--text);"></div>
@@ -869,7 +870,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div id="jr-cal-grid" class="jr-cal-grid"></div>
   </div>
 
-  <div class="sec" style="margin:16px 0 8px;">所有紀錄</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;">
+    <div class="sec" style="margin:0;">所有紀錄</div>
+    <button onclick="jrToggleShowAll()" id="jr-showall-btn" style="padding:4px 14px;border-radius:14px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">全部</button>
+  </div>
   <div id="jr-entries-list"></div>
 </div>
 <div class="jr-fab" onclick="jrOpenEditorForNew()">
@@ -5865,6 +5869,29 @@ function jrChangeMonth(delta){
   jrRenderCalendar();
   jrRenderEntryList();
 }
+// 月曆區左右滑動切換月份（跟編輯頁切換日誌用同一套手勢判斷邏輯：
+// 明顯偏水平的拖曳才當成滑動，單純點日期格子不受影響）
+let jrCalSwipeState = { active:false, dragging:false, startX:0, startY:0 };
+function jrCalSwipeStart(e){
+  const t = e.touches[0];
+  jrCalSwipeState = { active:true, dragging:false, startX:t.clientX, startY:t.clientY };
+}
+function jrCalSwipeMove(e){
+  const s = jrCalSwipeState;
+  if (!s.active) return;
+  const t = e.touches[0];
+  const dx = t.clientX - s.startX, dy = t.clientY - s.startY;
+  if (!s.dragging && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.8) s.dragging = true;
+  if (s.dragging) e.preventDefault();
+}
+function jrCalSwipeEnd(e){
+  const s = jrCalSwipeState;
+  if (s.active && s.dragging) {
+    const dx = e.changedTouches[0].clientX - s.startX;
+    if (Math.abs(dx) > 50) jrChangeMonth(dx < 0 ? 1 : -1);
+  }
+  jrCalSwipeState = { active:false, dragging:false, startX:0, startY:0 };
+}
 function jrGoToday(){
   const now = new Date();
   jrViewYear = now.getFullYear();
@@ -5947,6 +5974,17 @@ function jrBodyPreview(content){
 function jrPhotoIdsOf(entry){ return entry.content.filter(b => b.type === 'image').map(b => b.id); }
 
 // ── 所有紀錄（依日期分組，新到舊） ────────────────────────
+let jrShowAll = false;
+function jrToggleShowAll(){
+  jrShowAll = !jrShowAll;
+  const btn = document.getElementById('jr-showall-btn');
+  if (btn) {
+    btn.style.background = jrShowAll ? '#006CE1' : 'transparent';
+    btn.style.color = jrShowAll ? 'white' : 'var(--text2)';
+    btn.style.borderColor = jrShowAll ? '#006CE1' : 'var(--border2)';
+  }
+  jrRenderEntryList();
+}
 function jrRenderEntryList(){
   const el = document.getElementById('jr-entries-list');
   if (!el) return;
@@ -5954,6 +5992,7 @@ function jrRenderEntryList(){
     el.innerHTML = `<div class="empty-state"><div class="empty-text">尚無紀錄，點右下角＋開始記錄</div></div>`;
     return;
   }
+  if (jrShowAll) { jrRenderAllEntries(el); return; }
   // 只列出月曆目前所在月份的紀錄，切換月份時跟著換
   const now = new Date();
   const y = jrViewYear ?? now.getFullYear(), m = jrViewMonth ?? now.getMonth();
@@ -5973,6 +6012,23 @@ function jrRenderEntryList(){
   el.innerHTML = groups.map(g =>
     g.entries.map((e,i) => jrCardHtml(e, i===0 ? g.date : null)).join('')
   ).join('');
+  sorted.forEach(e => jrRenderCardThumb(e));
+}
+// 「全部」模式：不受目前月曆月份篩選，依年月份分組、每組內新到舊排序
+function jrRenderAllEntries(el){
+  const sorted = [...journalEntries].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+  const groups = [];
+  let lastMonthKey = null;
+  for (const e of sorted) {
+    const monthKey = e.date.slice(0, 7); // YYYY-MM
+    if (monthKey !== lastMonthKey) { groups.push({ monthKey, entries: [] }); lastMonthKey = monthKey; }
+    groups[groups.length - 1].entries.push(e);
+  }
+  el.innerHTML = groups.map(g => {
+    const [y, m] = g.monthKey.split('-');
+    return `<div class="sec" style="margin:14px 0 8px;">${y}年${Number(m)}月</div>`
+      + g.entries.map(e => jrCardHtml(e, null)).join('');
+  }).join('');
   sorted.forEach(e => jrRenderCardThumb(e));
 }
 function jrCardHtml(e, groupDate){
