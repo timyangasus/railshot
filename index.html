@@ -6029,7 +6029,7 @@ function jrRenderAllEntries(el){
   }
   el.innerHTML = groups.map(g => {
     const [y, m] = g.monthKey.split('-');
-    return `<div class="sec" style="margin:14px 0 8px;color:var(--text);">${y}年${Number(m)}月</div>`
+    return `<div class="sec" style="margin:14px 0 8px;color:var(--text2);">${y}年${Number(m)}月</div>`
       + g.entries.map(e => jrCardHtml(e, null)).join('');
   }).join('');
   sorted.forEach(e => jrRenderCardThumb(e));
