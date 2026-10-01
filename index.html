@@ -4228,6 +4228,7 @@ async function _openTTDetailObj(t){
   const domTo   = qToLbl?.classList.contains('placeholder')   ? '' : (qToLbl?.textContent||'');
   const qFrom = t.queryFrom || domFrom;
   const qTo   = t.queryTo   || domTo;
+  showDetailFavFromList(t, qFrom, qTo);
 
   const renderDetail = (stops) => {
     // 計算查詢區間高亮範圍
@@ -4301,10 +4302,14 @@ async function _openTTDetailObj(t){
   }
 }
 
-// ── 車次細節頁右下角的收藏愛心（查詢車次進入時顯示）──────────
-// 車次查詢沒有「查詢起訖站」，收藏時以全程起訖站當作區間；
-// 只要這個車次有任何一筆收藏就顯示實心，取消時會移除該車次的所有收藏。
+// ── 車次細節頁右下角的收藏愛心 ──────────────────────────
+// 兩種來源比對邏輯不一樣，用 detailFavMatchQuery 分流：
+// - 車次查詢進入（false）：沒有「查詢起訖站」，收藏時以全程起訖站當作區間；
+//   只要這個車次有任何一筆收藏就顯示實心，取消時會移除該車次的所有收藏。
+// - 時刻表清單點進來（true）：比對 no+查詢起訖站這組三元組，跟清單卡片
+//   （toggleTTFavObj／isTTFaved）用同一套邏輯，才不會跟別的起訖站查詢互相誤判。
 let detailFavTrain = null;
+let detailFavMatchQuery = false;
 function detailFavObj(train){
   const stops = train.stops || [];
   const first = stops[0] || {}, last = stops[stops.length-1] || {};
@@ -4322,7 +4327,9 @@ function detailFavObj(train){
 // 愛心直接畫在細節頁 banner 裡；banner 重新渲染時（例如載入完整停靠站後）會依 detailFavTrain 再畫一次
 function detailFavBtnHtml(){
   if(!detailFavTrain) return '';
-  const faved = ttFavs.some(f => f.no === detailFavTrain.no);
+  const faved = detailFavMatchQuery
+    ? ttFavs.some(f => f.no===detailFavTrain.no && (f.queryFrom||'')===(detailFavTrain.queryFrom||'') && (f.queryTo||'')===(detailFavTrain.queryTo||''))
+    : ttFavs.some(f => f.no === detailFavTrain.no);
   return `<button class="det-fav-btn" id="det-fav-btn" onclick="toggleDetailFav(event)" aria-label="${faved?'取消收藏':'收藏'}">${faved ? HEART_FULL : HEART_EMPTY}</button>`;
 }
 function renderDetailFavBtn(){
@@ -4336,27 +4343,49 @@ function showDetailFav(train){
   if(!train || !train.no) return;
   // 使用者可能在載入時就按了返回，細節頁已關閉就不顯示
   if(!document.getElementById('detail-page')?.classList.contains('open')) return;
+  detailFavMatchQuery = false;
   detailFavTrain = detailFavObj(train);
+  renderDetailFavBtn();
+}
+// 時刻表清單點進細節頁專用：直接用清單那筆資料（欄位格式已經對了，不用再轉一次），
+// 比對邏輯改成跟清單卡片一致的 no+查詢起訖站
+function showDetailFavFromList(t, qFrom, qTo){
+  if(!t || !t.no) return;
+  if(!document.getElementById('detail-page')?.classList.contains('open')) return;
+  detailFavMatchQuery = true;
+  detailFavTrain = { ...t, queryFrom: qFrom || '', queryTo: qTo || '' };
   renderDetailFavBtn();
 }
 function hideDetailFav(){
   detailFavTrain = null;
+  detailFavMatchQuery = false;
   renderDetailFavBtn();
 }
 function toggleDetailFav(event){
   event?.stopPropagation();
   if(!detailFavTrain) return;
   const no = detailFavTrain.no;
-  if(ttFavs.some(f => f.no === no)){
-    ttFavs = ttFavs.filter(f => f.no !== no);
-    showToast('已取消收藏');
+  if (detailFavMatchQuery) {
+    const qFrom = detailFavTrain.queryFrom || '', qTo = detailFavTrain.queryTo || '';
+    const idx = ttFavs.findIndex(f => f.no===no && (f.queryFrom||'')===qFrom && (f.queryTo||'')===qTo);
+    if (idx > -1) { ttFavs.splice(idx,1); showToast('已取消收藏'); }
+    else { ttFavs.push({ ...detailFavTrain, savedAt: Date.now() }); showToast('已加入收藏'); }
+    saveTTFavs();
+    renderDetailFavBtn();
+    renderTTFavs();
+    searchTT(); // 背後時刻表清單的愛心狀態跟著同步
   } else {
-    ttFavs.push({ ...detailFavTrain, savedAt: Date.now() });
-    showToast('已加入收藏');
+    if(ttFavs.some(f => f.no === no)){
+      ttFavs = ttFavs.filter(f => f.no !== no);
+      showToast('已取消收藏');
+    } else {
+      ttFavs.push({ ...detailFavTrain, savedAt: Date.now() });
+      showToast('已加入收藏');
+    }
+    saveTTFavs();
+    renderDetailFavBtn();
+    renderTTFavs();
   }
-  saveTTFavs();
-  renderDetailFavBtn();
-  renderTTFavs();
 }
 
 function toggleTTFavObj(t, event){
