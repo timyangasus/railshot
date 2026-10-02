@@ -5773,10 +5773,11 @@ function removeTripTrain(tripId, key, event){
 
 
 let _toastTimer;
-function showToast(msg){
+function showToast(msg, bg){
   const el = document.getElementById('toast');
   if(!el) return;
   el.textContent = msg;
+  el.style.background = bg || ''; // 不傳就清掉 inline 樣式，沿用預設深藍色
   el.classList.add('show');
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(()=> el.classList.remove('show'), 1800);
@@ -6738,7 +6739,7 @@ async function jrExportEntryImage(){
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({ files: [file], title: fileName });
-        showToast('已儲存');
+        showToast('已儲存', '#006CE1');
       } catch (e) {
         if (e.name !== 'AbortError') showToast('分享失敗：' + e.message);
       }
@@ -6747,7 +6748,7 @@ async function jrExportEntryImage(){
       a.href = URL.createObjectURL(blob); a.download = fileName;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-      showToast('已儲存');
+      showToast('已儲存', '#006CE1');
     }
   } catch (e) {
     console.log('匯出日誌圖片失敗', e);
