@@ -3822,9 +3822,9 @@ function updateAlldayBtn(){
   const timeEl = document.getElementById('tt-time');
   const btn = document.getElementById('tt-allday-btn');
   if(!btn) return;
-  btn.style.background = ttAllDay ? 'var(--accent)' : '#eef0f5';
+  btn.style.background = ttAllDay ? '#002C69' : '#eef0f5';
   btn.style.color = ttAllDay ? 'white' : 'var(--text2)';
-  btn.style.border = ttAllDay ? '1px solid var(--accent)' : '1px solid var(--border)';
+  btn.style.border = ttAllDay ? '1px solid #002C69' : '1px solid var(--border)';
   if(timeEl){
     timeEl.style.opacity = '1';
     timeEl.style.pointerEvents = 'auto';
