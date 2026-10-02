@@ -910,8 +910,13 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
         <input type="time" id="jr-edit-time-input" onchange="jrOnDateTimeInputChange()" style="position:absolute;opacity:0;width:100%;height:100%;left:0;top:0;"/>
       </label>
     </div>
-    <div id="jr-save-btn" onclick="jrSaveEntry()" style="width:34px;height:34px;border-radius:50%;background:#006CE1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .15s;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div id="jr-share-btn" onclick="jrExportEntryImage()" style="display:none;width:34px;height:34px;border-radius:50%;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4L7 9M12 4l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 14v4a2 2 0 002 2h10a2 2 0 002-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div id="jr-save-btn" onclick="jrSaveEntry()" style="width:34px;height:34px;border-radius:50%;background:#006CE1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .15s;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg>
+      </div>
     </div>
   </div>
   <div id="jr-editor-body" class="jr-editor-body" onclick="jrEditorBodyClick(event)"
@@ -6245,6 +6250,8 @@ function jrOpenEditor(entryId, defaultDate){
   jrEditingId = entryId || null;
   jrActiveTextIdx = 0; // 換一篇日誌時重置，避免沿用上一篇的段落 index 導致插入照片位置跑掉
   const entry = entryId ? journalEntries.find(e => e.id === entryId) : null;
+  const shareBtn = document.getElementById('jr-share-btn');
+  if (shareBtn) shareBtn.style.display = entry ? 'flex' : 'none'; // 新增中的空白日誌沒東西好匯出
   const now = new Date();
   const date = entry ? entry.date : defaultDate;
   const time = entry ? entry.time : `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
@@ -6629,6 +6636,120 @@ async function jrSaveEntry(){
   if (!jrHasContent()) return;
   await jrPersistCurrentEntry();
   jrCloseEditor();
+}
+// ── 匯出單篇日誌為一張完整長圖（標題＋內文＋照片依原本順序直接輸出，不做固定版面裁切）──
+// 中文沒有詞與詞間的空白可以斷行，逐字量寬度來換行比較保險
+function jrWrapTextForExport(ctx, text, maxWidth, font){
+  ctx.font = font;
+  const out = [];
+  for (const para of text.split('\n')) {
+    if (!para) { out.push(''); continue; }
+    let line = '';
+    for (const ch of para) {
+      const test = line + ch;
+      if (line && ctx.measureText(test).width > maxWidth) { out.push(line); line = ch; }
+      else { line = test; }
+    }
+    out.push(line);
+  }
+  return out;
+}
+async function jrExportEntryImage(){
+  if (!jrEditingId) return;
+  const entry = journalEntries.find(e => e.id === jrEditingId);
+  if (!entry) return;
+  const btn = document.getElementById('jr-share-btn');
+  if (btn) btn.style.pointerEvents = 'none';
+  try {
+    const W = 750, PAD = 32, CW = W - PAD * 2;
+    const titleFont = '700 34px -apple-system,"PingFang TC","Microsoft JhengHei",sans-serif';
+    const bodyFont = '400 26px -apple-system,"PingFang TC","Microsoft JhengHei",sans-serif';
+    const metaFont = '600 22px -apple-system,"PingFang TC","Microsoft JhengHei",sans-serif';
+    const measure = document.createElement('canvas').getContext('2d');
+
+    // 先把會用到的照片都載入，量出依寬度等比縮放後的高度
+    const loaded = {};
+    for (const b of entry.content) {
+      if (b.type === 'image' && !loaded[b.id]) {
+        const blob = await jrGetPhotoBlob(b.id).catch(() => null);
+        if (!blob) continue;
+        const url = URL.createObjectURL(blob);
+        try {
+          const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url; });
+          loaded[b.id] = { img, url, h: img.naturalHeight * (CW / img.naturalWidth) };
+        } catch (e) { URL.revokeObjectURL(url); }
+      }
+    }
+
+    const d = new Date(entry.date + 'T00:00:00');
+    const metaText = `${entry.date.slice(0,4)}年${Number(entry.date.slice(5,7))}月${Number(entry.date.slice(8,10))}日（週${JR_WEEKDAY_ZH[d.getDay()]}）${jrTimeAmPm(entry.time)}`;
+    const titleLines = entry.title ? jrWrapTextForExport(measure, entry.title, CW, titleFont) : [];
+
+    // 組出要依序畫的項目，同時先量出總高度
+    const items = [];
+    let y = PAD;
+    items.push({ type: 'meta', text: metaText, y }); y += 28 + 18;
+    if (titleLines.length) {
+      items.push({ type: 'title', lines: titleLines, y });
+      y += titleLines.length * 44 + 18;
+    }
+    for (const b of entry.content) {
+      if (b.type === 'text' && b.value.trim()) {
+        const lines = jrWrapTextForExport(measure, b.value, CW, bodyFont);
+        items.push({ type: 'text', lines, y });
+        y += lines.length * 36 + 14;
+      } else if (b.type === 'image' && loaded[b.id]) {
+        const info = loaded[b.id];
+        items.push({ type: 'image', info, y });
+        y += info.h + 14;
+      }
+    }
+    const totalH = y + PAD - 14;
+
+    const scale = 2; // 輸出清晰一點，retina 倍率
+    const canvas = document.createElement('canvas');
+    canvas.width = W * scale; canvas.height = totalH * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+    ctx.fillStyle = '#F2F2F7';
+    ctx.fillRect(0, 0, W, totalH);
+    ctx.textBaseline = 'top';
+
+    for (const item of items) {
+      if (item.type === 'meta') {
+        ctx.font = metaFont; ctx.fillStyle = '#8a9db8';
+        ctx.fillText(item.text, PAD, item.y);
+      } else if (item.type === 'title') {
+        ctx.font = titleFont; ctx.fillStyle = '#006CE1';
+        item.lines.forEach((line, i) => ctx.fillText(line, PAD, item.y + i * 44));
+      } else if (item.type === 'text') {
+        ctx.font = bodyFont; ctx.fillStyle = '#1a2540';
+        item.lines.forEach((line, i) => ctx.fillText(line, PAD, item.y + i * 36));
+      } else if (item.type === 'image') {
+        ctx.drawImage(item.info.img, PAD, item.y, CW, item.info.h);
+      }
+    }
+    Object.values(loaded).forEach(l => URL.revokeObjectURL(l.url));
+
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    if (!blob) { showToast('匯出失敗'); return; }
+    const fileName = `日誌_${entry.date}.png`;
+    const file = new File([blob], fileName, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: fileName }); }
+      catch (e) { if (e.name !== 'AbortError') showToast('分享失敗：' + e.message); }
+    } else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = fileName;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    }
+  } catch (e) {
+    console.log('匯出日誌圖片失敗', e);
+    showToast('匯出失敗：' + e.message);
+  } finally {
+    if (btn) btn.style.pointerEvents = '';
+  }
 }
 // ── 編輯頁左右滑動切換到前一筆／後一筆日誌（依日期時間排序，只在正在編輯「已存在」的紀錄時可用）──
 let jrEditSwipeState = { active:false, dragging:false, startX:0, startY:0 };
