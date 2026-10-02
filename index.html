@@ -6032,6 +6032,8 @@ function jrOpenSearch(){
   document.getElementById('jr-search-bar').style.display = 'flex';
   const calCard = document.getElementById('jr-cal-card');
   if (calCard) calCard.style.display = 'none';
+  const fab = document.querySelector('.jr-fab');
+  if (fab) fab.style.display = 'none';
   jrRenderEntryList();
   setTimeout(() => document.getElementById('jr-search-input')?.focus(), 50);
 }
@@ -6044,6 +6046,8 @@ function jrCloseSearch(){
   document.getElementById('jr-search-bar').style.display = 'none';
   const calCard = document.getElementById('jr-cal-card');
   if (calCard) calCard.style.display = jrShowAll ? 'none' : '';
+  const fab = document.querySelector('.jr-fab');
+  if (fab) fab.style.display = '';
   jrRenderEntryList();
 }
 function jrOnSearchInput(){
