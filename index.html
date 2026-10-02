@@ -119,15 +119,15 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .chips-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-right:-14px;padding-right:14px;}
 .chip-round{width:50px;height:50px;border-radius:50%;border:1.5px solid var(--border2);background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:16px;font-weight:700;color:var(--text2);flex-shrink:0;transition:all .15s;line-height:1.2;}
 .chip-round *{pointer-events:none;}
-.chip-round.on{background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);border-color:#2d4a8a;color:white;}
+.chip-round.on{background:#006CE1;border-color:#006CE1;color:white;}
 .chip-round>div:last-child{font-size:12px;font-weight:500;opacity:0.8;}
 .chip-round.sm>div{opacity:1;font-size:13px;font-weight:500;}
 .chip-round.sm{font-size:13px;font-weight:500;background:white;}
-.chip-round.sm.on{background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);border-color:#2d4a8a;color:white;}
+.chip-round.sm.on{background:#006CE1;border-color:#006CE1;color:white;}
 .chips-row::-webkit-scrollbar{display:none;}
 .chip{padding:9px 15px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--border2);background:white;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;}
 .chip.on{background:var(--accent);color:white;border-color:var(--accent);}
-.chip.on[data-val="all"]{background:#1a2540;border-color:#1a2540;}
+.chip.on[data-val="all"]{background:#3a5fa8;border-color:#3a5fa8;}
 .chip.on[data-val="exp3"]{background:#3d4a5c;border-color:#3d4a5c;}
 .chip.on[data-val="puy"]{background:#c0392b;border-color:#c0392b;}
 .chip.on[data-val="exp"]{background:#FF8000;border-color:#FF8000;}
@@ -398,7 +398,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .stop-dot.hl{border-color:#3992FF;background:#e6f1ff;}
 .slate{font-size:11px;color:var(--orange);margin-left:2px;}
 .act-btns{display:flex;flex-direction:column;gap:8px;margin-top:20px;padding-bottom:20px;}
-.btn-p{background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);color:white;border:none;border-radius:var(--radius-input);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(26,37,64,0.25);}
+.btn-p{background:#006CE1;color:white;border:none;border-radius:var(--radius-input);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;box-shadow:0 2px 8px rgba(26,37,64,0.25);}
 .btn-s{background:white;color:var(--text);border:1px solid var(--border);border-radius:var(--radius-input);padding:18px;font-size:16px;font-weight:500;cursor:pointer;font-family:inherit;width:100%;}
 
 /* ── TIMETABLE FORM ── */
@@ -413,7 +413,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .tt-date::-webkit-calendar-picker-indicator{display:none;}
 .tt-now-btn{display:flex;align-items:center;gap:5px;padding:0 14px;background:var(--accent-lt);border:1.5px solid var(--accent);border-radius:var(--radius-input);color:var(--accent);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;flex-shrink:0;}
 .tt-now-btn.active{background:var(--accent);color:white;}
-.srch-btn{background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);color:white;border:none;border-radius:var(--radius-input);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:4px;box-shadow:0 3px 10px rgba(26,37,64,0.25);}
+.srch-btn{background:#006CE1;color:white;border:none;border-radius:var(--radius-input);padding:18px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:4px;box-shadow:0 3px 10px rgba(26,37,64,0.25);}
 
 /* ── TT CARD ── */
 .tt-card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:14px 16px;margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow);transition:box-shadow .15s;}
@@ -528,7 +528,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 /* 今天：只加框線，字色維持平日黑、假日紅（有紀錄的日子仍是藍底白字，外面再套框） */
 .jr-day.is-today .jr-day-num{border:2px solid #aab4c5;font-weight:800;}
 
-.jr-fab{position:fixed;right:20px;bottom:calc(var(--tab-h) + 16px);width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg, #2d4a8a 0%, #3a5fa8 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(26,37,64,0.25);cursor:pointer;z-index:60;}
+.jr-fab{position:fixed;right:20px;bottom:calc(var(--tab-h) + 16px);width:54px;height:54px;border-radius:50%;background:#006CE1;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(26,37,64,0.25);cursor:pointer;z-index:60;}
 
 .jr-card-wrap{position:relative;margin-bottom:10px;border-radius:var(--radius-input);overflow:hidden;}
 .jr-card-del-bg{position:absolute;inset:0;background:var(--red);display:flex;align-items:center;justify-content:flex-end;}
