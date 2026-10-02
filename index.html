@@ -6064,7 +6064,16 @@ function jrRenderEntryList(){
   }
   if (jrSearchMode) {
     const kw = jrSearchKeyword.toLowerCase();
-    if (!kw) { el.innerHTML = ''; return; } // 還沒輸入關鍵字時，下面不顯示任何清單
+    if (!kw) {
+      el.innerHTML = `<div class="empty-state">
+        <div class="empty-icon" style="display:flex;justify-content:center;">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#dde6f5" stroke-width="2.5"/><path d="M20 20l-4.3-4.3" stroke="#dde6f5" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="empty-text">搜尋你的日誌</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:6px;">輸入標題或內文關鍵字，例如車站名、車次號</div>
+      </div>`;
+      return;
+    }
     const filtered = journalEntries.filter(e => jrEntryMatchesKeyword(e, kw));
     jrRenderAllEntries(el, filtered, '找不到符合的日誌');
     return;
