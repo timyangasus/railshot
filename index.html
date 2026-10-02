@@ -872,9 +872,18 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div id="jr-cal-grid" class="jr-cal-grid"></div>
   </div>
 
-  <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 10px 8px 0;">
+  <div id="jr-list-hdr" style="display:flex;align-items:center;justify-content:space-between;margin:16px 10px 8px 0;">
     <div class="sec" style="margin:0;">所有紀錄</div>
-    <button onclick="jrToggleShowAll()" id="jr-showall-btn" style="padding:4px 14px;border-radius:14px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">全部</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div onclick="jrOpenSearch()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <button onclick="jrToggleShowAll()" id="jr-showall-btn" style="padding:4px 14px;border-radius:14px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">全部</button>
+    </div>
+  </div>
+  <div id="jr-search-bar" style="display:none;align-items:center;gap:8px;margin:16px 10px 8px 0;">
+    <input id="jr-search-input" type="text" placeholder="搜尋標題、內文關鍵字..." oninput="jrOnSearchInput()" style="flex:1;min-width:0;padding:8px 12px;border-radius:14px;border:1px solid var(--border2);font-size:14px;font-family:inherit;background:var(--card);color:var(--text);outline:none;"/>
+    <div onclick="jrCloseSearch()" style="font-size:13px;color:var(--text2);cursor:pointer;padding:4px 2px;flex-shrink:0;">取消</div>
   </div>
   <div id="jr-entries-list"></div>
 </div>
@@ -6014,11 +6023,49 @@ function jrToggleShowAll(){
   if (calCard) calCard.style.display = jrShowAll ? 'none' : '';
   jrRenderEntryList();
 }
+// 搜尋：標題／內文關鍵字比對，不受月曆篩選，跟「全部」共用同一套分組渲染
+let jrSearchMode = false;
+let jrSearchKeyword = '';
+function jrOpenSearch(){
+  jrSearchMode = true;
+  document.getElementById('jr-list-hdr').style.display = 'none';
+  document.getElementById('jr-search-bar').style.display = 'flex';
+  const calCard = document.getElementById('jr-cal-card');
+  if (calCard) calCard.style.display = 'none';
+  jrRenderEntryList();
+  setTimeout(() => document.getElementById('jr-search-input')?.focus(), 50);
+}
+function jrCloseSearch(){
+  jrSearchMode = false;
+  jrSearchKeyword = '';
+  const input = document.getElementById('jr-search-input');
+  if (input) input.value = '';
+  document.getElementById('jr-list-hdr').style.display = 'flex';
+  document.getElementById('jr-search-bar').style.display = 'none';
+  const calCard = document.getElementById('jr-cal-card');
+  if (calCard) calCard.style.display = jrShowAll ? 'none' : '';
+  jrRenderEntryList();
+}
+function jrOnSearchInput(){
+  jrSearchKeyword = document.getElementById('jr-search-input').value.trim();
+  jrRenderEntryList();
+}
+function jrEntryMatchesKeyword(e, kwLower){
+  const title = (e.title || '').toLowerCase();
+  const body = jrBodyPreview(e.content).toLowerCase();
+  return title.includes(kwLower) || body.includes(kwLower);
+}
 function jrRenderEntryList(){
   const el = document.getElementById('jr-entries-list');
   if (!el) return;
   if (!journalEntries.length) {
     el.innerHTML = `<div class="empty-state"><div class="empty-text">尚無紀錄，點右下角＋開始記錄</div></div>`;
+    return;
+  }
+  if (jrSearchMode) {
+    const kw = jrSearchKeyword.toLowerCase();
+    const filtered = kw ? journalEntries.filter(e => jrEntryMatchesKeyword(e, kw)) : journalEntries;
+    jrRenderAllEntries(el, filtered, '找不到符合的日誌');
     return;
   }
   if (jrShowAll) { jrRenderAllEntries(el); return; }
@@ -6043,9 +6090,14 @@ function jrRenderEntryList(){
   ).join('');
   sorted.forEach(e => jrRenderCardThumb(e));
 }
-// 「全部」模式：不受目前月曆月份篩選，依年月份分組、每組內新到舊排序
-function jrRenderAllEntries(el){
-  const sorted = [...journalEntries].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+// 「全部」模式／搜尋結果共用：不受目前月曆月份篩選，依年月份分組、每組內新到舊排序
+function jrRenderAllEntries(el, list, emptyMsg){
+  const source = list || journalEntries;
+  const sorted = [...source].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+  if (!sorted.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-text">${emptyMsg || '尚無紀錄'}</div></div>`;
+    return;
+  }
   const groups = [];
   let lastMonthKey = null;
   for (const e of sorted) {
