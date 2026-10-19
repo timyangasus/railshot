@@ -2678,7 +2678,6 @@ async function gpsGetNearest(){
     return null;
   }
 }
-function gpsDistText(near){ return near.dist < 1 ? Math.round(near.dist*1000)+' 公尺' : near.dist.toFixed(1)+' 公里'; }
 function gpsSetBusy(sel, busy){
   document.querySelectorAll(sel).forEach(b => { b.style.opacity = busy ? '0.4' : '1'; b.style.pointerEvents = busy ? 'none' : ''; });
 }
@@ -2697,7 +2696,7 @@ async function spGpsFill(){
   spRenderFreqRow();
   setTimeout(() => document.querySelector('#sp-stn-col .stn-list-item.sel')?.scrollIntoView({block:'center', behavior:'smooth'}), 50);
   setTimeout(() => document.querySelector('#sp-county-col .stn-county-item.sel')?.scrollIntoView({block:'center', behavior:'smooth'}), 50);
-  showToast(`最近車站：${near.n}（約 ${gpsDistText(near)}）`);
+  showToast('已帶入最近車站');
 }
 
 // 單點/區間車站欄（空值時）的一鍵定位：單點直接帶入並查詢，區間帶入後跳出相鄰區間選項；不對可點欄位進選站頁再改
@@ -2711,7 +2710,7 @@ async function gpsQuickPick(){
     betweenState.s1 = near.n;
     showTabBetweenOptions(near.n);
   } else {
-    showToast(`最近車站：${near.n}（約 ${gpsDistText(near)}）`);
+    showToast('已帶入最近車站');
     locState.s1 = near.n;
     applyLocSingle();
   }
