@@ -1082,6 +1082,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
         <span id="bsheet-next-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
       </div>
+      <div id="bsheet-branch" onclick="applyTabSection('branch')" style="display:none;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-input);cursor:pointer;">
+        <span id="bsheet-branch-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+      </div>
       <div id="bsheet-no-adj" style="display:none;padding:12px;font-size:13px;color:var(--text3);text-align:center;">此站無相鄰站資訊</div>
     </div>
   </div>
@@ -1149,6 +1153,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
           </div>
           <div id="lc-section-next" onclick="applyLocSection('next')" style="display:flex;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-input);cursor:pointer;min-height:100px;">
             <span id="lc-section-next-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+          </div>
+          <div id="lc-section-branch" onclick="applyLocSection('branch')" style="display:none;align-items:center;justify-content:space-between;padding:22px 20px;background:var(--bg);border:1.5px solid var(--border2);border-radius:var(--radius-input);cursor:pointer;min-height:100px;">
+            <span id="lc-section-branch-label" style="font-size:20px;font-weight:700;color:var(--text);"></span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
           </div>
         </div>
@@ -2456,6 +2464,12 @@ function swapLocBetween(){
   document.getElementById('lc-b1-lbl').className = 'loc-stn-big-name' + (locState.s1 ? '' : ' placeholder-name');
   document.getElementById('lc-b2-lbl').className = 'loc-stn-big-name' + (locState.s2 ? '' : ' placeholder-name');
 }
+// 分岔站的第三個區間（前站/後站之外的支線或另一條線方向），[s1, s2] 方向與從另一端選站時一致
+const BRANCH_SECTIONS = {
+  '中洲':['中洲','長榮大學'], '二水':['二水','源泉'], '三貂嶺':['三貂嶺','大華'], '瑞芳':['瑞芳','海科館'],
+  '新竹':['新竹','北新竹'], '竹中':['竹中','六家'], '竹南':['竹南','造橋'], '彰化':['成功','彰化'],
+  '八堵':['暖暖','八堵'], '追分':['追分','成功'], '成功':['追分','成功'],
+};
 // 找相鄰站（主線用 STATION_ORDER，支線用各自路線）
 function getAdjacentStations(stnName) {
   // 各路線的站序陣列
@@ -2486,16 +2500,17 @@ function getAdjacentStations(stnName) {
     if (prev == null && idx > 0) prev = route[idx-1];
     if (next == null && idx < route.length-1) next = route[idx+1];
   }
-  return { prev, next };
+  return { prev, next, branch: BRANCH_SECTIONS[stnName.replace(/台/g,'臺')] || null };
 }
 
 function lcBetweenShowOptions(stnName) {
-  const { prev, next } = getAdjacentStations(stnName);
+  const { prev, next, branch } = getAdjacentStations(stnName);
   const optEl = document.getElementById('lc-between-options');
   const noAdj = document.getElementById('lc-between-no-adj');
   const step1 = document.getElementById('lc-between-step1');
   const prevEl = document.getElementById('lc-section-prev');
   const nextEl = document.getElementById('lc-section-next');
+  const branchEl = document.getElementById('lc-section-branch');
 
   // 隱藏選站按鈕，只顯示區間選項
   if(step1) step1.style.display = 'none';
@@ -2522,10 +2537,18 @@ function lcBetweenShowOptions(stnName) {
   } else {
     nextEl.style.display = 'none';
   }
+  nextEl.style.marginBottom = branch ? '10px' : '';
+  if (branch) {
+    document.getElementById('lc-section-branch-label').textContent = `${branch[0]} ↔ ${branch[1]}`;
+    branchEl.style.display = 'flex';
+    branchEl.dataset.s1 = branch[0]; branchEl.dataset.s2 = branch[1];
+  } else {
+    branchEl.style.display = 'none';
+  }
 }
 
 function applyLocSection(which) {
-  const el = document.getElementById(which === 'prev' ? 'lc-section-prev' : 'lc-section-next');
+  const el = document.getElementById('lc-section-' + which);
   const s1 = el.dataset.s1;
   const s2 = el.dataset.s2;
   if (!s1 || !s2) return;
@@ -4635,9 +4658,10 @@ function openBetweenStnPicker(){
 }
 
 function showTabBetweenOptions(stnName){
-  const { prev, next } = getAdjacentStations(stnName);
+  const { prev, next, branch } = getAdjacentStations(stnName);
   const prevEl = document.getElementById('bsheet-prev');
   const nextEl = document.getElementById('bsheet-next');
+  const branchEl = document.getElementById('bsheet-branch');
   const noAdj  = document.getElementById('bsheet-no-adj');
   const title  = document.getElementById('between-sheet-title');
   if(title) title.textContent = stnName + ' 的相鄰區間';
@@ -4659,11 +4683,17 @@ function showTabBetweenOptions(stnName){
       nextEl.style.display = 'flex';
     } else { if(nextEl) nextEl.style.display = 'none'; }
   }
+  if(nextEl) nextEl.style.marginBottom = branch ? '10px' : '';
+  if(branch){
+    document.getElementById('bsheet-branch-label').textContent = `${branch[0]} ↔ ${branch[1]}`;
+    branchEl.dataset.s1 = branch[0]; branchEl.dataset.s2 = branch[1];
+    branchEl.style.display = 'flex';
+  } else if(branchEl){ branchEl.style.display = 'none'; }
   openSheet('between-section-sheet');
 }
 
 function applyTabSection(which){
-  const el = document.getElementById(which === 'prev' ? 'bsheet-prev' : 'bsheet-next');
+  const el = document.getElementById('bsheet-' + which);
   const s1 = el.dataset.s1;
   const s2 = el.dataset.s2;
   if(!s1 || !s2) return;
