@@ -6597,12 +6597,13 @@ function jrRenderEditorBody(){
       // 否則內文第一行是空行時（例如在標題按 Enter），重繪後那個空行就不見了
       return `<textarea class="jr-block-text" data-idx="${i}" rows="1"
         oninput="jrOnBlockTextInput(${i}, this)" onfocus="jrActiveTextIdx=${i}"
+        onkeydown="jrBlockKeydown(${i}, event)" onbeforeinput="jrBlockBeforeInput(${i}, event)"
         >\n${jrEsc(b.value)}</textarea>`;
     }
     const info = jrBlobsById[b.id];
-    return `<div class="jr-block-img-wrap">
+    return `<div class="jr-block-img-wrap" onclick="jrImageTap(${i})">
       <img class="jr-block-img" src="${info ? info.previewUrl : ''}"/>
-      <div class="jr-block-img-del" onclick="jrDeleteImageBlock(${i})">✕</div>
+      <div class="jr-block-img-del" onclick="event.stopPropagation();jrDeleteImageBlock(${i})">✕</div>
     </div>`;
   }).join('');
   el.querySelectorAll('textarea').forEach(jrAutoGrow);
@@ -6615,9 +6616,18 @@ function jrEditorBodyClick(event){
   // 有點到文字/圖片就交給那個元素自己處理；空白處點擊的 target 可能是 jr-editor-body
   // 本身，也可能是包在裡面、用來避免重繪時把標題洗掉的 jr-blocks-container，兩種都算空白
   if (event.target.id !== 'jr-editor-body' && event.target.id !== 'jr-blocks-container') return;
+  const clickY = event.clientY;
+  // 點在兩張相鄰照片之間的空隙、或最後一張照片下方：中間沒有文字段落可以輸入，就補一行讓使用者打字
+  const kids = Array.from(document.getElementById('jr-blocks-container').children);
+  const below = kids.findIndex(k => k.getBoundingClientRect().top > clickY);
+  const gapAt = below === -1 ? kids.length : below;
+  if (gapAt > 0 && jrBlocks[gapAt-1] && jrBlocks[gapAt-1].type === 'image' &&
+      (gapAt === jrBlocks.length || (jrBlocks[gapAt] && jrBlocks[gapAt].type === 'image'))) {
+    jrInsertTextBlockAt(gapAt);
+    return;
+  }
   const textareas = Array.from(document.querySelectorAll('.jr-block-text'));
   if (!textareas.length) return;
-  const clickY = event.clientY;
   let target = textareas[textareas.length - 1];
   for (const ta of textareas) {
     if (ta.getBoundingClientRect().top > clickY) { target = ta; break; }
@@ -6625,6 +6635,51 @@ function jrEditorBodyClick(event){
   target.focus();
   const len = target.value.length;
   target.setSelectionRange(len, len);
+}
+function jrFocusTextBlock(idx, atEnd){
+  jrActiveTextIdx = idx;
+  const ta = document.querySelector(`textarea[data-idx="${idx}"]`);
+  if (!ta) return;
+  ta.focus();
+  const pos = atEnd ? ta.value.length : 0;
+  ta.setSelectionRange(pos, pos);
+}
+function jrInsertTextBlockAt(k){
+  jrPushUndo();
+  jrBlocks.splice(k, 0, { type:'text', value:'' });
+  jrRenderEditorBody();
+  jrFocusTextBlock(k, false);
+}
+// 點照片：游標移到照片下一行（下面沒有文字段落就補一行），兩張照片之間才有地方插入文字
+function jrImageTap(idx){
+  if (jrBlocks[idx+1] && jrBlocks[idx+1].type === 'text') { jrFocusTextBlock(idx+1, false); return; }
+  jrInsertTextBlockAt(idx+1);
+}
+// 空白段落（例如照片之間多出來的一行）按刪除鍵要能整行移除，不然那一行會一直留著
+function jrRemoveEmptyTextBlock(idx){
+  jrPushUndo();
+  jrBlocks.splice(idx, 1);
+  jrMergeAdjacentTextBlocks();
+  jrRenderEditorBody();
+  let j = Math.min(idx, jrBlocks.length) - 1;
+  while (j >= 0 && jrBlocks[j].type !== 'text') j--;
+  if (j >= 0) jrFocusTextBlock(j, true);
+}
+let jrLastBlockBackspaceAt = 0;
+function jrTryBackspaceRemove(idx, ta){
+  if (idx <= 0 || !jrBlocks[idx] || jrBlocks[idx].type !== 'text') return false;
+  if (ta.value !== '' || ta.selectionStart !== 0 || ta.selectionEnd !== 0) return false;
+  // keydown 跟 beforeinput 可能同一次按鍵都觸發，避免連刪兩行
+  if (Date.now() - jrLastBlockBackspaceAt < 120) return true;
+  jrLastBlockBackspaceAt = Date.now();
+  jrRemoveEmptyTextBlock(idx);
+  return true;
+}
+function jrBlockKeydown(idx, e){
+  if (e.key === 'Backspace' && jrTryBackspaceRemove(idx, e.target)) e.preventDefault();
+}
+function jrBlockBeforeInput(idx, e){
+  if (e.inputType === 'deleteContentBackward' && jrTryBackspaceRemove(idx, e.target)) e.preventDefault();
 }
 function jrOnBlockTextInput(idx, elm){
   jrBlocks[idx].value = elm.value;
