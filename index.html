@@ -146,6 +146,11 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .loc-bar:active{background:var(--bg3);}
 .loc-name{font-size:19px;font-weight:700;color:var(--text);}
 .loc-name.placeholder-loc{font-size:17px;font-weight:400;color:var(--text3);}
+/* 車站欄還沒選（空值）時，右側顯示一鍵定位鈕，取代箭頭 */
+.bar-gps{display:none;width:34px;height:34px;margin:-6px -6px -6px 8px;border-radius:50%;border:none;background:none;color:var(--accent);align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:opacity .2s;}
+.bar-gps:active{background:rgba(26,37,64,0.08);}
+.loc-bar:has(.placeholder-loc) .bar-gps{display:flex;}
+.loc-bar:has(.placeholder-loc) .bar-chev{display:none;}
 .loc-mode{font-size:12px;color:var(--text3);margin-top:3px;}
 .loc-mode:empty{display:none;}
 
@@ -674,10 +679,11 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div style="flex:1;display:flex;flex-direction:column;">
       <div class="sec" style="margin-bottom:6px;">定點車站</div>
       <div class="loc-bar" onclick="openSingleStnPicker()" style="margin-bottom:0;flex:1;">
-        <div>
+        <div style="flex:1;">
           <div class="loc-name placeholder-loc" id="loc-display">選擇車站</div>
         </div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+        <svg class="bar-chev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+        <button class="bar-gps" onclick="event.stopPropagation();gpsQuickPick()" title="定位最近車站" aria-label="定位最近車站"><svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960" width="26px" fill="currentColor"><path d="M536.5-503.5Q560-527 560-560t-23.5-56.5Q513-640 480-640t-56.5 23.5Q400-593 400-560t23.5 56.5Q447-480 480-480t56.5-23.5ZM480-186q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg></button>
       </div>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;">
@@ -743,8 +749,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <div class="sec" style="margin-bottom:6px;">區間</div>
       <!-- 未選狀態：點選車站 -->
       <div id="tab-between-pick" class="loc-bar" onclick="openBetweenStnPicker()" style="margin-bottom:0;flex:1;">
-        <div class="loc-name placeholder-loc">選擇車站</div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+        <div class="loc-name placeholder-loc" style="flex:1;">選擇車站</div>
+        <svg class="bar-chev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+        <button class="bar-gps" onclick="event.stopPropagation();gpsQuickPick()" title="定位最近車站" aria-label="定位最近車站"><svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960" width="26px" fill="currentColor"><path d="M536.5-503.5Q560-527 560-560t-23.5-56.5Q513-640 480-640t-56.5 23.5Q400-593 400-560t23.5 56.5Q447-480 480-480t56.5-23.5ZM480-186q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg></button>
       </div>
       <!-- 已選狀態：顯示區間，點 ✕ 重選 -->
       <div id="tab-between-selected" class="loc-bar" onclick="resetBetweenSection()" style="display:none;margin-bottom:0;flex:1;">
@@ -2657,31 +2664,56 @@ async function gpsLoadPositions(){
   } catch(e) {}
   return gpsPositions;
 }
-// 選站頁的定位鈕：把最近車站填進目前的選站框，縣市、清單同步跳到該站，使用者可再手動改，按確定才套用
-async function spGpsFill(){
-  const btn = document.querySelector('.sp-gps');
-  if(!navigator.geolocation){ showToast('此裝置不支援定位'); return; }
-  if(btn){ btn.style.opacity = '0.4'; btn.style.pointerEvents = 'none'; }
+// 取得目前位置最近的車站（含距離）；失敗時 toast 提示並回傳 null
+async function gpsGetNearest(){
+  if(!navigator.geolocation){ showToast('此裝置不支援定位'); return null; }
   const posPromise = new Promise((resolve, reject) =>
     navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:10000, enableHighAccuracy:true}));
   try {
     const [pos] = await Promise.all([posPromise, gpsLoadPositions()]);
-    const near = findNearestStations(pos.coords.latitude, pos.coords.longitude, 1)[0];
-    if(spState.active === 'to') spState.to = near.n; else spState.from = near.n;
-    spState.county = spFindCountyOfStation(near.n) || spState.county;
-    spRenderHeader();
-    spRenderCountyCol();
-    spRenderStnCol();
-    spRenderFreqRow();
-    setTimeout(() => document.querySelector('#sp-stn-col .stn-list-item.sel')?.scrollIntoView({block:'center', behavior:'smooth'}), 50);
-    setTimeout(() => document.querySelector('#sp-county-col .stn-county-item.active, #sp-county-col .stn-county-item.sel')?.scrollIntoView({block:'center', behavior:'smooth'}), 50);
-    const distTxt = near.dist < 1 ? Math.round(near.dist*1000)+' 公尺' : near.dist.toFixed(1)+' 公里';
-    showToast(`最近車站：${near.n}（約 ${distTxt}）`);
+    return findNearestStations(pos.coords.latitude, pos.coords.longitude, 1)[0];
   } catch(err) {
     const msgs = {1:'定位權限未開啟，請到 iPhone 設定 > Safari > 位置 開啟權限', 2:'無法取得位置，請再試一次', 3:'定位逾時，請再試一次'};
     showToast(msgs[err && err.code] || '定位失敗，請再試一次');
-  } finally {
-    if(btn){ btn.style.opacity = '1'; btn.style.pointerEvents = ''; }
+    return null;
+  }
+}
+function gpsDistText(near){ return near.dist < 1 ? Math.round(near.dist*1000)+' 公尺' : near.dist.toFixed(1)+' 公里'; }
+function gpsSetBusy(sel, busy){
+  document.querySelectorAll(sel).forEach(b => { b.style.opacity = busy ? '0.4' : '1'; b.style.pointerEvents = busy ? 'none' : ''; });
+}
+
+// 選站頁的定位鈕：把最近車站填進目前的選站框，縣市、清單同步跳到該站，使用者可再手動改，按確定才套用
+async function spGpsFill(){
+  gpsSetBusy('.sp-gps', true);
+  const near = await gpsGetNearest();
+  gpsSetBusy('.sp-gps', false);
+  if(!near) return;
+  if(spState.active === 'to') spState.to = near.n; else spState.from = near.n;
+  spState.county = spFindCountyOfStation(near.n) || spState.county;
+  spRenderHeader();
+  spRenderCountyCol();
+  spRenderStnCol();
+  spRenderFreqRow();
+  setTimeout(() => document.querySelector('#sp-stn-col .stn-list-item.sel')?.scrollIntoView({block:'center', behavior:'smooth'}), 50);
+  setTimeout(() => document.querySelector('#sp-county-col .stn-county-item.sel')?.scrollIntoView({block:'center', behavior:'smooth'}), 50);
+  showToast(`最近車站：${near.n}（約 ${gpsDistText(near)}）`);
+}
+
+// 單點/區間車站欄（空值時）的一鍵定位：單點直接帶入並查詢，區間帶入後跳出相鄰區間選項；不對可點欄位進選站頁再改
+async function gpsQuickPick(){
+  gpsSetBusy('.bar-gps', true);
+  const near = await gpsGetNearest();
+  gpsSetBusy('.bar-gps', false);
+  if(!near) return;
+  if(document.getElementById('tab-between').classList.contains('active')){
+    // 選項視窗標題已經寫了站名，不再疊 toast 蓋住選項
+    betweenState.s1 = near.n;
+    showTabBetweenOptions(near.n);
+  } else {
+    showToast(`最近車站：${near.n}（約 ${gpsDistText(near)}）`);
+    locState.s1 = near.n;
+    applyLocSingle();
   }
 }
 
