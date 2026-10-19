@@ -583,6 +583,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <button onclick="resetTTForm()" id="tt-reset-btn" title="清除資料" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
       </button>
+      <button onclick="gpsPickNearestStation()" id="gps-btn" title="定位最近車站" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);transition:opacity .2s;">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M440-42v-80q-125-14-214.5-103.5T122-440H42v-80h80q14-125 103.5-214.5T440-838v-80h80v80q125 14 214.5 103.5T838-520h80v80h-80q-14 125-103.5 214.5T520-122v80h-80Zm40-158q116 0 198-82t82-198q0-116-82-198t-198-82q-116 0-198 82t-82 198q0 116 82 198t198 82Zm0-120q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T560-480q0-33-23.5-56.5T480-560q-33 0-56.5 23.5T400-480q0 33 23.5 56.5T480-400Zm0-80Z"/></svg>
+      </button>
       <button onclick="resetShootForm()" id="shoot-reset-btn" title="清除資料" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
       </button>
@@ -1852,6 +1855,8 @@ function switchTab(name,el){
   const shootResetBtn = document.getElementById('shoot-reset-btn');
   if(resetBtn) resetBtn.style.display = name === 'tt' ? 'flex' : 'none';
   if(shootResetBtn) shootResetBtn.style.display = (name === 'single' || name === 'between') ? 'flex' : 'none';
+  const gpsBtn = document.getElementById('gps-btn');
+  if(gpsBtn) gpsBtn.style.display = (name === 'single' || name === 'between') ? 'flex' : 'none';
   const srchBtn = document.getElementById('train-search-btn');
   if(srchBtn) srchBtn.style.display = name === 'tt' ? 'flex' : 'none';
   const backupBtn = document.getElementById('backup-btn');
@@ -2626,11 +2631,59 @@ function distKm(lat1,lng1,lat2,lng2){
   const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
+let gpsPositions = null; // 伺服器回傳的全台鐵車站座標；沒抓到就退回內建的 STN_COORDS（只涵蓋約一半車站）
 function findNearestStations(lat, lng, n=3){
-  return STN_COORDS
+  return (gpsPositions || STN_COORDS)
     .map(s=>({...s, dist:distKm(lat,lng,s.lat,s.lng)}))
     .sort((a,b)=>a.dist-b.dist)
     .slice(0,n);
+}
+
+// 用 header 的定位鈕：抓最近車站，單點直接帶入並查詢，區間帶入後跳出相鄰區間選項；不對可自己再改
+const GPS_POS_CACHE_KEY = 'rs_station_pos_v1';
+async function gpsLoadPositions(){
+  if(gpsPositions) return gpsPositions;
+  try {
+    const c = JSON.parse(localStorage.getItem(GPS_POS_CACHE_KEY) || 'null');
+    if(c && Array.isArray(c.list) && c.list.length > 100 && Date.now() - c.at < 7*24*3600*1000){ gpsPositions = c.list; return gpsPositions; }
+  } catch(e) {}
+  try {
+    const res = await fetch('/api/station-positions');
+    if(!res.ok) throw new Error(res.status);
+    const known = new Set([...COUNTY_LIST.flatMap(c=>STN_DATA[c]), ...BRANCH_COUNTIES.flatMap(b=>BRANCH_LINES[b])]);
+    const list = (await res.json()).filter(st => known.has(st.n) || known.has(st.n.replace(/台/g,'臺')));
+    if(list.length > 100){
+      gpsPositions = list.map(st => ({...st, n: st.n.replace(/台/g,'臺')}));
+      try { localStorage.setItem(GPS_POS_CACHE_KEY, JSON.stringify({at: Date.now(), list: gpsPositions})); } catch(e) {}
+    }
+  } catch(e) {}
+  return gpsPositions;
+}
+async function gpsPickNearestStation(){
+  const btn = document.getElementById('gps-btn');
+  if(!navigator.geolocation){ showToast('此裝置不支援定位'); return; }
+  if(btn){ btn.style.opacity = '0.4'; btn.style.pointerEvents = 'none'; }
+  const done = () => { if(btn){ btn.style.opacity = '1'; btn.style.pointerEvents = ''; } };
+  const posPromise = new Promise((resolve, reject) =>
+    navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:10000, enableHighAccuracy:true}));
+  try {
+    const [pos] = await Promise.all([posPromise, gpsLoadPositions()]);
+    const near = findNearestStations(pos.coords.latitude, pos.coords.longitude, 1)[0];
+    const distTxt = near.dist < 1 ? Math.round(near.dist*1000)+' 公尺' : near.dist.toFixed(1)+' 公里';
+    const onBetween = document.getElementById('tab-between').classList.contains('active');
+    if(onBetween){
+      // 選項視窗標題已經寫了站名，不再疊 toast 蓋住選項
+      betweenState.s1 = near.n;
+      showTabBetweenOptions(near.n);
+    } else {
+      showToast(`最近車站：${near.n}（約 ${distTxt}）`);
+      locState.s1 = near.n;
+      applyLocSingle();
+    }
+  } catch(err) {
+    const msgs = {1:'定位權限未開啟，請到 iPhone 設定 > Safari > 位置 開啟權限', 2:'無法取得位置，請再試一次', 3:'定位逾時，請再試一次'};
+    showToast(msgs[err && err.code] || '定位失敗，請再試一次');
+  } finally { done(); }
 }
 
 let gpsNearest = null;

@@ -473,6 +473,38 @@ app.get('/api/stations', async (req, res) => {
   }
 });
 
+// ── Station positions（GPS 找最近車站用，車站座標幾乎不變，快取 7 天）──
+const STATION_POS_TTL = 7 * 24 * 60 * 60 * 1000;
+let stationPosCache = null;
+let fetchingStationPos = null;
+function getStationPositions() {
+  if (stationPosCache && Date.now() - stationPosCache.at < STATION_POS_TTL) return Promise.resolve(stationPosCache.list);
+  if (fetchingStationPos) return fetchingStationPos;
+  fetchingStationPos = tdxFetch('/api/basic/v3/Rail/TRA/Station?$format=JSON', 1, 15000)
+    .then(data => {
+      const raw = Array.isArray(data) ? data : (data.Stations || []);
+      const list = raw
+        .map(st => ({ n: st.StationName?.Zh_tw, lat: st.StationPosition?.PositionLat, lng: st.StationPosition?.PositionLon }))
+        .filter(st => st.n && Number.isFinite(st.lat) && Number.isFinite(st.lng));
+      if (!list.length) throw new Error('TDX Station returned no positions');
+      stationPosCache = { list, at: Date.now() };
+      return list;
+    })
+    .catch(e => {
+      if (stationPosCache) return stationPosCache.list; // 抓失敗就先用舊的
+      throw e;
+    })
+    .finally(() => { fetchingStationPos = null; });
+  return fetchingStationPos;
+}
+app.get('/api/station-positions', async (req, res) => {
+  try {
+    res.json(await getStationPositions());
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── Start ─────────────────────────────────────────────
 app.get('/api/debug/train/:no', async (req, res) => {
   try {
