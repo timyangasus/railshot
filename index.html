@@ -286,7 +286,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
   border:1px solid rgba(255,255,255,1);
   box-shadow:none;
 }
-.sp-gps{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:none;background:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;transition:opacity .2s;}
+.sp-gps{flex-shrink:0;width:44px;height:44px;border:none;background:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;transition:opacity .2s;}
 .sp-gps:active{background:rgba(255,255,255,0.15);}
 .stn-sel-name{font-size:17px;font-weight:700;color:rgba(255,255,255,1);}
 .stn-sel-placeholder{font-size:14px;color:rgba(255,255,255,0.4);}
@@ -1183,13 +1183,13 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     </div>
     <div class="stn-page-sel-row" id="sp-sel-row">
       <!-- 單框模式（拍車單一車站 / GPS） -->
-      <div id="sp-single-mode" style="display:none;width:100%;">
-        <div class="stn-sel-wrap active" id="sp-single-wrap" style="width:100%;">
-          <div class="stn-sel-box" style="width:100%;position:relative;" onclick="spFlashWrap(document.getElementById('sp-single-wrap'))">
+      <div id="sp-single-mode" style="display:none;width:100%;align-items:center;gap:8px;">
+        <div class="stn-sel-wrap active" id="sp-single-wrap" style="flex:1;min-width:0;">
+          <div class="stn-sel-box" style="width:100%;" onclick="spFlashWrap(document.getElementById('sp-single-wrap'))">
             <div id="sp-single-inner"><span class="stn-sel-placeholder">請選擇車站</span></div>
-            <button class="sp-gps" onclick="event.stopPropagation();spGpsFill()" title="定位最近車站" aria-label="定位最近車站"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M440-42v-80q-125-14-214.5-103.5T122-440H42v-80h80q14-125 103.5-214.5T440-838v-80h80v80q125 14 214.5 103.5T838-520h80v80h-80q-14 125-103.5 214.5T520-122v80h-80Zm40-158q116 0 198-82t82-198q0-116-82-198t-198-82q-116 0-198 82t-82 198q0 116 82 198t198 82Zm0-120q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T560-480q0-33-23.5-56.5T480-560q-33 0-56.5 23.5T400-480q0 33 23.5 56.5T480-400Zm0-80Z"/></svg></button>
           </div>
         </div>
+        <button class="sp-gps" onclick="spGpsFill()" title="定位最近車站" aria-label="定位最近車站"><svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="currentColor"><path d="M536.5-503.5Q560-527 560-560t-23.5-56.5Q513-640 480-640t-56.5 23.5Q400-593 400-560t23.5 56.5Q447-480 480-480t56.5-23.5ZM480-186q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg></button>
       </div>
       <!-- 雙框模式（時刻表 / 兩站之間） -->
       <div id="sp-double-mode" style="display:flex;flex:1;align-items:stretch;gap:20px;">
@@ -1976,7 +1976,7 @@ function openStnPage(caller, initialFrom, initialTo, activeSlot, cb){
   const isBetween = false; // loc-b1 現在用單框
   const single = document.getElementById('sp-single-mode');
   const dbl = document.getElementById('sp-double-mode');
-  if(single) single.style.display = isSingle ? 'block' : 'none';
+  if(single) single.style.display = isSingle ? 'flex' : 'none';
   if(dbl) dbl.style.display = isSingle ? 'none' : 'flex';
 
   // 標籤
