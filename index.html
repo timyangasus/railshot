@@ -146,6 +146,10 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .loc-bar:active{background:var(--bg3);}
 .loc-name{font-size:19px;font-weight:700;color:var(--text);}
 .loc-name.placeholder-loc{font-size:17px;font-weight:400;color:var(--text3);}
+/* 車站欄還沒選（空值）時，右側顯示定位鈕，取代箭頭 */
+.bar-gps{display:none;width:34px;height:34px;margin:-6px -6px -6px 8px;border-radius:50%;border:none;background:none;color:var(--accent);align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:opacity .2s;}
+.loc-bar:has(.placeholder-loc) .bar-gps{display:flex;}
+.loc-bar:has(.placeholder-loc) .bar-chev{display:none;}
 .loc-mode{font-size:12px;color:var(--text3);margin-top:3px;}
 .loc-mode:empty{display:none;}
 
@@ -583,9 +587,6 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <button onclick="resetTTForm()" id="tt-reset-btn" title="清除資料" style="width:36px;height:36px;border-radius:50%;background:none;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
       </button>
-      <button onclick="gpsPickNearestStation()" id="gps-btn" title="定位最近車站" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);transition:opacity .2s;">
-        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M440-42v-80q-125-14-214.5-103.5T122-440H42v-80h80q14-125 103.5-214.5T440-838v-80h80v80q125 14 214.5 103.5T838-520h80v80h-80q-14 125-103.5 214.5T520-122v80h-80Zm40-158q116 0 198-82t82-198q0-116-82-198t-198-82q-116 0-198 82t-82 198q0 116 82 198t198 82Zm0-120q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T560-480q0-33-23.5-56.5T480-560q-33 0-56.5 23.5T400-480q0 33 23.5 56.5T480-400Zm0-80Z"/></svg>
-      </button>
       <button onclick="resetShootForm()" id="shoot-reset-btn" title="清除資料" style="display:none;width:36px;height:36px;border-radius:50%;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;color:#c8d0dc;transition:color .2s;">
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
       </button>
@@ -675,10 +676,11 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
     <div style="flex:1;display:flex;flex-direction:column;">
       <div class="sec" style="margin-bottom:6px;">定點車站</div>
       <div class="loc-bar" onclick="openSingleStnPicker()" style="margin-bottom:0;flex:1;">
-        <div>
+        <div style="flex:1;">
           <div class="loc-name placeholder-loc" id="loc-display">選擇車站</div>
         </div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+        <svg class="bar-chev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+        <button class="bar-gps" onclick="event.stopPropagation();gpsPickNearestStation()" title="定位最近車站" aria-label="定位最近車站"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M440-42v-80q-125-14-214.5-103.5T122-440H42v-80h80q14-125 103.5-214.5T440-838v-80h80v80q125 14 214.5 103.5T838-520h80v80h-80q-14 125-103.5 214.5T520-122v80h-80Zm40-158q116 0 198-82t82-198q0-116-82-198t-198-82q-116 0-198 82t-82 198q0 116 82 198t198 82Zm0-120q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T560-480q0-33-23.5-56.5T480-560q-33 0-56.5 23.5T400-480q0 33 23.5 56.5T480-400Zm0-80Z"/></svg></button>
       </div>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;">
@@ -744,8 +746,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <div class="sec" style="margin-bottom:6px;">區間</div>
       <!-- 未選狀態：點選車站 -->
       <div id="tab-between-pick" class="loc-bar" onclick="openBetweenStnPicker()" style="margin-bottom:0;flex:1;">
-        <div class="loc-name placeholder-loc">選擇車站</div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+        <div class="loc-name placeholder-loc" style="flex:1;">選擇車站</div>
+        <svg class="bar-chev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
+        <button class="bar-gps" onclick="event.stopPropagation();gpsPickNearestStation()" title="定位最近車站" aria-label="定位最近車站"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M440-42v-80q-125-14-214.5-103.5T122-440H42v-80h80q14-125 103.5-214.5T440-838v-80h80v80q125 14 214.5 103.5T838-520h80v80h-80q-14 125-103.5 214.5T520-122v80h-80Zm40-158q116 0 198-82t82-198q0-116-82-198t-198-82q-116 0-198 82t-82 198q0 116 82 198t198 82Zm0-120q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm0-80q33 0 56.5-23.5T560-480q0-33-23.5-56.5T480-560q-33 0-56.5 23.5T400-480q0 33 23.5 56.5T480-400Zm0-80Z"/></svg></button>
       </div>
       <!-- 已選狀態：顯示區間，點 ✕ 重選 -->
       <div id="tab-between-selected" class="loc-bar" onclick="resetBetweenSection()" style="display:none;margin-bottom:0;flex:1;">
@@ -1855,8 +1858,6 @@ function switchTab(name,el){
   const shootResetBtn = document.getElementById('shoot-reset-btn');
   if(resetBtn) resetBtn.style.display = name === 'tt' ? 'flex' : 'none';
   if(shootResetBtn) shootResetBtn.style.display = (name === 'single' || name === 'between') ? 'flex' : 'none';
-  const gpsBtn = document.getElementById('gps-btn');
-  if(gpsBtn) gpsBtn.style.display = (name === 'single' || name === 'between') ? 'flex' : 'none';
   const srchBtn = document.getElementById('train-search-btn');
   if(srchBtn) srchBtn.style.display = name === 'tt' ? 'flex' : 'none';
   const backupBtn = document.getElementById('backup-btn');
@@ -2639,7 +2640,7 @@ function findNearestStations(lat, lng, n=3){
     .slice(0,n);
 }
 
-// 用 header 的定位鈕：抓最近車站，單點直接帶入並查詢，區間帶入後跳出相鄰區間選項；不對可自己再改
+// 用車站欄右側的定位鈕：抓最近車站，單點直接帶入並查詢，區間帶入後跳出相鄰區間選項；不對可自己再改
 const GPS_POS_CACHE_KEY = 'rs_station_pos_v1';
 async function gpsLoadPositions(){
   if(gpsPositions) return gpsPositions;
@@ -2660,10 +2661,10 @@ async function gpsLoadPositions(){
   return gpsPositions;
 }
 async function gpsPickNearestStation(){
-  const btn = document.getElementById('gps-btn');
+  const btns = document.querySelectorAll('.bar-gps');
   if(!navigator.geolocation){ showToast('此裝置不支援定位'); return; }
-  if(btn){ btn.style.opacity = '0.4'; btn.style.pointerEvents = 'none'; }
-  const done = () => { if(btn){ btn.style.opacity = '1'; btn.style.pointerEvents = ''; } };
+  btns.forEach(b => { b.style.opacity = '0.4'; b.style.pointerEvents = 'none'; });
+  const done = () => btns.forEach(b => { b.style.opacity = '1'; b.style.pointerEvents = ''; });
   const posPromise = new Promise((resolve, reject) =>
     navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:10000, enableHighAccuracy:true}));
   try {
