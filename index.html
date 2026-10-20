@@ -147,7 +147,8 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .loc-name{font-size:19px;font-weight:700;color:var(--text);}
 .loc-name.placeholder-loc{font-size:17px;font-weight:400;color:var(--text3);}
 /* 車站欄還沒選（空值）時：左邊「選擇車站」＝手動選站，右邊圖釘＝GPS 定位，中間用分隔線隔開 */
-.bar-gps{display:none;align-self:stretch;margin:-15px -16px -15px 12px;padding:0 16px;border:none;border-left:1px solid #c9d1de;background:none;color:var(--accent);align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:opacity .2s;border-radius:0 var(--radius-input) var(--radius-input) 0;}
+.bar-gps{display:none;position:relative;align-self:stretch;margin:-15px -16px -15px 12px;padding:0 16px;border:none;background:none;color:var(--accent);align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:opacity .2s;border-radius:0 var(--radius-input) var(--radius-input) 0;}
+.bar-gps::before{content:'';position:absolute;left:0;top:26%;bottom:26%;width:1px;background:#c9d1de;}
 .bar-gps:active{background:rgba(26,37,64,0.08);}
 .loc-bar:has(.placeholder-loc) .bar-gps{display:flex;}
 .loc-bar:has(.placeholder-loc) .bar-chev{display:none;}
