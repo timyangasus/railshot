@@ -146,8 +146,8 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .loc-bar:active{background:var(--bg3);}
 .loc-name{font-size:19px;font-weight:700;color:var(--text);}
 .loc-name.placeholder-loc{font-size:17px;font-weight:400;color:var(--text3);}
-/* 車站欄還沒選（空值）時，右側顯示一鍵定位鈕，取代箭頭 */
-.bar-gps{display:none;width:34px;height:34px;margin:-6px -6px -6px 8px;border-radius:50%;border:none;background:none;color:var(--accent);align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:opacity .2s;}
+/* 車站欄還沒選（空值）時：左邊「選擇車站」＝手動選站，右邊圖釘＝GPS 定位，中間用分隔線隔開 */
+.bar-gps{display:none;align-self:stretch;margin:-15px -16px -15px 12px;padding:0 16px;border:none;border-left:1px solid #c9d1de;background:none;color:var(--accent);align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:opacity .2s;border-radius:0 var(--radius-input) var(--radius-input) 0;}
 .bar-gps:active{background:rgba(26,37,64,0.08);}
 .loc-bar:has(.placeholder-loc) .bar-gps{display:flex;}
 .loc-bar:has(.placeholder-loc) .bar-chev{display:none;}
@@ -683,7 +683,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
           <div class="loc-name placeholder-loc" id="loc-display">選擇車站</div>
         </div>
         <svg class="bar-chev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
-        <button class="bar-gps" onclick="event.stopPropagation();gpsQuickPick()" title="定位最近車站" aria-label="定位最近車站"><svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960" width="26px" fill="currentColor"><path d="M536.5-503.5Q560-527 560-560t-23.5-56.5Q513-640 480-640t-56.5 23.5Q400-593 400-560t23.5 56.5Q447-480 480-480t56.5-23.5ZM480-186q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg></button>
+        <button class="bar-gps" onclick="event.stopPropagation();gpsFirstPick('single')" title="定位最近車站" aria-label="定位最近車站"><svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960" width="26px" fill="currentColor"><path d="M536.5-503.5Q560-527 560-560t-23.5-56.5Q513-640 480-640t-56.5 23.5Q400-593 400-560t23.5 56.5Q447-480 480-480t56.5-23.5ZM480-186q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg></button>
       </div>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;">
@@ -751,7 +751,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
       <div id="tab-between-pick" class="loc-bar" onclick="openBetweenStnPicker()" style="margin-bottom:0;flex:1;">
         <div class="loc-name placeholder-loc" style="flex:1;">選擇車站</div>
         <svg class="bar-chev" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="#8a9db8"/></svg>
-        <button class="bar-gps" onclick="event.stopPropagation();gpsQuickPick()" title="定位最近車站" aria-label="定位最近車站"><svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960" width="26px" fill="currentColor"><path d="M536.5-503.5Q560-527 560-560t-23.5-56.5Q513-640 480-640t-56.5 23.5Q400-593 400-560t23.5 56.5Q447-480 480-480t56.5-23.5ZM480-186q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg></button>
+        <button class="bar-gps" onclick="event.stopPropagation();gpsFirstPick('between')" title="定位最近車站" aria-label="定位最近車站"><svg xmlns="http://www.w3.org/2000/svg" height="26px" viewBox="0 -960 960 960" width="26px" fill="currentColor"><path d="M536.5-503.5Q560-527 560-560t-23.5-56.5Q513-640 480-640t-56.5 23.5Q400-593 400-560t23.5 56.5Q447-480 480-480t56.5-23.5ZM480-186q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z"/></svg></button>
       </div>
       <!-- 已選狀態：顯示區間，點 ✕ 重選 -->
       <div id="tab-between-selected" class="loc-bar" onclick="resetBetweenSection()" style="display:none;margin-bottom:0;flex:1;">
@@ -2699,13 +2699,26 @@ async function spGpsFill(){
   showToast('已帶入最近車站');
 }
 
-// 單點/區間車站欄（空值時）的一鍵定位：單點直接帶入並查詢，區間帶入後跳出相鄰區間選項；不對可點欄位進選站頁再改
-async function gpsQuickPick(){
-  gpsSetBusy('.bar-gps', true);
+// 單點/區間車站欄右邊的 GPS 區：抓定位帶入最近車站；定位失敗（沒權限、逾時、附近沒有車站）才進手動選站頁。
+// 帶入的站不對時，欄位已經有站了，點欄位就進選站頁手動改
+let gpsFirstBusy = false;
+const GPS_MAX_KM = 50;
+async function gpsFirstPick(kind){
+  const manual = () => kind === 'between' ? openBetweenStnPicker() : openSingleStnPicker();
+  const nameEl = kind === 'between' ? document.querySelector('#tab-between-pick .loc-name') : document.getElementById('loc-display');
+  if (gpsFirstBusy) return;
+  gpsFirstBusy = true;
+  const oldText = nameEl ? nameEl.textContent : '';
+  if (nameEl) nameEl.textContent = '定位中…';
   const near = await gpsGetNearest();
-  gpsSetBusy('.bar-gps', false);
-  if(!near) return;
-  if(document.getElementById('tab-between').classList.contains('active')){
+  if (nameEl) nameEl.textContent = oldText;
+  gpsFirstBusy = false;
+  if (!near || near.dist > GPS_MAX_KM) {
+    if (near) showToast('附近沒有車站，請手動選擇');
+    manual();
+    return;
+  }
+  if (kind === 'between') {
     // 選項視窗標題已經寫了站名，不再疊 toast 蓋住選項
     betweenState.s1 = near.n;
     showTabBetweenOptions(near.n);
