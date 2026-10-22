@@ -3176,6 +3176,15 @@ window.debugDirection = function(trainNo) {
   console.log(`displayDirection: ${displayDir === 'up' ? '↑ 上行' : '↓ 下行'}`);
   return { trainNo, tdxDir: train.dir, from: train.from, fi, to: train.to, ti, displayDir };
 };
+// STATION_KM 主表是環狀攤平的：基隆=0 一路繞到暖暖=653.5，接縫在八堵(6.0)↔暖暖(653.5)。
+// 實際只差 1.6km 的八堵↔暖暖（宜蘭線、平溪線區間車天天經過）在主表上會變成 6～653.5，
+// 幾乎涵蓋全台，枋寮～枋山這種同時屬於 JUNGUAN/EAST 的站會連路線驗證都騙過，被誤判成「通過」。
+// 真實的不停靠區段遠小於半圈，跨度超過半圈就是跨接縫，主表一律不插值（跨八堵的情形交給宜蘭線里程表處理）。
+const LOOP_SEAM_SPAN = 300;
+function crossesLoopSeam(aKm, bKm) {
+  return Math.abs(aKm - bKm) > LOOP_SEAM_SPAN;
+}
+
 // 區間快（甚至區間車）也會跳過部分小站，一樣需要通過時間估算，不能只給對號列車用
 const PASS_THRU_TYPES = new Set(['exp','exp3','puy','tze','moc','local','localx']);
 
@@ -3216,7 +3225,7 @@ function estimatePassTime(train, targetName) {
     // 主表：環島相對位置（西部／南迴線／台東線）
     const aKm = stnKm(sA);
     const bKm = stnKm(sB);
-    if (aKm !== undefined && bKm !== undefined) {
+    if (aKm !== undefined && bKm !== undefined && !crossesLoopSeam(aKm, bKm)) {
       // ── 路線驗證：前後站與目標站至少有一條共同路線 ──────
       let routeOk = true;
       if (targetRoutes.length > 0) {
@@ -3370,7 +3379,7 @@ window.debugStationPass = function(stnName, startTime, endTime) {
         for (let i = 0; i < train.stops.length - 1; i++) {
           const aKm = stnKm(train.stops[i].stn);
           const bKm = stnKm(train.stops[i+1].stn);
-          if (aKm === undefined || bKm === undefined) continue;
+          if (aKm === undefined || bKm === undefined || crossesLoopSeam(aKm, bKm)) continue;
           const lo = Math.min(aKm, bKm), hi = Math.max(aKm, bKm);
           if (targetKm > lo && targetKm < hi) {
             excluded.push({ no: train.no, type: train.type, reason: `${train.type} 不允許通過估算`, from: train.from, to: train.to });
