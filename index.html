@@ -431,6 +431,7 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .tt-dur{font-size:12px;color:var(--text3);}
 .tt-fare{font-size:14px;font-weight:600;color:var(--text2);padding-left:6px;margin-left:2px;border-left:1.5px solid var(--border);white-space:nowrap;line-height:1.3;}
 .tt-fare:empty{display:none;}
+.tt-fare-b{margin-left:auto;border-left:none;padding-left:0;font-size:15px;color:var(--text);}
 .tt-time-row>*{white-space:nowrap;flex-shrink:0;}
 .tt-mid{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
 .tt-route{font-size:13px;color:var(--text2);font-weight:600;}
@@ -4382,12 +4383,12 @@ function renderTTList(list, isMock, fareFrom, fareTo) {
               ? `<span style="font-size:12px;font-weight:700;color:white;background:#E8A000;padding:2px 8px;border-radius:20px;letter-spacing:0;">${t.dur}</span>`
               : `<span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur}</span>`
           }
-          ${fKey && !t.suspended ? `<span class="tt-fare" data-type="${t.type}">${fareText(fareTiers, t.type)}</span>` : ''}
         </div>
       </div>
       <div class="tt-mid" style="margin-bottom:3px;">
         ${typeBadgeHtml(t.no, ti)}${namedTrainBadge(t.no)}
         <span style="font-size:13px;font-weight:600;color:var(--text);">${t.no}</span>
+        ${fKey && !t.suspended ? `<span class="tt-fare tt-fare-b" data-type="${t.type}">${fareText(fareTiers, t.type)}</span>` : ''}
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div class="tt-route">${(t.queryFrom||t.from)} → ${(t.queryTo||t.to)}</div>
