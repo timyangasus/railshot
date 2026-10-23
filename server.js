@@ -455,8 +455,9 @@ app.get('/api/od/:from/:to/:date', async (req, res) => {
 // ── 票價（TDX ODFare）─────────────────────────────────
 // 台鐵票價只分三級：自強級（自強／自強3000／普悠瑪／太魯閣同價）、莒光級、區間級（區間／區間快／復興同價），
 // 而且只跟起訖站有關，跟哪一班車無關，所以一個起訖對只要問一次 TDX，快取 7 天（票價幾年才調一次）。
-// ODFare 回傳的車種代碼各版本不一致，不依賴代碼對照：取「單程、成人、標準艙」的票價，
-// 不重複的價格由高到低排就是 自強 > 莒光 > 區間。raw 一併回傳方便對照 TDX 原始資料。
+// 注意：ODFare 同一組起訖站會回傳「順行」「逆行」兩個方向，逆行是反方向繞台灣一圈的票價
+// （例如臺南→高雄逆行約 880km，自強 2001 元），所以每個車種要取最低價，才是實際會走的那個方向。
+// TrainType 代碼（2026-10 用臺南→高雄實際資料核對）：1/2/3/11=自強級、4=莒光、5/6/10=區間級、7=普快
 const FARE_TTL = 7 * 24 * 60 * 60 * 1000;
 const fareCache = {}; // { '臺南|高雄': { at, data } }
 const fetchingFare = {};
@@ -473,10 +474,11 @@ function stationIdByName(entry, name) {
 
 function isCode1(v) { return v === undefined || v === null || String(v) === '1'; }
 
+const FARE_TIER_CODES = { exp: ['1','2','3','11'], moc: ['4'], local: ['5','6','10'] };
+
 function parseODFare(data) {
   const rows = Array.isArray(data) ? data : (data.ODFares || []);
   const byTrainType = {};
-  const prices = [];
   for (const row of rows) {
     for (const f of (row.Fares || [])) {
       const price = Number(f.Price);
@@ -488,17 +490,23 @@ function parseODFare(data) {
         continue;
       }
       const key = String(row.TrainType ?? f.TicketType ?? '?');
-      byTrainType[key] = Math.max(byTrainType[key] || 0, price);
-      prices.push(price);
+      // 取最低價：同車種另一筆是反方向繞一圈的逆行票價
+      byTrainType[key] = Math.min(byTrainType[key] ?? Infinity, price);
     }
   }
-  const distinct = [...new Set(prices)].sort((a, b) => b - a);
-  if (!distinct.length) return null;
-  const tiers = {
-    exp:   distinct[0],
-    moc:   distinct.length >= 3 ? distinct[1] : null,
-    local: distinct[distinct.length >= 3 ? 2 : distinct.length - 1],
+  if (!Object.keys(byTrainType).length) return null;
+
+  const tierMin = codes => {
+    const ps = codes.map(c => byTrainType[c]).filter(Number.isFinite);
+    return ps.length ? Math.min(...ps) : null;
   };
+  let tiers = { exp: tierMin(FARE_TIER_CODES.exp), moc: tierMin(FARE_TIER_CODES.moc), local: tierMin(FARE_TIER_CODES.local) };
+
+  // 代碼對不上（例如 v2 舊格式或 TDX 改代碼）才退回：不重複價格由高到低 = 自強 > 莒光 > 區間
+  if (!tiers.exp && !tiers.local) {
+    const d = [...new Set(Object.values(byTrainType))].sort((a, b) => b - a);
+    tiers = { exp: d[0], moc: d.length >= 3 ? d[1] : null, local: d[d.length >= 3 ? 2 : d.length - 1] };
+  }
   return { tiers, raw: byTrainType };
 }
 

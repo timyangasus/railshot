@@ -4302,7 +4302,9 @@ function renderTransferList(transfer) {
 // 台鐵票價只看起訖站和票價等級（自強級／莒光級／區間級），跟哪一班車無關，
 // 所以一組起訖站問一次後端就好，存在 localStorage 7 天（票價幾年才調一次）
 const FARE_TIER = { exp3:'exp', puy:'exp', tze:'exp', exp:'exp', moc:'moc', localx:'local', local:'local' };
-const FARE_LS_KEY = 'rs_fares_v1';
+// v2：v1 存到的是繞台灣一圈的錯誤票價（2001/1545/1290），換 key 讓手機上的舊快取直接作廢
+const FARE_LS_KEY = 'rs_fares_v2';
+try { localStorage.removeItem('rs_fares_v1'); } catch(e) {}
 const FARE_LS_TTL = 7 * 24 * 60 * 60 * 1000;
 let fareCache = {};
 try { fareCache = JSON.parse(localStorage.getItem(FARE_LS_KEY) || '{}'); } catch(e) { fareCache = {}; }
