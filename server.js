@@ -452,6 +452,93 @@ app.get('/api/od/:from/:to/:date', async (req, res) => {
   }
 });
 
+// ── 票價（TDX ODFare）─────────────────────────────────
+// 台鐵票價只分三級：自強級（自強／自強3000／普悠瑪／太魯閣同價）、莒光級、區間級（區間／區間快／復興同價），
+// 而且只跟起訖站有關，跟哪一班車無關，所以一個起訖對只要問一次 TDX，快取 7 天（票價幾年才調一次）。
+// ODFare 回傳的車種代碼各版本不一致，不依賴代碼對照：取「單程、成人、標準艙」的票價，
+// 不重複的價格由高到低排就是 自強 > 莒光 > 區間。raw 一併回傳方便對照 TDX 原始資料。
+const FARE_TTL = 7 * 24 * 60 * 60 * 1000;
+const fareCache = {}; // { '臺南|高雄': { at, data } }
+const fetchingFare = {};
+
+function stationIdByName(entry, name) {
+  const alt = name.replace(/台/g, '臺');
+  for (const t of entry.trains) {
+    for (const s of t.stops) {
+      if ((s.stn === name || s.stn === alt) && s.id) return s.id;
+    }
+  }
+  return null;
+}
+
+function isCode1(v) { return v === undefined || v === null || String(v) === '1'; }
+
+function parseODFare(data) {
+  const rows = Array.isArray(data) ? data : (data.ODFares || []);
+  const byTrainType = {};
+  const prices = [];
+  for (const row of rows) {
+    for (const f of (row.Fares || [])) {
+      const price = Number(f.Price);
+      if (!Number.isFinite(price) || price <= 0) continue;
+      // v2 舊格式的 TicketType 是「成自」「成莒」「成復」這種字串，只收「成」開頭（成人）
+      if (typeof f.TicketType === 'string' && !/^\d+$/.test(f.TicketType)) {
+        if (!f.TicketType.startsWith('成')) continue;
+      } else if (!isCode1(f.TicketType) || !isCode1(f.FareClass) || !isCode1(f.CabinClass)) {
+        continue;
+      }
+      const key = String(row.TrainType ?? f.TicketType ?? '?');
+      byTrainType[key] = Math.max(byTrainType[key] || 0, price);
+      prices.push(price);
+    }
+  }
+  const distinct = [...new Set(prices)].sort((a, b) => b - a);
+  if (!distinct.length) return null;
+  const tiers = {
+    exp:   distinct[0],
+    moc:   distinct.length >= 3 ? distinct[1] : null,
+    local: distinct[distinct.length >= 3 ? 2 : distinct.length - 1],
+  };
+  return { tiers, raw: byTrainType };
+}
+
+async function getFare(fromName, toName) {
+  const key = `${fromName}|${toName}`;
+  const hit = fareCache[key];
+  if (hit && Date.now() - hit.at < FARE_TTL) return hit.data;
+  if (fetchingFare[key]) return fetchingFare[key];
+  fetchingFare[key] = (async () => {
+    const entry = await buildIndex();
+    const fromId = stationIdByName(entry, fromName);
+    const toId   = stationIdByName(entry, toName);
+    if (!fromId || !toId) throw new Error(`找不到車站代碼：${!fromId ? fromName : toName}`);
+    let parsed = null;
+    for (const ver of ['v3', 'v2']) {
+      try {
+        const data = await tdxFetch(`/api/basic/${ver}/Rail/TRA/ODFare/${fromId}/to/${toId}?$format=JSON`, 1, 10000);
+        parsed = parseODFare(data);
+        if (parsed) { parsed.source = ver; break; }
+      } catch (e) {
+        console.log(`ODFare ${ver} ${fromName}→${toName} failed: ${e.message}`);
+      }
+    }
+    if (!parsed) throw new Error('TDX 沒有回傳票價');
+    const data = { from: fromName, to: toName, fromId, toId, ...parsed };
+    fareCache[key] = { at: Date.now(), data };
+    return data;
+  })().finally(() => { delete fetchingFare[key]; });
+  return fetchingFare[key];
+}
+
+app.get('/api/fare/:from/:to', async (req, res) => {
+  try {
+    const data = await getFare(decodeURIComponent(req.params.from), decodeURIComponent(req.params.to));
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── Live ─────────────────────────────────────────────
 app.get('/api/live', async (req, res) => {
   try {

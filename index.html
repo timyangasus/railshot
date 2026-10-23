@@ -429,6 +429,9 @@ html,body{height:100%;background:#F2F2F7;color:var(--text);font-family:-apple-sy
 .tt-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
 .tt-times{font-size:26px;font-weight:800;letter-spacing:-0.5px;color:var(--text);}
 .tt-dur{font-size:12px;color:var(--text3);}
+.tt-fare{font-size:14px;font-weight:600;color:var(--text2);padding-left:6px;margin-left:2px;border-left:1.5px solid var(--border);white-space:nowrap;line-height:1.3;}
+.tt-fare:empty{display:none;}
+.tt-time-row>*{white-space:nowrap;flex-shrink:0;}
 .tt-mid{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
 .tt-route{font-size:13px;color:var(--text2);font-weight:600;}
 
@@ -4236,7 +4239,7 @@ async function searchTT(){
           return;
         }
       }
-      renderTTList(list, false);
+      renderTTList(list, false, fromName, toName);
       return;
     } catch(e) {
       stopLoading();
@@ -4295,7 +4298,51 @@ function renderTransferList(transfer) {
   `;
 }
 
-function renderTTList(list, isMock) {
+// ── 票價 ──────────────────────────────────────────────
+// 台鐵票價只看起訖站和票價等級（自強級／莒光級／區間級），跟哪一班車無關，
+// 所以一組起訖站問一次後端就好，存在 localStorage 7 天（票價幾年才調一次）
+const FARE_TIER = { exp3:'exp', puy:'exp', tze:'exp', exp:'exp', moc:'moc', localx:'local', local:'local' };
+const FARE_LS_KEY = 'rs_fares_v1';
+const FARE_LS_TTL = 7 * 24 * 60 * 60 * 1000;
+let fareCache = {};
+try { fareCache = JSON.parse(localStorage.getItem(FARE_LS_KEY) || '{}'); } catch(e) { fareCache = {}; }
+const fareFetching = {};
+
+function fareKey(from, to) {
+  const n = x => (x || '').replace(/台/g, '臺');
+  return `${n(from)}|${n(to)}`;
+}
+function cachedFareTiers(key) {
+  const hit = fareCache[key];
+  return hit && Date.now() - hit.at < FARE_LS_TTL ? hit.tiers : null;
+}
+function fareText(tiers, type) {
+  const p = tiers && tiers[FARE_TIER[type] || 'exp'];
+  return p ? `${p}元` : '';
+}
+async function loadFares(from, to) {
+  const key = fareKey(from, to);
+  if (cachedFareTiers(key) || fareFetching[key] || !API_BASE) return;
+  fareFetching[key] = true;
+  try {
+    const r = await fetchWithTimeout(`${API_BASE}/api/fare/${encodeURIComponent(from)}/${encodeURIComponent(to)}`, {}, 20000);
+    const d = await r.json();
+    if (!r.ok || !d.tiers) throw new Error(d.error || `HTTP ${r.status}`);
+    fareCache[key] = { at: Date.now(), tiers: d.tiers };
+    try { localStorage.setItem(FARE_LS_KEY, JSON.stringify(fareCache)); } catch(e) {}
+    // 結果回來時畫面可能已經換成別的查詢，只填還是同一組起訖站的卡片
+    const el = document.getElementById('tt-results');
+    if (el && el.dataset.fareKey === key) {
+      el.querySelectorAll('.tt-fare[data-type]').forEach(span => { span.textContent = fareText(d.tiers, span.dataset.type); });
+    }
+  } catch(e) {
+    console.log('票價載入失敗', from, '→', to, e.message);
+  } finally {
+    delete fareFetching[key];
+  }
+}
+
+function renderTTList(list, isMock, fareFrom, fareTo) {
   const el=document.getElementById('tt-results');
   const fromLbl = document.getElementById('tt-from-lbl');
   const toLbl = document.getElementById('tt-to-lbl');
@@ -4313,6 +4360,10 @@ function renderTTList(list, isMock) {
 
   if(!list.length){el.innerHTML=mockBanner+`<div class="empty-state"><div class="empty-text">查無班次</div></div>`;return;}
 
+  const fKey = (!isMock && fareFrom && fareTo) ? fareKey(fareFrom, fareTo) : '';
+  const fareTiers = fKey ? cachedFareTiers(fKey) : null;
+  el.dataset.fareKey = fKey;
+
   el.innerHTML=mockBanner+list.map((t,idx)=>{
     const ti=TYPE_INFO[t.type]||{label:'其他',cls:'b-exp'};
     const faved=isTTFaved(t.no);
@@ -4321,7 +4372,7 @@ function renderTTList(list, isMock) {
 
       <button class="tt-heart-btn${faved?' liked':''}" onclick="toggleTTFavObj(${JSON.stringify(t).replace(/"/g,'&quot;')},event)">${faved?HEART_FULL:HEART_EMPTY}</button>
       <div style="padding-right:36px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div class="tt-time-row" style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;">
           <div class="tt-times" style="${t.suspended?'text-decoration:line-through;':''}">${t.dep} <span style="color:var(--text3);font-weight:400;font-size:20px;">→</span> ${t.arr}</div>
           ${t.suspended
             ? `<span style="font-size:12px;font-weight:700;color:white;background:var(--red);padding:2px 8px;border-radius:20px;letter-spacing:0;">停駛</span>`
@@ -4329,6 +4380,7 @@ function renderTTList(list, isMock) {
               ? `<span style="font-size:12px;font-weight:700;color:white;background:#E8A000;padding:2px 8px;border-radius:20px;letter-spacing:0;">${t.dur}</span>`
               : `<span style="font-size:14px;font-weight:600;color:var(--text2);">${t.dur}</span>`
           }
+          ${fKey && !t.suspended ? `<span class="tt-fare" data-type="${t.type}">${fareText(fareTiers, t.type)}</span>` : ''}
         </div>
       </div>
       <div class="tt-mid" style="margin-bottom:3px;">
@@ -4345,6 +4397,7 @@ function renderTTList(list, isMock) {
       </div>
     </div>`;
   }).join('');
+  if (fKey && !fareTiers) loadFares(fareFrom, fareTo);
 }
 
 function openTTDetailFromTrip(t, tripId){
