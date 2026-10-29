@@ -5484,20 +5484,28 @@ function bkCrc32(bytes){
   for (let i = 0; i < bytes.length; i++) c = BK_CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
   return (c ^ 0xFFFFFFFF) >>> 0;
 }
-// files: [{ name, data: Uint8Array }] → zip Blob（store、不壓縮）
+// files: [{ name, data: Uint8Array | Blob, crc?, size? }] → zip Blob（store、不壓縮）
+// data 是 Blob 時要先給 crc 和 size，照片不用全部讀進記憶體
 function bkZip(files){
   const enc = new TextEncoder();
   const parts = [], central = [];
   let offset = 0;
+  // DOS 時間／日期：沒填的話 iOS「檔案」會顯示 1979 年
+  const now = new Date();
+  const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
   for (const f of files) {
-    const name = enc.encode(f.name), crc = bkCrc32(f.data), size = f.data.length;
+    const name = enc.encode(f.name);
+    const crc = f.crc ?? bkCrc32(f.data), size = f.size ?? f.data.length;
     const lh = new DataView(new ArrayBuffer(30));
     lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+    lh.setUint16(10, dosTime, true); lh.setUint16(12, dosDate, true);
     lh.setUint32(14, crc, true); lh.setUint32(18, size, true); lh.setUint32(22, size, true);
     lh.setUint16(26, name.length, true);
     parts.push(lh.buffer, name, f.data);
     const ch = new DataView(new ArrayBuffer(46));
     ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+    ch.setUint16(12, dosTime, true); ch.setUint16(14, dosDate, true);
     ch.setUint32(16, crc, true); ch.setUint32(20, size, true); ch.setUint32(24, size, true);
     ch.setUint16(28, name.length, true); ch.setUint32(42, offset, true);
     central.push(ch.buffer, name);
@@ -5509,32 +5517,43 @@ function bkZip(files){
   end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
   return new Blob([...parts, ...central, end.buffer], { type: 'application/zip' });
 }
-// zip ArrayBuffer → { name: Uint8Array }。支援不壓縮和 deflate（檔案被別的工具重新打包過也讀得到）
-async function bkUnzip(buf){
-  const v = new DataView(buf), u8 = new Uint8Array(buf), dec = new TextDecoder();
+// 不把整個 zip 讀進記憶體：只讀檔尾的目錄，回傳 { name: { method, csize, lho } }
+async function bkZipIndex(file){
+  const tailLen = Math.min(file.size, 65557);
+  const tail = new DataView(await file.slice(file.size - tailLen).arrayBuffer());
   let eocd = -1;
-  for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 65557); i--) {
-    if (v.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  for (let i = tailLen - 22; i >= 0; i--) {
+    if (tail.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
   }
   if (eocd < 0) throw new Error('不是有效的備份檔');
-  const count = v.getUint16(eocd + 10, true);
-  let p = v.getUint32(eocd + 16, true);
+  const count = tail.getUint16(eocd + 10, true);
+  const cdSize = tail.getUint32(eocd + 12, true), cdOff = tail.getUint32(eocd + 16, true);
+  const v = new DataView(await file.slice(cdOff, cdOff + cdSize).arrayBuffer());
+  const dec = new TextDecoder();
   const out = {};
+  let p = 0;
   for (let i = 0; i < count; i++) {
     if (v.getUint32(p, true) !== 0x02014b50) throw new Error('備份檔已損毀');
     const method = v.getUint16(p + 10, true), csize = v.getUint32(p + 20, true);
     const nlen = v.getUint16(p + 28, true), xlen = v.getUint16(p + 30, true), clen = v.getUint16(p + 32, true);
     const lho = v.getUint32(p + 42, true);
-    const name = dec.decode(u8.subarray(p + 46, p + 46 + nlen));
+    const name = dec.decode(new Uint8Array(v.buffer, p + 46, nlen));
     p += 46 + nlen + xlen + clen;
-    if (name.endsWith('/')) continue;
-    const start = lho + 30 + v.getUint16(lho + 26, true) + v.getUint16(lho + 28, true);
-    const raw = u8.subarray(start, start + csize);
-    if (method === 0) out[name] = raw;
-    else if (method === 8) out[name] = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
-    else throw new Error('不支援的壓縮格式');
+    if (!name.endsWith('/')) out[name] = { method, csize, lho };
   }
   return out;
+}
+// 取出 zip 裡的一個檔案成 Blob，一次只切一個。支援不壓縮和 deflate（檔案被別的工具重新打包過也讀得到）
+async function bkZipEntryBlob(file, ent, type){
+  const lh = new DataView(await file.slice(ent.lho, ent.lho + 30).arrayBuffer());
+  const start = ent.lho + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
+  const raw = file.slice(start, start + ent.csize);
+  if (ent.method === 0) return raw.slice(0, raw.size, type || '');
+  if (ent.method === 8) {
+    const b = await new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob();
+    return new Blob([b], { type: type || '' });
+  }
+  throw new Error('不支援的壓縮格式');
 }
 
 async function backupExport(){
@@ -5549,10 +5568,16 @@ async function backupExport(){
     };
     const files = [{ name: 'data.json', data: new TextEncoder().encode(JSON.stringify(data)) }];
     const photoIds = [...new Set(journalEntries.flatMap(jrPhotoIdsOf))];
+    // 一次只把一張照片讀進記憶體算 CRC，之後只留 Blob 參照，照片再多也不會把頁面撐爆
+    let n = 0;
     for (const id of photoIds) {
+      label.textContent = `打包照片 ${++n}/${photoIds.length}…`;
       const blob = await jrGetPhotoBlob(id).catch(() => null);
-      if (blob) files.push({ name: `photos/${id}.jpg`, data: new Uint8Array(await blob.arrayBuffer()) });
+      if (!blob) continue;
+      const crc = bkCrc32(new Uint8Array(await blob.arrayBuffer()));
+      files.push({ name: `photos/${id}.jpg`, data: blob, crc, size: blob.size });
     }
+    label.textContent = '打包中…';
     // 檔名固定不帶日期：存到「檔案」時直接覆蓋舊的，永遠只留最新一份；想留多份再自己改名
     const fileName = 'Railshot備份.zip';
     const zip = bkZip(files);
@@ -5587,11 +5612,12 @@ async function backupImport(event){
   const row = document.getElementById('bk-import-row');
   const label = document.getElementById('bk-import-label');
   row.classList.add('busy'); label.textContent = '讀取中…';
-  let entries, data;
+  let index, data;
   try {
-    entries = await bkUnzip(await file.arrayBuffer());
-    if (!entries['data.json']) throw new Error('不是有效的備份檔');
-    data = JSON.parse(new TextDecoder().decode(entries['data.json']));
+    // 不把整個 zip 讀進記憶體：只讀檔尾目錄，照片還原時才逐張從檔案切出來
+    index = await bkZipIndex(file);
+    if (!index['data.json']) throw new Error('不是有效的備份檔');
+    data = JSON.parse(await (await bkZipEntryBlob(file, index['data.json'])).text());
     if (data.app !== 'railshot') throw new Error('不是 Railshot 的備份檔');
   } catch (e) {
     console.log('讀取備份檔失敗', e);
@@ -5605,19 +5631,25 @@ async function backupImport(event){
   closeSheet('backup-sheet');
   showConfirm('用備份檔覆蓋？',
     `手機上的收藏、行程和日誌會全部換成${when}備份內容（共 ${(data.journal||[]).length} 篇日誌），備份之後新增或修改的資料會不見。`,
-    '覆蓋還原', () => backupRestoreOverwrite(entries, data));
+    '覆蓋還原', () => backupRestoreOverwrite(file, index, data));
 }
-async function backupRestoreOverwrite(entries, data){
+async function backupRestoreOverwrite(file, index, data){
+  const row = document.getElementById('bk-import-row');
+  const label = document.getElementById('bk-import-label');
   try {
-    showToast('還原中…');
-    // 先把備份裡的照片全部寫進去，再刪掉備份裡沒有的，中途失敗也不會把照片清光
+    // 先把備份裡的照片全部寫進去（一次一張），再刪掉備份裡沒有的，中途失敗也不會把照片清光
     const keep = new Set();
-    for (const [name, bytes] of Object.entries(entries)) {
-      const m = name.match(/^photos\/(.+)\.jpg$/);
-      if (!m) continue;
-      keep.add(m[1]);
-      await jrSavePhotoBlob(m[1], new Blob([bytes], { type: 'image/jpeg' }));
+    const photoEntries = Object.entries(index).filter(([name]) => /^photos\/.+\.jpg$/.test(name));
+    let n = 0;
+    row.classList.add('busy');
+    for (const [name, ent] of photoEntries) {
+      label.textContent = `匯入照片 ${++n}/${photoEntries.length}…`;
+      showToast(label.textContent); // 還原時備份視窗已關閉，用提示顯示進度
+      const id = name.match(/^photos\/(.+)\.jpg$/)[1];
+      keep.add(id);
+      await jrSavePhotoBlob(id, await bkZipEntryBlob(file, ent, 'image/jpeg'));
     }
+    showToast('還原中…');
     const db = await jrOpenDB();
     const allIds = await new Promise((resolve, reject) => {
       const req = db.transaction('photos', 'readonly').objectStore('photos').getAllKeys();
@@ -5639,6 +5671,8 @@ async function backupRestoreOverwrite(entries, data){
   } catch (e) {
     console.log('還原失敗', e);
     showToast('還原失敗：' + e.message);
+  } finally {
+    row.classList.remove('busy'); label.textContent = '從備份檔還原';
   }
 }
 
