@@ -2670,12 +2670,33 @@ async function gpsLoadPositions(){
   return gpsPositions;
 }
 // 取得目前位置最近的車站（含距離）；失敗時 toast 提示並回傳 null
+// getCurrentPosition 在 iOS 上常常先回「上一次的舊定位」（例如剛離開的上一站），搭車時就會定到前一站。
+// 改用 watchPosition 連續收定位，丟掉時間戳太舊的，等到夠準的新定位（誤差 ≤100 公尺）就用，逾時就用目前收到最準的
+function gpsGetFreshPosition(timeoutMs = 10000, goodAccuracy = 100, maxAgeMs = 15000){
+  return new Promise((resolve, reject) => {
+    let best = null, finished = false, watchId = null, timer = null;
+    const finish = (pos, err) => {
+      if (finished) return;
+      finished = true;
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      clearTimeout(timer);
+      pos ? resolve(pos) : reject(err || {code: 3});
+    };
+    watchId = navigator.geolocation.watchPosition(pos => {
+      const age = Date.now() - pos.timestamp;
+      if (age > maxAgeMs && age < 24*3600*1000) return; // 舊定位直接丟掉（時間戳異常的不當成舊的）
+      if (!best || pos.coords.accuracy < best.coords.accuracy) best = pos;
+      if (pos.coords.accuracy <= goodAccuracy) finish(best);
+    }, err => {
+      if (err.code === 1) finish(null, err); // 沒開權限不用再等
+    }, {enableHighAccuracy: true, maximumAge: 0, timeout: timeoutMs});
+    timer = setTimeout(() => finish(best, {code: 3}), timeoutMs);
+  });
+}
 async function gpsGetNearest(){
   if(!navigator.geolocation){ showToast('此裝置不支援定位'); return null; }
-  const posPromise = new Promise((resolve, reject) =>
-    navigator.geolocation.getCurrentPosition(resolve, reject, {timeout:10000, enableHighAccuracy:true}));
   try {
-    const [pos] = await Promise.all([posPromise, gpsLoadPositions()]);
+    const [pos] = await Promise.all([gpsGetFreshPosition(), gpsLoadPositions()]);
     return findNearestStations(pos.coords.latitude, pos.coords.longitude, 1)[0];
   } catch(err) {
     const msgs = {1:'定位權限未開啟，請到 iPhone 設定 > Safari > 位置 開啟權限', 2:'無法取得位置，請再試一次', 3:'定位逾時，請再試一次'};
