@@ -49,8 +49,15 @@ async function getToken() {
 // ── TDX 用量統計（伺服器啟動以來）──────────────────────
 // TDX 是依「呼叫次數」和「資料量」計費，記下每種 API 各打了幾次、下載多少，/api/health 可以直接看
 const tdxUsage = { since: new Date().toISOString(), calls: 0, bytes: 0, byApi: {} };
+// 用量統計的分類名稱：取網址最後一段（DailyTrainTimetable、TrainLiveBoard…）；
+// ODFare 網址是 /ODFare/{起站}/to/{迄站}，最後一段是迄站代碼，要另外歸成 ODFare
+function tdxApiLabel(urlPath){
+  const path = urlPath.split('?')[0];
+  if (path.includes('/ODFare/')) return 'ODFare';
+  return path.replace(/\/TrainDate\/.*/, '').split('/').pop();
+}
 function recordTdxUsage(urlPath, bytes){
-  const api = urlPath.split('?')[0].replace(/\/TrainDate\/.*/, '').split('/').pop();
+  const api = tdxApiLabel(urlPath);
   const u = tdxUsage.byApi[api] || (tdxUsage.byApi[api] = { calls: 0, bytes: 0 });
   u.calls++; u.bytes += bytes;
   tdxUsage.calls++; tdxUsage.bytes += bytes;
@@ -74,7 +81,7 @@ async function tdxFetch(urlPath, retries = 3, timeoutMs = 8000) {
       const text = await res.text();
       // 沒有 content-length 時（分段傳輸）改用實際收到的大小補記
       if (!Number(res.headers.get('content-length'))) {
-        const api = urlPath.split('?')[0].replace(/\/TrainDate\/.*/, '').split('/').pop();
+        const api = tdxApiLabel(urlPath);
         const b = Buffer.byteLength(text);
         tdxUsage.bytes += b; tdxUsage.byApi[api].bytes += b;
       }
@@ -156,15 +163,20 @@ async function fetchAndBuildIndex(date) {
       `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainDate/${date}?$format=JSON`,
       1, 25000 // 全日班表資料量大，連假 TDX 壅塞時 8 秒常不夠，放寬到 25 秒；每次重試都是好幾 MB，只重試 1 次
     );
-    timetables = data.TrainTimetables || data || [];
+    timetables = Array.isArray(data?.TrainTimetables) ? data.TrainTimetables : Array.isArray(data) ? data : [];
     source = 'DailyTrainTimetable';
     console.log(`DailyTrainTimetable[${date}]: ${timetables.length} trains`);
+    // TDX 有時連線成功但回傳 0 班（當日資料還沒發布或上游出錯），台鐵不可能一天 0 班，
+    // 當成失敗處理改用一般時刻表；fallback 只快取 10 分鐘，之後會自動再試當日時刻表
+    if (!timetables.length) throw new Error('DailyTrainTimetable 回傳 0 班');
   } catch(e) {
     console.warn(`DailyTrainTimetable[${date}] failed (${e.message}), fallback to GeneralTrainTimetable`);
     timetables = await getGeneralTimetables();
     source = 'GeneralTrainTimetable(fallback)';
     console.log(`GeneralTrainTimetable fallback: ${timetables.length} trains`);
   }
+  // 兩個來源都是空的就不要快取，直接丟錯，下一次查詢會重新向 TDX 要資料
+  if (!timetables.length) throw new Error(`${date} 時刻表兩個來源都沒有資料`);
 
   const trainIndex = {};
   const stationIndex = {};
@@ -237,7 +249,8 @@ function getGeneralTimetables() {
   if (!fetchingGeneralRaw) {
     fetchingGeneralRaw = tdxFetch('/api/basic/v3/Rail/TRA/GeneralTrainTimetable?$format=JSON', 1, 25000)
       .then(data => {
-        const timetables = data.TrainTimetables || data || [];
+        const timetables = Array.isArray(data?.TrainTimetables) ? data.TrainTimetables : Array.isArray(data) ? data : [];
+        if (!timetables.length) throw new Error('GeneralTrainTimetable 回傳 0 班');
         generalRawCache = { timetables, at: Date.now() };
         return timetables;
       })
