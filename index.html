@@ -2857,7 +2857,8 @@ function buildFrontendIndex(trains) {
 async function ensureGTT(dateStr, onRetry) {
   const targetDate = dateStr || localDateStr();
   // 若已有資料且日期相符，直接用
-  if (gttData && gttStationIdx && gttData.date === targetDate) return gttData;
+  // 0 班的資料一定是 TDX 出錯（台鐵不可能一天 0 班），不能沿用，要重新向伺服器要
+  if (gttData && gttStationIdx && gttData.date === targetDate && gttData.trains?.length) return gttData;
 
   const key = gttCacheKey(targetDate);
   try {
@@ -2870,7 +2871,7 @@ async function ensureGTT(dateStr, onRetry) {
     if (raw) {
       const parsed = JSON.parse(raw);
       // 日期一致、TTL 未過期、且資料格式版本相符 才使用 cache
-      if (parsed.date === targetDate && Date.now() - parsed.builtAt < GTT_TTL && parsed.schemaVersion === GTT_SCHEMA_VERSION) {
+      if (parsed.date === targetDate && Date.now() - parsed.builtAt < GTT_TTL && parsed.schemaVersion === GTT_SCHEMA_VERSION && parsed.trains?.length) {
         gttData = parsed;
         buildFrontendIndex(gttData.trains);
         console.log(`GTT loaded from cache [${parsed.source}] for ${targetDate}: ${gttData.trains.length} trains`);
@@ -2891,7 +2892,10 @@ async function ensureGTT(dateStr, onRetry) {
     try {
       const resp = await fetchWithTimeout(`${API_BASE}/api/timetable?date=${targetDate}`, {}, 20000);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      gttData = await resp.json();
+      const fetched = await resp.json();
+      // 伺服器回 0 班（舊版伺服器會把 TDX 的空資料快取起來）：不要採用也不要存，當成失敗走重試
+      if (!fetched.trains?.length) throw new Error('伺服器回傳 0 班');
+      gttData = fetched;
       gttData.schemaVersion = GTT_SCHEMA_VERSION;
       buildFrontendIndex(gttData.trains);
       // 伺服器若是退回一般時刻表（不含加開車次），不要存進本機快取，下次查詢再重抓
