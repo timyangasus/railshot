@@ -119,6 +119,8 @@ const CACHE_TTL_TODAY = 3 * 60 * 60 * 1000;  // 3hr
 const CACHE_TTL_OTHER = 12 * 60 * 60 * 1000; // 12hr
 // DailyTrainTimetable 失敗時退回的 GeneralTrainTimetable 不含加開車次，只短暫快取，盡快再試真正的當日班表
 const FALLBACK_CACHE_TTL = 10 * 60 * 1000; // 10min
+// 台鐵一天約 900～1000 班；當日時刻表少於這個數字就視為 TDX 資料異常（0 班或殘缺）
+const MIN_DAILY_TRAINS = 500;
 const MAX_CACHED_DATES = 5; // 最多同時快取幾天，避免記憶體無限增長
 
 // 伺服器在 Render 上跑的是 UTC，台灣早上 8 點前 toISOString() 會拿到「昨天」，改用台灣時間
@@ -158,6 +160,7 @@ async function fetchAndBuildIndex(date) {
 
   let timetables = [];
   let source = '';
+  let partialDaily = []; // 當日時刻表班次異常偏少時先留著，萬一一般時刻表更糟還能拿來用
   try {
     const data = await tdxFetch(
       `/api/basic/v3/Rail/TRA/DailyTrainTimetable/TrainDate/${date}?$format=JSON`,
@@ -166,14 +169,27 @@ async function fetchAndBuildIndex(date) {
     timetables = Array.isArray(data?.TrainTimetables) ? data.TrainTimetables : Array.isArray(data) ? data : [];
     source = 'DailyTrainTimetable';
     console.log(`DailyTrainTimetable[${date}]: ${timetables.length} trains`);
-    // TDX 有時連線成功但回傳 0 班（當日資料還沒發布或上游出錯），台鐵不可能一天 0 班，
-    // 當成失敗處理改用一般時刻表；fallback 只快取 10 分鐘，之後會自動再試當日時刻表
-    if (!timetables.length) throw new Error('DailyTrainTimetable 回傳 0 班');
+    // TDX 有時連線成功卻回傳 0 班或殘缺資料（2026-11-24 整個早上回 0 班）。
+    // 台鐵一天約 900～1000 班，少於 MIN_DAILY_TRAINS 就當成異常，改用一般時刻表；
+    // fallback 只快取 10 分鐘，之後會自動再試當日時刻表
+    if (timetables.length < MIN_DAILY_TRAINS) {
+      partialDaily = timetables;
+      throw new Error(`DailyTrainTimetable 只有 ${timetables.length} 班，低於 ${MIN_DAILY_TRAINS}`);
+    }
   } catch(e) {
     console.warn(`DailyTrainTimetable[${date}] failed (${e.message}), fallback to GeneralTrainTimetable`);
-    timetables = await getGeneralTimetables();
-    source = 'GeneralTrainTimetable(fallback)';
-    console.log(`GeneralTrainTimetable fallback: ${timetables.length} trains`);
+    let general = [];
+    try { general = await getGeneralTimetables(); }
+    catch(ge) { console.warn(`GeneralTrainTimetable failed (${ge.message})`); }
+    // 兩邊都有東西就用班次多的那份；殘缺的當日時刻表也標成 fallback，只快取 10 分鐘、前端也不存
+    if (general.length >= partialDaily.length) {
+      timetables = general;
+      source = 'GeneralTrainTimetable(fallback)';
+    } else {
+      timetables = partialDaily;
+      source = 'DailyTrainTimetable(partial-fallback)';
+    }
+    console.log(`${source}: ${timetables.length} trains`);
   }
   // 兩個來源都是空的就不要快取，直接丟錯，下一次查詢會重新向 TDX 要資料
   if (!timetables.length) throw new Error(`${date} 時刻表兩個來源都沒有資料`);
